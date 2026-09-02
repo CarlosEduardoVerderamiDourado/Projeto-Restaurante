@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title ></title>
+</head>
+<body>
+    <h1 id="titulo-mesa"></h1>
+  <button onclick="solicitarGarcom()">Chamar Garçom</button>
+
+  <button >Alto atendimento</button>
+  <script>
+     window.onload = function() { 
+        const mesa_numero = localStorage.getItem('id_mesa_configurada') 
+        document.getElementById('titulo-mesa').innerText = mesa_numero; 
+    }
+    
+    function solicitarGarcom() {
+        const mesa = localStorage.getItem('id_mesa_configurada') 
+        document.getElementById('titulo-mesa').innerText = mesa; 
+
+        fetch("http://localhost:3000/api/mesas/solicitar-garcom",{
+        method: "POST",
+        headers:{
+            "Content-Type": "application/json" // 🟢 Ajustado para C maiúsculo
+        },
+        body: JSON.stringify({ mesa })
+    })
+    .then(resposta => resposta.json())
+    .then(dados => {
+        if (dados.sucesso) {
+            alert(dados.mensagem); 
+            console.log("Mesa", dados.cargo);
+        } else {
+            alert(dados.mensagem); 
+        }
+    })
+    .catch(erro => {
+        console.error("Erro na comunicação:", erro);
+        alert("Não foi possível chamar o garson.");
+    });
+    }
+
+
+  </script>
+</body>
+</html>

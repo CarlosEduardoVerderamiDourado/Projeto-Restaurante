@@ -1,19 +1,16 @@
 const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
+const rotasMesas = require('./routes/mesas')
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use('/api/mesas', rotasMesas);
+
 
 // 🛢️ Configuração da conexão com o seu banco de dados MySQL 
-const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',          
-    password: '',          
-    database: 'restaurante'
-});
-
+const db = require('./database');
 // Testando a conexão com o banco
 db.connect((err) => {
     if (err) {
