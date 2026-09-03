@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -19,7 +18,7 @@
         </div>
 
         <!-- FORMULÁRIO 1: ATIVAÇÃO DA MESA -->
-        <form id="form-mesa" class="form-panel active" onsubmit="ativarMesa(event)">
+        <form id="form-mesa" class="form-panel active" onsubmit="activarMesa(event)">
             <div class="form-group">
                 <label for="numero-mesa">Número da Mesa:</label>
                 <input type="number" id="numero-mesa" placeholder="Ex: 5" required>
@@ -105,7 +104,7 @@ function loginFuncionario(event) {
 
     console.log("Tentando logar funcionário...");
 
-    fetch("http://localhost:3000/api/login",{
+    fetch("http://localhost:3000/api/funcionarios/login",{
         method: "POST",
         headers:{
             "Content-Type": "application/json" // 🟢 Ajustado para C maiúsculo
