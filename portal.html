@@ -9,7 +9,7 @@
     <h1 id="titulo-mesa"></h1>
   <button onclick="solicitarGarcom()">Chamar Garçom</button>
 
-  <button >Alto atendimento</button>
+  <button onclick="altoatendimento()">Alto atendimento</button>
   <script>
      window.onload = function() { 
         const mesa_numero = localStorage.getItem('id_mesa_configurada') 
@@ -23,7 +23,7 @@
         fetch("http://localhost:3000/api/mesas/solicitar-garcom",{
         method: "POST",
         headers:{
-            "Content-Type": "application/json" // 🟢 Ajustado para C maiúsculo
+            "Content-Type": "application/json" 
         },
         body: JSON.stringify({ mesa })
     })
@@ -41,7 +41,31 @@
         alert("Não foi possível chamar o garson.");
     });
     }
+    function altoatendimento(){
+        const mesa = localStorage.getItem('id_mesa_configurada') 
+        document.getElementById('titulo-mesa').innerText = mesa; 
 
+        fetch("http://localhost:3000/api/mesas/altoatendimento",{
+        method: "POST",
+        headers:{
+            "Content-Type": "application/json" 
+        },
+        body: JSON.stringify({ mesa })
+    })
+    .then(resposta => resposta.json())
+    .then(dados => {
+        if (dados.sucesso) {
+            alert(dados.mensagem); 
+            console.log("Mesa", dados.cargo);
+        } else {
+            alert(dados.mensagem); 
+        }
+    })
+    .catch(erro => {
+        console.error("Erro na comunicação:", erro);
+        alert("Não foi possível iniciar o autoatendimento.");
+    });
+    }
 
   </script>
 </body>
