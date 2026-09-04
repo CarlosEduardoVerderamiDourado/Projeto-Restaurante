@@ -16,32 +16,35 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `comandas`
+-- Table structure for table `pedidos_itens`
 --
 
-DROP TABLE IF EXISTS `comandas`;
+DROP TABLE IF EXISTS `pedidos_itens`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `comandas` (
-  `id_comanda` int(11) NOT NULL AUTO_INCREMENT,
-  `id_mesa` int(11) NOT NULL,
-  `status_comanda` varchar(45) NOT NULL DEFAULT 'Aberta',
-  `valor_total` decimal(10,2) NOT NULL DEFAULT 0.00,
-  `senha_gerente` varchar(45) NOT NULL,
-  `horario_abertura` timestamp NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id_comanda`),
-  KEY `fk_comandas_mesas` (`id_mesa`),
-  CONSTRAINT `fk_comandas_mesas` FOREIGN KEY (`id_mesa`) REFERENCES `mesas` (`id_mesa`) ON UPDATE CASCADE
+CREATE TABLE `pedidos_itens` (
+  `id_pedido` int(11) NOT NULL AUTO_INCREMENT,
+  `id_comanda` int(11) NOT NULL,
+  `id_produto` int(11) NOT NULL,
+  `quantidade` int(11) NOT NULL DEFAULT 1,
+  `preco_unitario_pago` decimal(10,2) NOT NULL,
+  `status_preparo` varchar(45) NOT NULL DEFAULT 'Na Fila',
+  `horario_pedido` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id_pedido`),
+  KEY `fk_pedidos_comandas` (`id_comanda`),
+  KEY `fk_pedidos_produtos` (`id_produto`),
+  CONSTRAINT `fk_pedidos_comandas` FOREIGN KEY (`id_comanda`) REFERENCES `comandas` (`id_comanda`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_pedidos_produtos` FOREIGN KEY (`id_produto`) REFERENCES `cardapio` (`id_produto`) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `comandas`
+-- Dumping data for table `pedidos_itens`
 --
 
-LOCK TABLES `comandas` WRITE;
-/*!40000 ALTER TABLE `comandas` DISABLE KEYS */;
-/*!40000 ALTER TABLE `comandas` ENABLE KEYS */;
+LOCK TABLES `pedidos_itens` WRITE;
+/*!40000 ALTER TABLE `pedidos_itens` DISABLE KEYS */;
+/*!40000 ALTER TABLE `pedidos_itens` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -53,4 +56,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-09-01 14:25:13
+-- Dump completed on 2026-09-03 16:42:38
