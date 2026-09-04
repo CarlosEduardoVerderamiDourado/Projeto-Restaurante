@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ratatue - Cardápio Digital</title>
+</head>
+<body>
+
+    <!-- 🟢 Cabeçalho identificando a mesa atual -->
+    <h2 id="mesa-display">Mesa: Carregando...</h2>
+
+    <!-- 🟢 Botões de Categorias para o cliente filtrar -->
+    <div class="categorias-abas">
+        <button onclick="filtrarCategoria('Todos')">Todos</button>
+        <button onclick="filtrarCategoria('Hambúrgueres')">Hambúrgueres</button>
+        <button onclick="filtrarCategoria('Bebidas')">Bebidas</button>
+    </div>
+
+    <!-- 🟢 O Tabuleiro Vazio: É aqui dentro que o JavaScript vai desenhar os produtos do banco -->
+    <div id="container-produtos">
+        <!-- Os produtos vão brotar aqui de dentro dinamicamente! -->
+    </div>
+
+    <script>
+        // Variável global para guardar a lista de produtos que vai vir do banco de dados
+let todosOsProdutos = [];
+
+window.onload = function() {
+    // 1. Resgata a mesa da memória e atualiza a tela
+    const mesaNumero = localStorage.getItem('id_mesa_configurada');
+    if (mesaNumero) {
+        document.getElementById('mesa-display').innerText = "Mesa " + mesaNumero;
+    }
+
+    // 2. Faz o fetch GET para puxar a lista de hambúrgueres e bebidas do banco
+    fetch("http://localhost:3000/api/cardapio")
+    .then(resposta => resposta.json())
+    .then(produtosDoBanco => {
+        console.log("Produtos carregados do MariaDB:", produtosDoBanco);
+        
+        // Guardamos a lista na nossa variável global para usar nos filtros depois
+        todosOsProdutos = produtosDoBanco;
+        
+        // [Próximo Passo]: Chamar a função que desenha os produtos na tela!
+        renderizarProdutos(todosOsProdutos);
+    })
+    .catch(erro => {
+        console.error("Erro ao carregar cardápio:", erro);
+        alert("Não foi possível carregar os itens do cardápio.");
+    });
+}
+
+function renderizarProdutos(listaDeProdutos) {
+    const container = document.getElementById('container-produtos');
+    
+    // 1. Limpa o tabuleiro para não duplicar os itens ao trocar de categoria
+    container.innerHTML = "";
+
+    // 2. Se o banco de dados voltar totalmente vazio, avisa o cliente
+    if (listaDeProdutos.length === 0) {
+        container.innerHTML = "<p>Nenhum produto cadastrado nesta categoria.</p>";
+        return;
+    }
+
+    // 3. Varte a lista criando o HTML dinâmico de cada prato
+    listaDeProdutos.forEach(produto => {
+        // Criamos o esqueleto de texto com as variáveis exatas do seu MariaDB
+        const cardHTML = `
+            <div class="produto-card" style="border: 1px solid #ccc; margin: 10px; padding: 10px;">
+                <img src="${produto.imagem_url}" alt="${produto.nome_item}" style="width: 100px; height: 100px; object-fit: cover;">
+                <h3>${produto.nome_item}</h3>
+                <p>${produto.descricao}</p>
+                <p><strong>R$ ${Number(produto.preco).toFixed(2)}</strong></p>
+                <button onclick="adicionarAoCarrinho(${produto.id_item})">Adicionar</button>
+            </div>
+        `;
+        
+        // Soma o novo card dentro do tabuleiro principal
+        container.innerHTML += cardHTML;
+    });
+}
+
+function filtrarCategoria(categoriaSelecionada) {
+    console.log("Filtrando por:", categoriaSelecionada);
+    
+    if (categoriaSelecionada === 'Todos') {
+        // Se clicou em todos, manda a lista global completa para o desenhador
+        renderizarProdutos(todosOsProdutos);
+    } else {
+        // Se clicou em uma categoria específica, filtra o array antes de desenhar
+        const produtosFiltrados = todosOsProdutos.filter(p => p.categoria === categoriaSelecionada);
+        renderizarProdutos(produtosFiltrados);
+    }
+}
+
+// 🟢 Deixe essa micro função de carrinho engatilhada para não dar erro ao clicar no botão 'Adicionar'
+function adicionarAoCarrinho(id) {
+    console.log("Item adicionado ao carrinho provisório. ID:", id);
+    alert("Item adicionado! (Lógica do carrinho será feita nas próximas sessões)");
+}
+    </script>
+    
+</body>
+</html>
