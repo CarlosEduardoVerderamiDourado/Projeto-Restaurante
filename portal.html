@@ -56,7 +56,7 @@
     .then(dados => {
         if (dados.sucesso) {
             alert(dados.mensagem); 
-            console.log("Mesa", dados.cargo);
+            window.location.href = "cardapio.html";
         } else {
             alert(dados.mensagem); 
         }
