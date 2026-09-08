@@ -22,84 +22,113 @@
         <!-- Os produtos vão brotar aqui de dentro dinamicamente! -->
     </div>
 
+    <!-- 🟢 Painel do Resumo -->
+    <div id="resumo-carrinho"></div>
+
     <script>
-        // Variável global para guardar a lista de produtos que vai vir do banco de dados
-let todosOsProdutos = [];
+        // Variáveis globais de controle
+        let todosOsProdutos = [];
+        let carrinho = [];
 
-window.onload = function() {
-    // 1. Resgata a mesa da memória e atualiza a tela
-    const mesaNumero = localStorage.getItem('id_mesa_configurada');
-    if (mesaNumero) {
-        document.getElementById('mesa-display').innerText = "Mesa " + mesaNumero;
-    }
+        // 🛒 FUNÇÃO 1: Adicionar item à sacola inteligente
+        function adicionarAoCarrinho(id) {
+            const produto = todosOsProdutos.find(p => p.id_item === id);
+            const itemNoCarrinho = carrinho.find(item => item.id_item === id);
 
-    // 2. Faz o fetch GET para puxar a lista de hambúrgueres e bebidas do banco
-    fetch("http://localhost:3000/api/cardapio")
-    .then(resposta => resposta.json())
-    .then(produtosDoBanco => {
-        console.log("Produtos carregados do MariaDB:", produtosDoBanco);
-        
-        // Guardamos a lista na nossa variável global para usar nos filtros depois
-        todosOsProdutos = produtosDoBanco;
-        
-        // [Próximo Passo]: Chamar a função que desenha os produtos na tela!
-        renderizarProdutos(todosOsProdutos);
-    })
-    .catch(erro => {
-        console.error("Erro ao carregar cardápio:", erro);
-        alert("Não foi possível carregar os itens do cardápio.");
-    });
-}
+            if (itemNoCarrinho) {
+                itemNoCarrinho.quantidade++;
+            } else {
+                carrinho.push({ ...produto, quantidade: 1 });
+            }
 
-function renderizarProdutos(listaDeProdutos) {
-    const container = document.getElementById('container-produtos');
-    
-    // 1. Limpa o tabuleiro para não duplicar os itens ao trocar de categoria
-    container.innerHTML = "";
+            console.log("Sacola de Compras Atual:", carrinho);
+            alert(`${produto.nome_item} adicionado à sacola!`);
+            
+            // Atualiza o painel visual
+            atualizarResumoCarrinho();
+        }
 
-    // 2. Se o banco de dados voltar totalmente vazio, avisa o cliente
-    if (listaDeProdutos.length === 0) {
-        container.innerHTML = "<p>Nenhum produto cadastrado nesta categoria.</p>";
-        return;
-    }
+        // 📊 FUNÇÃO 2: Atualizar o resumo financeiro na tela
+        function atualizarResumoCarrinho() {
+            let totalItens = 0;
+            let precoTotal = 0;
 
-    // 3. Varte a lista criando o HTML dinâmico de cada prato
-    listaDeProdutos.forEach(produto => {
-        // Criamos o esqueleto de texto com as variáveis exatas do seu MariaDB
-        const cardHTML = `
-            <div class="produto-card" style="border: 1px solid #ccc; margin: 10px; padding: 10px;">
-                <img src="${produto.imagem_url}" alt="${produto.nome_item}" style="width: 100px; height: 100px; object-fit: cover;">
-                <h3>${produto.nome_item}</h3>
-                <p>${produto.descricao}</p>
-                <p><strong>R$ ${Number(produto.preco).toFixed(2)}</strong></p>
-                <button onclick="adicionarAoCarrinho(${produto.id_item})">Adicionar</button>
-            </div>
-        `;
-        
-        // Soma o novo card dentro do tabuleiro principal
-        container.innerHTML += cardHTML;
-    });
-}
+            carrinho.forEach(item => {
+                totalItens += item.quantidade;
+                precoTotal += (item.quantidade * Number(item.preco));
+            });
 
-function filtrarCategoria(categoriaSelecionada) {
-    console.log("Filtrando por:", categoriaSelecionada);
-    
-    if (categoriaSelecionada === 'Todos') {
-        // Se clicou em todos, manda a lista global completa para o desenhador
-        renderizarProdutos(todosOsProdutos);
-    } else {
-        // Se clicou em uma categoria específica, filtra o array antes de desenhar
-        const produtosFiltrados = todosOsProdutos.filter(p => p.categoria === categoriaSelecionada);
-        renderizarProdutos(produtosFiltrados);
-    }
-}
+            const divResumo = document.getElementById('resumo-carrinho');
+            divResumo.innerHTML = `
+                <div style="background: #f4f4f4; padding: 15px; margin-top: 20px; border-top: 2px solid #333;">
+                    <h3>🛒 Resumo do Pedido</h3>
+                    <p>Total de itens na sacola: <strong>${totalItens}</strong></p>
+                    <p>Valor total: <strong>R$ ${precoTotal.toFixed(2)}</strong></p>
+                    <button onclick="enviarPedidoParaCozinha()" style="padding: 10px; background: green; color: white; border: none; cursor: pointer;">Enviar Pedido para Cozinha</button>
+                </div>
+            `;
+        }
 
-// 🟢 Deixe essa micro função de carrinho engatilhada para não dar erro ao clicar no botão 'Adicionar'
-function adicionarAoCarrinho(id) {
-    console.log("Item adicionado ao carrinho provisório. ID:", id);
-    alert("Item adicionado! (Lógica do carrinho será feita nas próximas sessões)");
-}
+        // 🚀 FUNÇÃO 3: Gatilho provisório para envio
+        function enviarPedidoParaCozinha() {
+            alert("Enviando sacola para o banco de dados... (Meta das próximas sessões!)");
+        }
+
+        // ⏳ FUNÇÃO 4: Carregamento inicial da página
+        window.onload = function() {
+            const mesaNumero = localStorage.getItem('id_mesa_configurada');
+            if (mesaNumero) {
+                document.getElementById('mesa-display').innerText = "Mesa " + mesaNumero;
+            }
+
+            fetch("http://localhost:3000/api/cardapio")
+            .then(resposta => resposta.json())
+            .then(produtosDoBanco => {
+                console.log("Produtos carregados do MariaDB:", produtosDoBanco);
+                todosOsProdutos = produtosDoBanco;
+                renderizarProdutos(todosOsProdutos);
+            })
+            .catch(erro => {
+                console.error("Erro ao carregar cardápio:", erro);
+                alert("Não foi possível carregar os itens do cardápio.");
+            });
+        }
+
+        // 🎨 FUNÇÃO 5: Renderizar os cards HTML dinamicamente
+        function renderizarProdutos(listaDeProdutos) {
+            const container = document.getElementById('container-produtos');
+            container.innerHTML = "";
+
+            if (listaDeProdutos.length === 0) {
+                container.innerHTML = "<p>Nenhum produto cadastrado nesta categoria.</p>";
+                return;
+            }
+
+            listaDeProdutos.forEach(produto => {
+                const cardHTML = `
+                    <div class="produto-card" style="border: 1px solid #ccc; margin: 10px; padding: 10px;">
+                        <img src="${produto.imagem_url}" alt="${produto.nome_item}" style="width: 100px; height: 100px; object-fit: cover;">
+                        <h3>${produto.nome_item}</h3>
+                        <p>${produto.descricao}</p>
+                        <p><strong>R$ ${Number(produto.preco).toFixed(2)}</strong></p>
+                        <button onclick="adicionarAoCarrinho(${produto.id_item})">Adicionar</button>
+                    </div>
+                `;
+                container.innerHTML += cardHTML;
+            });
+        }
+
+        // 🔀 FUNÇÃO 6: Filtro de abas por categoria
+        function filtrarCategoria(categoriaSelecionada) {
+            console.log("Filtrando por:", categoriaSelecionada);
+            
+            if (categoriaSelecionada === 'Todos') {
+                renderizarProdutos(todosOsProdutos);
+            } else {
+                const produtosFiltrados = todosOsProdutos.filter(p => p.categoria === categoriaSelecionada);
+                renderizarProdutos(produtosFiltrados);
+            }
+        }
     </script>
-    
 </body>
 </html>
