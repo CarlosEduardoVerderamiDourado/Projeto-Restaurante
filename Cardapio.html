@@ -71,8 +71,46 @@
 
         // 🚀 FUNÇÃO 3: Gatilho provisório para envio
         function enviarPedidoParaCozinha() {
-            alert("Enviando sacola para o banco de dados... (Meta das próximas sessões!)");
+    // 1. Resgata o número da mesa e confere se a sacola não está vazia
+    const mesaNumero = localStorage.getItem('id_mesa_configurada');
+    
+    if (carrinho.length === 0) {
+        alert("A sua sacola de compras está vazia! Adicione algum item antes de enviar.");
+        return;
+    }
+
+    console.log("🚀 Enviando sacola de compras para o servidor...", carrinho);
+
+    // 2. Dispara o fetch POST empacotando a mesa e a lista do carrinho
+    fetch("http://localhost:3000/api/pedidos/enviar", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ 
+            mesa: mesaNumero, 
+            itens: carrinho 
+        })
+    })
+    .then(resposta => resposta.json())
+    .then(dados => {
+        if (dados.sucesso) {
+            // Se o banco gravou com sucesso, exibe a mensagem da cozinha!
+            alert(dados.mensagem);
+            
+            // 🧹 Limpa a sacola local para o cliente poder fazer novos pedidos depois
+            carrinho = [];
+            atualizarResumoCarrinho();
+        } else {
+            alert("Erro ao enviar pedido: " + dados.erro);
         }
+    })
+    .catch(erro => {
+        console.error("Erro na comunicação com a cozinha:", erro);
+        alert("Não foi possível conectar ao servidor da cozinha.");
+    });
+}
+        
 
         // ⏳ FUNÇÃO 4: Carregamento inicial da página
         window.onload = function() {
