@@ -4,6 +4,7 @@ const cors = require('cors');
 const rotasMesas = require('./routes/mesas')
 const rotasFuncionarios = require('./routes/funcionarios');
 const rotascardapio = require('./routes/cardapio');
+const rotaspedidos = require('./routes/pedidos');
 
 const app = express();
 app.use(cors());
@@ -11,6 +12,7 @@ app.use(express.json());
 app.use('/api/mesas', rotasMesas);
 app.use('/api/funcionarios', rotasFuncionarios);
 app.use('/api/cardapio', rotascardapio);
+app.use('/api/pedidos',rotaspedidos);
 
 // 🛢️ Configuração da conexão com o seu banco de dados MySQL 
 const db = require('./database');

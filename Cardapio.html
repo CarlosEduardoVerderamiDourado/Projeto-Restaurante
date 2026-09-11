@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ratatue - Cardápio Digital</title>
+</head>
+<body>
+
+    <!-- 🟢 Cabeçalho identificando a mesa atual -->
+    <h2 id="mesa-display">Mesa: Carregando...</h2>
+
+    <!-- 🟢 Botões de Categorias para o cliente filtrar -->
+    <div class="categorias-abas">
+        <button onclick="filtrarCategoria('Todos')">Todos</button>
+        <button onclick="filtrarCategoria('Hambúrgueres')">Hambúrgueres</button>
+        <button onclick="filtrarCategoria('Bebidas')">Bebidas</button>
+    </div>
+
+    <!-- 🟢 O Tabuleiro Vazio: É aqui dentro que o JavaScript vai desenhar os produtos do banco -->
+    <div id="container-produtos">
+        <!-- Os produtos vão brotar aqui de dentro dinamicamente! -->
+    </div>
+
+    <!-- 🟢 Painel do Resumo -->
+    <div id="resumo-carrinho"></div>
+
+    <script>
+        // Variáveis globais de controle
+        let todosOsProdutos = [];
+        let carrinho = [];
+
+        // 🛒 FUNÇÃO 1: Adicionar item à sacola inteligente
+        function adicionarAoCarrinho(id) {
+            const produto = todosOsProdutos.find(p => p.id_item === id);
+            const itemNoCarrinho = carrinho.find(item => item.id_item === id);
+
+            if (itemNoCarrinho) {
+                itemNoCarrinho.quantidade++;
+            } else {
+                carrinho.push({ ...produto, quantidade: 1 });
+            }
+
+            console.log("Sacola de Compras Atual:", carrinho);
+            alert(`${produto.nome_item} adicionado à sacola!`);
+            
+            // Atualiza o painel visual
+            atualizarResumoCarrinho();
+        }
+
+        // 📊 FUNÇÃO 2: Atualizar o resumo financeiro na tela
+        function atualizarResumoCarrinho() {
+            let totalItens = 0;
+            let precoTotal = 0;
+
+            carrinho.forEach(item => {
+                totalItens += item.quantidade;
+                precoTotal += (item.quantidade * Number(item.preco));
+            });
+
+            const divResumo = document.getElementById('resumo-carrinho');
+            divResumo.innerHTML = `
+                <div style="background: #f4f4f4; padding: 15px; margin-top: 20px; border-top: 2px solid #333;">
+                    <h3>🛒 Resumo do Pedido</h3>
+                    <p>Total de itens na sacola: <strong>${totalItens}</strong></p>
+                    <p>Valor total: <strong>R$ ${precoTotal.toFixed(2)}</strong></p>
+                    <button onclick="enviarPedidoParaCozinha()" style="padding: 10px; background: green; color: white; border: none; cursor: pointer;">Enviar Pedido para Cozinha</button>
+                </div>
+            `;
+        }
+
+        // 🚀 FUNÇÃO 3: Gatilho provisório para envio
+        function enviarPedidoParaCozinha() {
+    // 1. Resgata o número da mesa e confere se a sacola não está vazia
+    const mesaNumero = localStorage.getItem('id_mesa_configurada');
+    
+    if (carrinho.length === 0) {
+        alert("A sua sacola de compras está vazia! Adicione algum item antes de enviar.");
+        return;
+    }
+
+    console.log("🚀 Enviando sacola de compras para o servidor...", carrinho);
+
+    // 2. Dispara o fetch POST empacotando a mesa e a lista do carrinho
+    fetch("http://localhost:3000/api/pedidos/enviar", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ 
+            mesa: mesaNumero, 
+            itens: carrinho 
+        })
+    })
+    .then(resposta => resposta.json())
+    .then(dados => {
+        if (dados.sucesso) {
+            // Se o banco gravou com sucesso, exibe a mensagem da cozinha!
+            alert(dados.mensagem);
+            
+            // 🧹 Limpa a sacola local para o cliente poder fazer novos pedidos depois
+            carrinho = [];
+            atualizarResumoCarrinho();
+        } else {
+            alert("Erro ao enviar pedido: " + dados.erro);
+        }
+    })
+    .catch(erro => {
+        console.error("Erro na comunicação com a cozinha:", erro);
+        alert("Não foi possível conectar ao servidor da cozinha.");
+    });
+}
+        
+
+        // ⏳ FUNÇÃO 4: Carregamento inicial da página
+        window.onload = function() {
+            const mesaNumero = localStorage.getItem('id_mesa_configurada');
+            if (mesaNumero) {
+                document.getElementById('mesa-display').innerText = "Mesa " + mesaNumero;
+            }
+
+            fetch("http://localhost:3000/api/cardapio")
+            .then(resposta => resposta.json())
+            .then(produtosDoBanco => {
+                console.log("Produtos carregados do MariaDB:", produtosDoBanco);
+                todosOsProdutos = produtosDoBanco;
+                renderizarProdutos(todosOsProdutos);
+            })
+            .catch(erro => {
+                console.error("Erro ao carregar cardápio:", erro);
+                alert("Não foi possível carregar os itens do cardápio.");
+            });
+        }
+
+        // 🎨 FUNÇÃO 5: Renderizar os cards HTML dinamicamente
+        function renderizarProdutos(listaDeProdutos) {
+            const container = document.getElementById('container-produtos');
+            container.innerHTML = "";
+
+            if (listaDeProdutos.length === 0) {
+                container.innerHTML = "<p>Nenhum produto cadastrado nesta categoria.</p>";
+                return;
+            }
+
+            listaDeProdutos.forEach(produto => {
+                const cardHTML = `
+                    <div class="produto-card" style="border: 1px solid #ccc; margin: 10px; padding: 10px;">
+                        <img src="${produto.imagem_url}" alt="${produto.nome_item}" style="width: 100px; height: 100px; object-fit: cover;">
+                        <h3>${produto.nome_item}</h3>
+                        <p>${produto.descricao}</p>
+                        <p><strong>R$ ${Number(produto.preco).toFixed(2)}</strong></p>
+                        <button onclick="adicionarAoCarrinho(${produto.id_item})">Adicionar</button>
+                    </div>
+                `;
+                container.innerHTML += cardHTML;
+            });
+        }
+
+        // 🔀 FUNÇÃO 6: Filtro de abas por categoria
+        function filtrarCategoria(categoriaSelecionada) {
+            console.log("Filtrando por:", categoriaSelecionada);
+            
+            if (categoriaSelecionada === 'Todos') {
+                renderizarProdutos(todosOsProdutos);
+            } else {
+                const produtosFiltrados = todosOsProdutos.filter(p => p.categoria === categoriaSelecionada);
+                renderizarProdutos(produtosFiltrados);
+            }
+        }
+    </script>
+</body>
+</html>
