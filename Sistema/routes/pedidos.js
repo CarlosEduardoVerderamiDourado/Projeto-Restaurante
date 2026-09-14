@@ -74,4 +74,37 @@ router.post('/enviar', (req, res) => {
     }); 
 });
 
+// 🍳 ROTA: Listar todos os pedidos pendentes para a tela da Cozinha
+router.get('/pendentes', (req, res) => {
+    console.log("🍳 Cozinha solicitou a lista de pedidos pendentes...");
+
+    // Essa query junta a tabela mãe (pedidos), a tabela filha (pedidos_itens) e traz o nome do prato da tabela cardapio!
+    const querySQL = `
+        SELECT 
+            p.id_pedido,
+            p.id_comanda,
+            p.horario_pedido,
+            p.status_pedido,
+            i.id_item,
+            c.nome_item,
+            i.quantidade
+        FROM pedidos p
+        INNER JOIN pedidos_itens i ON p.id_pedido = i.id_pedido
+        INNER JOIN cardapio c ON i.id_item = c.id_item
+        WHERE p.status_pedido = 'Pendente'
+        ORDER BY p.horario_pedido ASC
+    `;
+
+    db.query(querySQL, [], (err, results) => {
+        if (err) {
+            console.error("❌ Erro ao buscar pedidos na cozinha:", err.message);
+            return res.status(500).json({ erro: "Erro ao carregar os pedidos da cozinha" });
+        }
+        
+        // Devolve o panel de pedidos prontinho para a tela ler
+        return res.json(results);
+    });
+});
+
+
 module.exports = router;
