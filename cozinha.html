@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ratatue - Painel de Controle da Cozinha</title>
+    <style>
+        /* Estilos básicos para organizar os cartões na tela */
+        .painel-cozinha {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            padding: 20px;
+        }
+        .card-pedido {
+            border: 2px solid #333;
+            border-radius: 8px;
+            padding: 15px;
+            width: 250px;
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .card-pedido:hover {
+            transform: scale(1.02);
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🍳 KDS Ratatue - Controle de Preparo</h1>
+    <p>Clique em cima de um pedido para avançar o estado dele. (Os atrasados ficam vermelhos automaticamente!)</p>
+
+    <!-- O tabuleiro onde os pedidos coloridos vão brotar sozinhos -->
+    <div id="container-pedidos" class="painel-cozinha">
+        <!-- Injetado dinamicamente pelo JavaScript -->
+    </div>
+
+    <script>
+        // 🔄 Passo 1: Polling Automático - Roda assim que a página abre e repete a cada 5 segundos
+        window.onload = function() {
+            carregarPedidosCozinha();
+            setInterval(carregarPedidosCozinha, 5000); // Atualiza sozinho sem F5!
+        }
+
+        // 📥 Passo 2: Buscar os dados do Backend
+        function carregarPedidosCozinha() {
+            fetch("http://localhost:3000/api/pedidos/pendentes")
+            .then(resposta => resposta.json())
+            .then(linhasDoBanco => {
+                // Como o JOIN traz itens soltos, vamos agrupar por id_pedido
+                const pedidosAgrupados = agruparItensPorPedido(linhasDoBanco);
+                renderizarPainelCozinha(pedidosAgrupados);
+            })
+            .catch(erro => console.error("Erro ao atualizar painel da cozinha:", erro));
+        }
+
+        // 🧠 Passo 3: Função auxiliar para juntar os itens do mesmo pedido
+        function agruparItensPorPedido(linhas) {
+            const agrupados = {};
+            linhas.forEach(linha => {
+                if (!agrupados[linha.id_pedido]) {
+                    agrupados[linha.id_pedido] = {
+                        id_pedido: linha.id_pedido,
+                        id_comanda: linha.id_comanda,
+                        horario_pedido: linha.horario_pedido,
+                        status_pedido: linha.status_pedido,
+                        itens: []
+                    };
+                }
+                agrupados[linha.id_pedido].itens.push({
+                    nome_item: linha.nome_item,
+                    quantidade: linha.quantidade
+                });
+            });
+            return Object.values(agrupados); // Devolve em formato de lista pura
+        }
+
+        // 🎨 Passo 4: Renderizar os cartões com o Semáforo de Cores
+        function renderizarPainelCozinha(pedidos) {
+            const container = document.getElementById('container-pedidos');
+            container.innerHTML = "";
+
+            if (pedidos.length === 0) {
+                container.innerHTML = "<h3>🎉 Cozinha limpa! Nenhum pedido pendente por enquanto.</h3>";
+                return;
+            }
+
+            pedidos.forEach(pedido => {
+                // ⏱️ MATEMÁTICA DO TEMPO: Calcula quantos minutos se passaram desde o clique do cliente
+                const horaPedido = new Date(pedido.horario_pedido);
+                const agora = new Date();
+                const diferencaMinutos = Math.floor((agora - horaPedido) / 1000 / 60);
+
+                // 🚦 REGRA DO SEMÁFORO DE CORES:
+                let corDeFundo = "#ffffff"; // Padrão: Branco (Pendente)
+                let textoStatus = "Em Espera";
+
+                if (pedido.status_pedido === 'Em Preparo') {
+                    corDeFundo = "#ffeb3b"; // Amarelo (Em Preparo)
+                    textoStatus = "Em Preparo";
+                }
+
+                // Se o pedido (Pendente ou Em Preparo) passar de 15 minutos, vira Vermelho de Atraso!
+                if (diferencaMinutos >= 15) {
+                    corDeFundo = "#f44336"; // Vermelho (Atrasado)
+                    textoStatus = "🚨 ATRASADO!";
+                }
+
+                // Monta a lista de itens legível para o cozinheiro ler
+                let itensHTML = "";
+                pedido.itens.forEach(item => {
+                    itensHTML += `<li><strong>${item.quantidade}x</strong> ${item.nome_item}</li>`;
+                });
+
+                // Cria o cartão visual com o gatilho de clique
+                const cardHTML = `
+                    <div class="card-pedido" 
+                         style="background-color: ${corDeFundo}; color: ${corDeFundo === '#f44336' ? 'white' : 'black'}"
+                         onclick="avancarStatusPedido(${pedido.id_pedido}, '${pedido.status_pedido}')">
+                        <h3>Pedido #${pedido.id_pedido}</h3>
+                        <p>Comanda: <strong>${pedido.id_comanda}</strong></p>
+                        <p>Tempo: <strong>${diferencaMinutos} min atrás</strong></p>
+                        <p>Status: <strong>${textoStatus}</strong></p>
+                        <hr>
+                        <ul>${itensHTML}</ul>
+                    </div>
+                `;
+                container.innerHTML += cardHTML;
+            });
+        }
+
+        // 🔀 Passo 5: Gerenciar o Clique para trocar de Estado
+        function avancarStatusPedido(id_pedido, statusAtual) {
+            let proximoStatus = "";
+
+            if (statusAtual === 'Pendente') {
+                proximoStatus = 'Em Preparo'; // Branco/Vermelho -> Amarelo
+            } else if (statusAtual === 'Em Preparo') {
+                proximoStatus = 'Pronto';     // Amarelo/Vermelho -> Some (Verde)
+            }
+
+            if (!proximoStatus) return;
+
+            // Dispara a atualização direto para a rota de UPDATE que fizemos no Backend
+            fetch("http://localhost:3000/api/pedidos/atualizar-status", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id_pedido, novo_status: proximoStatus })
+            })
+            .then(resposta => resposta.json())
+            .then(dados => {
+                if (dados.sucesso) {
+                    // Força uma atualização imediata na tela para ver a troca de cor acontecer!
+                    carregarPedidosCozinha();
+                }
+            })
+            .catch(erro => console.error("Erro ao avançar status do pedido:", erro));
+        }
+    </script>
+
+    
+</body>
+</html>
