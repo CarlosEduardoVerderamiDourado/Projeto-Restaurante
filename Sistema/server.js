@@ -5,6 +5,7 @@ const rotasMesas = require('./routes/mesas')
 const rotasFuncionarios = require('./routes/funcionarios');
 const rotascardapio = require('./routes/cardapio');
 const rotaspedidos = require('./routes/pedidos');
+const rotasgarcons = require('./routes/garcons.js');
 
 const app = express();
 app.use(cors());
@@ -13,6 +14,7 @@ app.use('/api/mesas', rotasMesas);
 app.use('/api/funcionarios', rotasFuncionarios);
 app.use('/api/cardapio', rotascardapio);
 app.use('/api/pedidos',rotaspedidos);
+app.use('/api/garcons',rotasgarcons);
 
 // 🛢️ Configuração da conexão com o seu banco de dados MySQL 
 const db = require('./database');
