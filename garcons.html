@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ratatue - Painel do Garçom</title>
+    <style>
+        .painel-chamados {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            padding: 20px;
+        }
+        .card-chamado {
+            border: 2px solid #333;
+            border-radius: 8px;
+            padding: 15px;
+            background-color: #fffde7; /* Amarelo clarinho para chamar atenção */
+            width: 220px;
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .btn-atender {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn-atender:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🛎️ Painel de Chamados do Salão</h1>
+    <p>Fique atento! Novas solicitações de clientes aparecerão aqui automaticamente.</p>
+
+    <!-- O tabuleiro onde as mesas que chamaram vão aparecer soltas -->
+    <div id="container-chamados" class="painel-chamados">
+        <!-- Injetado dinamicamente pelo JavaScript -->
+    </div>
+
+    <script>
+        // 🔄 Passo 1: Polling Automático - Carrega ao abrir a página e atualiza a cada 5 segundos
+        window.onload = function() {
+            carregarChamadosPendentes();
+            setInterval(carregarChamadosPendentes, 5000); // Fica de olho no salão sem precisar de F5!
+        }
+
+        // 📥 Passo 2: Buscar os chamados 'Pendentes' direto da API do Backend
+        function carregarChamadosPendentes() {
+            fetch("http://localhost:3000/api/garcons/chamados")
+            .then(resposta => resposta.json())
+            .then(chamados => {
+                renderizarChamados(chamados);
+            })
+            .catch(erro => console.error("Erro ao carregar chamados do salão:", erro));
+        }
+
+        // 🎨 Passo 3: Desenhar os cartões das mesas na tela dinamicamente
+        function renderizarChamados(listaDeChamados) {
+            const container = document.getElementById('container-chamados');
+            container.innerHTML = "";
+
+            if (listaDeChamados.length === 0) {
+                container.innerHTML = "<h3>✅ Salão tranquilo! Nenhuma mesa chamando no momento.</h3>";
+                return;
+            }
+
+            listaDeChamados.forEach(chamado => {
+                // Calcula quantos minutos se passaram desde o clique do cliente
+                const horaChamado = new Date(chamado.horario_chamado);
+                const agora = new Date();
+                const diferencaMinutos = Math.floor((agora - horaChamado) / 1000 / 60);
+
+                // Monta o cartão visual da mesa com o botão de ação
+                const cardHTML = `
+                    <div class="card-chamado">
+                        <h3>Mesa ${chamado.id_mesa}</h3>
+                        <p>Aguardando há: <strong>${diferencaMinutos} min</strong></p>
+                        <p>Status: <span>${chamado.status_chamado}</span></p>
+                        <hr style="border: 1px dashed #ccc; margin: 15px 0;">
+                        <button class="btn-atender" onclick="atenderMesa(${chamado.id_chamado}, ${chamado.id_mesa})">Atender</button>
+                    </div>
+                `;
+                container.innerHTML += cardHTML;
+            });
+        }
+
+        // 🏃‍♂️ Passo 4: Ação do Clique - O Garçom aceita atender a mesa
+        function atenderMesa(id_chamado, id_mesa) {
+            // Resgata o ID do garçom logado (se não achar nada no localStorage, usa o 1 como teste provisório)
+            const id_funcionario = localStorage.getItem('id_funcionario_logado') || 1;
+
+            console.log(`Disparando atendimento para o chamado #${id_chamado} pelo Garçom #${id_funcionario}`);
+
+            // Envia o pacote direto para a rota de POST que você criou no Backend!
+            fetch("http://localhost:3000/api/garcons/aceitar-chamado", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ 
+                    id_chamado: id_chamado, 
+                    id_funcionario: id_funcionario 
+                })
+            })
+            .then(resposta => resposta.json())
+            .then(dados => {
+                if (dados.sucesso) {
+                    alert(`Atendimento confirmado para a Mesa ${id_mesa}! Vá até o salão.`);
+                    // Atualiza a tela imediatamente para sumir com o cartão atendido
+                    carregarChamadosPendentes();
+                } else {
+                    alert("Erro ao aceitar o chamado.");
+                }
+            })
+            .catch(erro => {
+                console.error("Erro na comunicação de atendimento:", erro);
+                alert("Não foi possível conectar ao servidor do salão.");
+            });
+        }
+    </script>
+
+</body>
+</html>

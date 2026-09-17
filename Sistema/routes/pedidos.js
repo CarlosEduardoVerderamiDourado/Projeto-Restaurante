@@ -74,4 +74,58 @@ router.post('/enviar', (req, res) => {
     }); 
 });
 
+// 🍳 ROTA: Listar todos os pedidos pendentes para a tela da Cozinha
+router.get('/pendentes', (req, res) => {
+    console.log("🍳 Cozinha solicitou a lista de pedidos pendentes...");
+
+    // Essa query junta a tabela mãe (pedidos), a tabela filha (pedidos_itens) e traz o nome do prato da tabela cardapio!
+    const querySQL = `
+        SELECT 
+            p.id_pedido,
+            p.id_comanda,
+            p.horario_pedido,
+            p.status_pedido,
+            i.id_item,
+            c.nome_item,
+            i.quantidade
+        FROM pedidos p
+        INNER JOIN pedidos_itens i ON p.id_pedido = i.id_pedido
+        INNER JOIN cardapio c ON i.id_item = c.id_item
+        WHERE p.status_pedido = ('Pendente''Em Preparo')
+        ORDER BY p.horario_pedido ASC
+    `;
+
+    db.query(querySQL, [], (err, results) => {
+        if (err) {
+            console.error("❌ Erro ao buscar pedidos na cozinha:", err.message);
+            return res.status(500).json({ erro: "Erro ao carregar os pedidos da cozinha" });
+        }
+        
+        // Devolve o panel de pedidos prontinho para a tela ler
+        return res.json(results);
+    });
+});
+
+// 🔄 ROTA: Atualizar o status do pedido (Clicar para mudar de estado na Cozinha)
+router.post('/atualizar-status', (req, res) => {
+    const { id_pedido, novo_status } = req.body; // Recebe qual é o pedido e para qual status ele vai
+
+    console.log(`🔀 Mudando o pedido número ${id_pedido} para o status: ${novo_status}`);
+
+    const querySQL = "UPDATE pedidos SET status_pedido = ? WHERE id_pedido = ?";
+
+    db.query(querySQL, [novo_status, id_pedido], (err, results) => {
+        if (err) {
+            console.error("❌ Erro ao atualizar status do pedido:", err.message);
+            return res.status(500).json({ erro: "Erro ao atualizar o status no banco de dados" });
+        }
+
+        return res.json({ 
+            sucesso: true, 
+            mensagem: `Pedido atualizado para '${novo_status}' com sucesso!` 
+        });
+    });
+});
+
+
 module.exports = router;
