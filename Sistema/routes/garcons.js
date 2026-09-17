@@ -39,5 +39,32 @@ router.post('/aceitar-chamado', (req, res) => {
         });
     });
 });
+// 🛎️ 3. ROTA: Cliente checa se algum garçom aceitou o chamado da mesa dele
+router.get('/status-mesa/:mesa', (req, res) => {
+    const { mesa } = req.params;
+
+    // Busca o chamado ativo dessa mesa trazendo o nome do funcionário associado
+    const querySQL = `
+        SELECT c.status_chamado, f.nome 
+        FROM chamados_atendimento c
+        LEFT JOIN funcionarios f ON c.id_funcionario = f.id
+        WHERE c.id_mesa = ? AND c.status_chamado = 'A caminho'
+        ORDER BY c.horario_chamado DESC LIMIT 1
+    `;
+
+    db.query(querySQL, [mesa], (err, results) => {
+        if (err) {
+            console.error("❌ Erro ao checar status do chamado:", err.message);
+            return res.status(500).json({ erro: "Erro ao checar status" });
+        }
+        
+        if (results.length > 0) {
+            // Se achou um chamado 'A caminho', manda o status e o nome do garçom!
+            return res.json({ ativo: true, garcom: results[0].nome });
+        } else {
+            return res.json({ ativo: false });
+        }
+    });
+});
 
 module.exports = router;

@@ -17,7 +17,7 @@
         <button onclick="filtrarCategoria('Bebidas')">Bebidas</button>
     </div>
 
-    <!-- 🟢 O Tabuleiro Vazio: É aqui dentro que o JavaScript vai desenhar os produtos do banco -->
+    <!-- 🟢 O Tabuleiro Vazio -->
     <div id="container-produtos">
         <!-- Os produtos vão brotar aqui de dentro dinamicamente! -->
     </div>
@@ -29,6 +29,7 @@
         // Variáveis globais de controle
         let todosOsProdutos = [];
         let carrinho = [];
+        let alertaExibido = false; // Evita múltiplos alertas em loop na tela
 
         // 🛒 FUNÇÃO 1: Adicionar item à sacola inteligente
         function adicionarAoCarrinho(id) {
@@ -38,13 +39,11 @@
             if (itemNoCarrinho) {
                 itemNoCarrinho.quantidade++;
             } else {
-                carrinho.push({ ...produto, quantidade: 1 });
+                carrinho.push({ ...produto, quantity: 1, quantidade: 1 });
             }
 
             console.log("Sacola de Compras Atual:", carrinho);
             alert(`${produto.nome_item} adicionado à sacola!`);
-            
-            // Atualiza o painel visual
             atualizarResumoCarrinho();
         }
 
@@ -69,50 +68,39 @@
             `;
         }
 
-        // 🚀 FUNÇÃO 3: Gatilho provisório para envio
+        // 🚀 FUNÇÃO 3: Enviar Pedido para o Servidor
         function enviarPedidoParaCozinha() {
-    // 1. Resgata o número da mesa e confere se a sacola não está vazia
-    const mesaNumero = localStorage.getItem('id_mesa_configurada');
-    
-    if (carrinho.length === 0) {
-        alert("A sua sacola de compras está vazia! Adicione algum item antes de enviar.");
-        return;
-    }
-
-    console.log("🚀 Enviando sacola de compras para o servidor...", carrinho);
-
-    // 2. Dispara o fetch POST empacotando a mesa e a lista do carrinho
-    fetch("http://localhost:3000/api/pedidos/enviar", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ 
-            mesa: mesaNumero, 
-            itens: carrinho 
-        })
-    })
-    .then(resposta => resposta.json())
-    .then(dados => {
-        if (dados.sucesso) {
-            // Se o banco gravou com sucesso, exibe a mensagem da cozinha!
-            alert(dados.mensagem);
+            const mesaNumero = localStorage.getItem('id_mesa_configurada');
             
-            // 🧹 Limpa a sacola local para o cliente poder fazer novos pedidos depois
-            carrinho = [];
-            atualizarResumoCarrinho();
-        } else {
-            alert("Erro ao enviar pedido: " + dados.erro);
-        }
-    })
-    .catch(erro => {
-        console.error("Erro na comunicação com a cozinha:", erro);
-        alert("Não foi possível conectar ao servidor da cozinha.");
-    });
-}
-        
+            if (carrinho.length === 0) {
+                alert("A sua sacola de compras está vazia! Adicione algum item antes de enviar.");
+                return;
+            }
 
-        // ⏳ FUNÇÃO 4: Carregamento inicial da página
+            console.log("🚀 Enviando sacola de compras para o servidor...", carrinho);
+
+            fetch("http://localhost:3000/api/pedidos/enviar", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ mesa: mesaNumero, itens: carrinho })
+            })
+            .then(resposta => resposta.json())
+            .then(dados => {
+                if (dados.sucesso) {
+                    alert(dados.mensagem);
+                    carrinho = [];
+                    atualizarResumoCarrinho();
+                } else {
+                    alert("Erro ao enviar pedido: " + dados.erro);
+                }
+            })
+            .catch(erro => {
+                console.error("Erro na comunicação com a cozinha:", erro);
+                alert("Não foi possível conectar ao servidor da cozinha.");
+            });
+        }
+
+        // ⏳ FUNÇÃO 4: Carregamento inicial da página (Unificada e Completa)
         window.onload = function() {
             const mesaNumero = localStorage.getItem('id_mesa_configurada');
             if (mesaNumero) {
@@ -130,6 +118,11 @@
                 console.error("Erro ao carregar cardápio:", erro);
                 alert("Não foi possível carregar os itens do cardápio.");
             });
+
+            // Ativa o monitor invisível de 5 em 5 segundos
+            if (mesaNumero) {
+                setInterval(checarStatusChamado, 5000);
+            }
         }
 
         // 🎨 FUNÇÃO 5: Renderizar os cards HTML dinamicamente
@@ -159,13 +152,32 @@
         // 🔀 FUNÇÃO 6: Filtro de abas por categoria
         function filtrarCategoria(categoriaSelecionada) {
             console.log("Filtrando por:", categoriaSelecionada);
-            
             if (categoriaSelecionada === 'Todos') {
                 renderizarProdutos(todosOsProdutos);
             } else {
                 const produtosFiltrados = todosOsProdutos.filter(p => p.categoria === categoriaSelecionada);
                 renderizarProdutos(produtosFiltrados);
             }
+        }
+
+        // 🚨 FUNÇÃO 7: Monitorar se o garçom aceitou o chamado (Fechada e corrigida)
+        function checarStatusChamado() {
+            const mesaNumero = localStorage.getItem('id_mesa_configurada');
+            if (!mesaNumero || alertaExibido) return;
+
+            fetch(`http://localhost:3000/api/garcons/status-mesa/${mesaNumero}`)
+            .then(resposta => resposta.json())
+            .then(dados => {
+                if (dados.ativo) {
+                    alertaExibido = true; // Trava para não gerar spam de alertas
+                    
+                    alert(`🛎️ Atendimento Confirmado!\nO garçom ${dados.garcom || "da equipe"} já aceitou sua solicitação e está a caminho da sua mesa.`);
+                    
+                    // Libera para novos chamados após um intervalo seguro
+                    setTimeout(() => { alertaExibido = false; }, 15000);
+                }
+            })
+            .catch(erro => console.error("Erro no monitor de chamados:", erro));
         }
     </script>
 </body>
