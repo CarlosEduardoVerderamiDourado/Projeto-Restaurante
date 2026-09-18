@@ -91,7 +91,7 @@ router.get('/pendentes', (req, res) => {
         FROM pedidos p
         INNER JOIN pedidos_itens i ON p.id_pedido = i.id_pedido
         INNER JOIN cardapio c ON i.id_item = c.id_item
-        WHERE p.status_pedido = ('Pendente''Em Preparo')
+        WHERE p.status_pedido IN ('Pendente', 'Em Preparo')
         ORDER BY p.horario_pedido ASC
     `;
 
@@ -127,5 +127,46 @@ router.post('/atualizar-status', (req, res) => {
     });
 });
 
+// 📑 ROTA: Puxar o extrato completo e o valor total consumido pela Mesa
+router.get('/extrato/:mesa', (req, res) => {
+    const { mesa } = req.params;
+    console.log(`🧾 Gerando extrato de consumo para a Mesa ${mesa}...`);
+
+    // Essa query busca todos os itens de todos os pedidos amarrados à comanda aberta da mesa
+    const querySQL = `
+        SELECT 
+            c.id_item,
+            c.nome_item,
+            SUM(i.quantidade) AS quantidade_total,
+            i.valor_unitario,
+            SUM(i.quantidade * i.valor_unitario) AS subtotal_item
+        FROM comandas com
+        INNER JOIN pedidos p ON com.id_comanda = p.id_comanda
+        INNER JOIN pedidos_itens i ON p.id_pedido = i.id_pedido
+        INNER JOIN cardapio c ON i.id_item = c.id_item
+        WHERE com.id_mesa = ? AND com.status_comanda = 'Aberta'
+        GROUP BY c.id_item, c.nome_item, i.valor_unitario
+    `;
+
+    db.query(querySQL, [mesa], (err, results) => {
+        if (err) {
+            console.error("❌ Erro ao gerar extrato no banco:", err.message);
+            return res.status(500).json({ erro: "Erro ao calcular o extrato da mesa" });
+        }
+
+        // Calcula a somatória final de todos os subtotais em dinheiro
+        let valorTotalMesa = 0;
+        results.forEach(linha => {
+            valorTotalMesa += Number(linha.subtotal_item);
+        });
+
+        // Devolve a lista detalhada de consumo e o total geral
+        return res.json({
+            sucesso: true,
+            itens_consumidos: results,
+            total_geral: valorTotalMesa
+        });
+    });
+});
 
 module.exports = router;
