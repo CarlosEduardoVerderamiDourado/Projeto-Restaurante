@@ -119,6 +119,7 @@
         }
 
                 // 🏃‍♂️ AÇÃO A: Aceitar Chamado (Totalmente livre de pop-ups cinzas!)
+                // 🏃‍♂️ AÇÃO A: Aceitar Chamado + Viagem Automática para a Tela da Mesa!
         function atenderMesa(id_chamado, id_mesa) {
             const id_funcionario = localStorage.getItem('id_funcionario_logado');
 
@@ -139,11 +140,14 @@
                 .then(res => res.json())
                 .then(dados => {
                     if (dados.sucesso) {
-                        // 🟢 EXTINÇÃO DO POP-UP DA IMAGEM: 
-                        // Em vez de soltar o alert/confirm cinza do Chrome, o sistema apenas 
-                        // atualiza os dados do salão em silêncio e deixa o garçom trabalhar livremente!
-                        console.log(`Atendimento aceito para a Mesa ${id_mesa}! Atualizando salão...`);
-                        carregarDadosSalao(); 
+                        console.log(`Atendimento aceito para a Mesa ${id_mesa}! Configurando trânsito...`);
+                        
+                        // 🟢 A NOVA MÁGICA AUTOMÁTICA:
+                        // 1. Salva o número da mesa aceita na memória do aparelho do garçom
+                        localStorage.setItem('id_mesa_configurada', id_mesa);
+                        
+                        // 2. Empurra o garçom direto para a tela de vendas da mesa do cliente!
+                        window.location.href = "portal.html"; 
                     }
                 })
                 .catch(erro => console.error("Erro ao atender chamado:", erro));
@@ -154,6 +158,7 @@
                 document.getElementById('tela-confirmacao-garcom').style.display = 'none';
             };
         }
+
 
 
 
