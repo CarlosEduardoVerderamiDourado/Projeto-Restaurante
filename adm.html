@@ -26,6 +26,8 @@
         <button class="tab-btn active" onclick="alternarAba('caixa')">Caixa & Contas</button>
         <button class="tab-btn" onclick="alternarAba('cadastro-func')">Cadastrar Funcionário</button>
         <button class="tab-btn" onclick="alternarAba('cadastro-mesa')">Cadastrar Mesa</button>
+        <button class="tab-btn" onclick="alternarAba('monitor')">👁️ Monitor Operacional</button>
+
     </div>
 
     <!-- ABA 1: CAIXA & CONTAS -->
@@ -79,11 +81,74 @@
         </form>
     </div>
 
+        <!-- ABA 4: MONITOR OPERACIONAL (OLHO DE ÁGUIA) -->
+    <div id="panel-monitor" class="form-panel">
+        <h2>👁️ Visão Geral do Restaurante (Cozinha & Salão)</h2>
+        <div style="display: flex; gap: 20px;">
+            <div style="flex: 1; background: #fff; padding: 15px; border: 1px solid #ccc;">
+                <h3>🍳 Fila de Preparos (Cozinha/Bar)</h3>
+                <div id="monitor-fila-pedidos"></div>
+            </div>
+            <div style="flex: 1; background: #fff; padding: 15px; border: 1px solid #ccc;">
+                <h3>🛎️ Chamados do Salão (Garçom)</h3>
+                <div id="monitor-fila-chamados"></div>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // 🔄 Polling Automático - Atualiza o caixa sozinho a cada 5 segundos
+        // 🔄 Polling Automático Atualizado e Unificado (Sem duplicações!)
         window.onload = function() {
             carregarDadosCaixa();
-            setInterval(carregarDadosCaixa, 5000); 
+            carregarMonitorOperacional(); // 🟢 Começa a espionar o restaurante
+            
+            setInterval(() => {
+                carregarDadosCaixa();
+                carregarMonitorOperacional(); // 🟢 Atualiza sozinho a cada 5 segundos
+            }, 5000); 
+        }
+
+        // 👁️ FUNÇÃO MESTRE: Puxa os dados da Cozinha e Garçom ao mesmo tempo para o ADM fiscalizar
+        function carregarMonitorOperacional() {
+            // 1. Espiona a fila de pratos da Cozinha/Bar
+            fetch("http://localhost:3000/api/pedidos/pendentes")
+            .then(res => res.json())
+            .then(pedidos => {
+                const container = document.getElementById('monitor-fila-pedidos');
+                if (!container) return; // Proteção caso a div ainda não exista no HTML
+                
+                if (pedidos.length === 0) { 
+                    container.innerHTML = "<p>Nenhum prato sendo preparado.</p>"; 
+                    return; 
+                }
+                
+                let html = "<ul>";
+                pedidos.forEach(p => { 
+                    html += `<li><strong>Mesa ${p.id_mesa || p.id_comanda}:</strong> ${p.quantidade}x ${p.nome_item} (${p.status_pedido})</li>`; 
+                });
+                container.innerHTML = html + "</ul>";
+            })
+            .catch(erro => console.error("Erro no monitor de pedidos:", erro));
+
+            // 2. Espiona os chamados pendentes do Salão
+            fetch("http://localhost:3000/api/garcons/chamados")
+            .then(res => res.json())
+            .then(chamados => {
+                const container = document.getElementById('monitor-fila-chamados');
+                if (!container) return; // Proteção
+                
+                if (chamados.length === 0) { 
+                    container.innerHTML = "<p>Nenhum chamado aberto no salão.</p>"; 
+                    return; 
+                }
+                
+                let html = "<ul>";
+                chamados.forEach(c => { 
+                    html += `<li>🚨 <strong>Mesa ${c.id_mesa}:</strong> Chamando Garçom!</li>`; 
+                });
+                container.innerHTML = html + "</ul>";
+            })
+            .catch(erro => console.error("Erro no monitor de chamados:", erro));
         }
 
         // 📥 Buscar a lista de comandas ativas no Backend
@@ -99,7 +164,8 @@
         // 🎨 Desenhar a Tabela Dinâmica do Caixa na Tela
         function renderizarTabelaCaixa(listaDeComandas) {
             const container = document.getElementById('container-caixa-contas');
-            
+            if (!container) return;
+
             if (listaDeComandas.length === 0) {
                 container.innerHTML = "<h3>🎉 Caixa limpo! Nenhuma mesa com conta aberta no momento.</h3>";
                 return;
@@ -161,7 +227,7 @@
             .catch(erro => console.error("Erro ao fechar comanda no caixa:", erro));
         }
 
-        // 1. Função de Troca Visual entre Abas (Mestre - Corrigida)
+        // 1. Função de Troca Visual entre Abas (Corrigida com o Monitor!)
         function alternarAba(aba) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.form-panel').forEach(p => p.classList.remove('active'));
@@ -175,6 +241,10 @@
             } else if (aba === 'cadastro-mesa') {
                 document.querySelectorAll('.tab-btn')[2].classList.add('active');
                 document.getElementById('panel-cadastro-mesa').classList.add('active');
+            } else if (aba === 'monitor') {
+                // 🟢 Suporte para a aba do olho de águia!
+                document.querySelectorAll('.tab-btn')[3].classList.add('active');
+                document.getElementById('panel-monitor').classList.add('active');
             }
         }
 
@@ -189,7 +259,7 @@
             fetch("http://localhost:3000/api/funcionarios/cadastrar", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ nome, login, senha, cargo })
+                body: JSON.stringify({ nome, login, senate: senha, senha, cargo })
             })
             .then(res => res.json())
             .then(dados => {
@@ -217,25 +287,7 @@
             })
             .catch(erro => console.error("Erro ao cadastrar mesa:", erro));
         }
-
-        // 3. Ação de Salvar Nova Mesa no Banco via Fetch
-        function cadastrarMesa(event) {
-            event.preventDefault();
-            const numero_mesa = document.getElementById('mesa-numero').value;
-            const senha_gerente = document.getElementById('mesa-senha').value;
-
-            fetch("http://localhost:3000/api/mesas/cadastrar", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ numero_mesa, senha_gerente })
-            })
-            .then(res => res.json())
-            .then(dados => {
-                alert(dados.mensagem || dados.erro);
-                if (dados.sucesso) event.target.reset(); // Limpa o formulário
-            })
-            .catch(erro => console.error("Erro ao cadastrar mesa:", erro));
-        }
     </script>
+
 </body>
 </html>
