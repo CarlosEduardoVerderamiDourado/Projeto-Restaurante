@@ -33,101 +33,83 @@
             }
         }
         
-        // 🚨 FUNÇÃO 1: Solicitar atendimento e travar a tela visualmente
+                // 🚨 FUNÇÃO 1: Solicitar atendimento e travar a tela visualmente na cortina
         function solicitarGarcom() {
             const mesa = localStorage.getItem('id_mesa_configurada'); 
             if (!mesa) return;
 
-            // Alinha o cabeçalho caso necessário
             document.getElementById('titulo-mesa').innerText = "Mesa " + mesa; 
 
             fetch("http://localhost:3000/api/mesas/solicitar-garcom", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json" 
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ mesa })
             })
             .then(resposta => resposta.json())
             .then(dados => {
                 if (dados.sucesso) {
-                    // 🟢 LEVANTA A CORTINA DE ESPERA NA TELA DO CLIENTE!
+                    // Ativa a cortina escura de espera de forma profissional
                     document.getElementById('tela-espera').style.display = 'block';
                     document.getElementById('status-espera-titulo').innerText = "🛎️ Chamado Enviado";
                     document.getElementById('status-espera-texto').innerText = "Aguardando um garçom aceitar o atendimento...";
-                    document.getElementById('container-botao-fechar').innerHTML = ""; // Limpa botões antigos
+                    document.getElementById('container-botao-fechar').innerHTML = ""; 
 
-                    // Ativa o cronômetro para monitorar o aceite do garçom
                     if (!monitorChamadoCliente) {
                         monitorChamadoCliente = setInterval(checarSeGarcomAceitou, 4000);
                     }
                 } else {
-                    alert(dados.mensagem); 
+                    mostrarAvisoCortina("⚠️ Atenção", dados.mensagem, true);
                 }
             })
-            .catch(erro => {
-                console.error("Erro na comunicação:", erro);
-                alert("Não foi possível chamar o garçom.");
-            });
+            .catch(erro => console.error("Erro na comunicação:", erro));
         }
 
-        // 🚨 FUNÇÃO 2: Monitor invisível que atualiza a cortina com o nome do garçom
-        function checarSeGarcomAceitou() {
-            const mesaNumero = localStorage.getItem('id_mesa_configurada');
-            if (!mesaNumero) return;
-
-            fetch(`http://localhost:3000/api/garcons/status-mesa/${mesaNumero}`)
-            .then(resposta => resposta.json())
-            .then(dados => {
-                if (dados.ativo) {
-                    // 🟢 O GARÇOM ACEITOU! Atualiza o texto dinamicamente com o nome real do MySQL
-                    document.getElementById('status-espera-titulo').innerText = "🏃‍♂️ Garçom a Caminho!";
-                    document.getElementById('status-espera-texto').innerHTML = `O garçom <strong>${dados.garcom || "da equipe"}</strong> aceitou o seu chamado e está vindo te atender.`;
-                    
-                    // Cria o botão verde para destravar o tablet
-                    document.getElementById('container-botao-fechar').innerHTML = `
-                        <button onclick="fecharTelaEspera()" style="padding: 10px 20px; background: #28a745; color: white; border: none; font-weight: bold; border-radius: 4px; cursor: pointer;">Ok, Entendido!</button>
-                    `;
-                    
-                    // Desliga o Polling para aliviar o tráfego do servidor
-                    clearInterval(monitorChamadoCliente);
-                    monitorChamadoCliente = null;
-                }
-            })
-            .catch(erro => console.error("Erro no monitor de espera:", erro));
-        }
-
-        // 🟢 FUNÇÃO 3: Fecha a cortina escura
-        function fecharTelaEspera() {
-            document.getElementById('tela-espera').style.display = 'none';
-        }
-
-        // 🔀 FUNÇÃO 4: Viagem direta para o Autoatendimento (Cardápio)
+        // 🔀 FUNÇÃO 4: Inicializar Autoatendimento (Sem alertas cinzas!)
         function altoatendimento(){
             const mesa = localStorage.getItem('id_mesa_configurada'); 
             if (!mesa) return;
 
+            // 🟢 LEVANTA A CORTINA IMEDIATAMENTE COMO CARREGAMENTO!
+            document.getElementById('tela-espera').style.display = 'block';
+            document.getElementById('status-espera-titulo').innerText = "📖 Carregando Cardápio";
+            document.getElementById('status-espera-texto').innerText = "Buscando os hambúrgueres e bebidas direto no banco de dados...";
+            document.getElementById('container-botao-fechar').innerHTML = "";
+
             fetch("http://localhost:3000/api/mesas/altoatendimento", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json" 
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ mesa })
             })
             .then(resposta => resposta.json())
             .then(dados => {
                 if (dados.sucesso) {
-                    alert(dados.mensagem); 
-                    window.location.href = "cardapio.html";
+                    // Transição suave para o cardápio
+                    setTimeout(() => {
+                        window.location.href = "cardapio.html";
+                    }, 1500); // 1.5 segundos para o cliente ver a animação de carregamento
                 } else {
-                    alert(dados.mensagem); 
+                    mostrarAvisoCortina("❌ Erro", dados.mensagem, true);
                 }
             })
             .catch(erro => {
                 console.error("Erro na comunicação:", erro);
-                alert("Não foi possível iniciar o autoatendimento.");
+                mostrarAvisoCortina("❌ Erro de Rede", "Não foi possível iniciar o autoatendimento.", true);
             });
         }
+
+        // 🧠 FUNÇÃO AUXILIAR: Desenhar avisos ou erros direto na cortina escura para abolir os alerts da tela!
+        function mostrarAvisoCortina(titulo, texto, incluirBotaoFechar) {
+            document.getElementById('tela-espera').style.display = 'block';
+            document.getElementById('status-espera-titulo').innerText = titulo;
+            document.getElementById('status-espera-texto').innerText = texto;
+            
+            if (incluirBotaoFechar) {
+                document.getElementById('container-botao-fechar').innerHTML = `
+                    <button onclick="fecharTelaEspera()" style="padding: 10px 20px; background: #dc3545; color: white; border: none; font-weight: bold; border-radius: 4px; cursor: pointer;">Fechar</button>
+                `;
+            }
+        }
+
     </script>
 </body>
 </html>

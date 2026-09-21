@@ -144,10 +144,12 @@ function loginFuncionario(event) {
     });
 }
 
-// 4. O GUARDA DE TRÂNSITO (Isolado e Perfeito)
+// 4. O GUARDA DE TRÂNSITO (Higienizado e sem Pop-ups cinzas!)
 window.onload = function() {
     const mesaSalva = localStorage.getItem('id_mesa_configurada');
     if (mesaSalva) {
+        console.log(`Mesa ${mesaSalva} já configurada na memória. Redirecionando para o portal...`);
+        // Viaja direto para o portal de forma profissional sem travar o usuário com alertas
         window.location.href = "portal.html";
     }
 }
