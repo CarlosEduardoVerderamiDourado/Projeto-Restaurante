@@ -2,12 +2,17 @@ const express = require('express');
 const router = express.Router();
 const db = require('../database'); // Puxa a conexão do nosso cofre compartilhado
 
-// 🛎️ 1. ROTA: Listar todas as mesas que estão chamando o garçom neste momento
+// 🛎️ 1. ROTA LISTAR: Traz chamados de ajuda (Pendente) e de conta (Pagamento)
 router.get('/chamados', (req, res) => {
-    console.log("🛎️ Aplicativo do Garçom buscando chamados pendentes...");
+    console.log("🛎️ Aplicativo do Garçom buscando chamados de todos os tipos...");
 
-    // Busca os chamados abertos organizados do mais antigo para o mais recente
-    const querySQL = "SELECT id_chamado, id_mesa, status_chamado, horario_chamado FROM chamados_atendimento WHERE status_chamado = 'Pendente' ORDER BY horario_chamado ASC";
+    // Traz os dois status ativos do salão
+    const querySQL = `
+        SELECT id_chamado, id_mesa, status_chamado, horario_chamado 
+        FROM chamados_atendimento 
+        WHERE status_chamado IN ('Pendente', 'Pagamento') 
+        ORDER BY horario_chamado ASC
+    `;
 
     db.query(querySQL, [], (err, results) => {
         if (err) {
@@ -18,56 +23,53 @@ router.get('/chamados', (req, res) => {
     });
 });
 
-// 🔄 2. ROTA: Garçom aceita o chamado da mesa
+// 🏃‍♂️ 2. ROTA ACEITAR: Aceita tanto chamados 'Pendente' quanto 'Pagamento'
 router.post('/aceitar-chamado', (req, res) => {
-    const { id_chamado, id_funcionario } = req.body; // Recebe o chamado e o funcionário que vai atender
-
+    const { id_chamado, id_funcionario } = req.body;
     console.log(`🏃‍♂️ Garçom ID ${id_funcionario} aceitou o chamado número ${id_chamado}...`);
 
-    // Atualiza o chamado colocando quem vai atender e muda o status para 'A caminho'
     const querySQL = "UPDATE chamados_atendimento SET status_chamado = 'A caminho', id_funcionario = ? WHERE id_chamado = ?";
 
     db.query(querySQL, [id_funcionario, id_chamado], (err, results) => {
         if (err) {
             console.error("❌ Erro ao aceitar chamado no banco:", err.message);
-            return res.status(500).json({ erro: "Erro ao registrar o atendimento" });
+            return res.status(500).json({ erro: "Erro ao aceitar o chamado" });
         }
-
-        return res.json({ 
-            sucesso: true, 
-            mensagem: "Atendimento registrado! Corra para a mesa." 
-        });
+        return res.json({ sucesso: true, mensagem: "Atendimento aceito com sucesso!" });
     });
 });
-// 🛎️ 3. ROTA: Cliente checa se algum garçom aceitou o chamado da mesa dele
+
+
+// 🛎️ 3. ROTA: Cliente checa se algum garçom aceitou o chamado (Trazendo o nome real do Garçom)
 router.get('/status-mesa/:mesa', (req, res) => {
     const { mesa } = req.params;
 
-    // Busca o chamado ativo dessa mesa trazendo o nome do funcionário associado
-const querySQL = `
-        SELECT c.status_chamado, f.nome 
+    // Essa query cruza o chamado com a tabela de funcionários para buscar o NOME de quem clicou em atender
+    const querySQL = `
+        SELECT c.status_chamado, f.nome AS nome_garcom
         FROM chamados_atendimento c
-        LEFT JOIN funcionarios f ON c.id_funcionario = f.id
+        INNER JOIN funcionarios f ON c.id_funcionario = f.ID
         WHERE c.id_mesa = ? 
           AND c.status_chamado = 'A caminho'
           AND c.horario_chamado >= NOW() - INTERVAL 5 MINUTE
         ORDER BY c.horario_chamado DESC LIMIT 1
     `;
 
- db.query(querySQL, [mesa], (err, results) => {
+    db.query(querySQL, [mesa], (err, results) => {
         if (err) {
             console.error("❌ Erro ao checar status do chamado:", err.message);
             return res.status(500).json({ erro: "Erro ao checar status" });
         }
         
         if (results.length > 0) {
-            // Se achou um chamado aceito gerado AGORA, manda o nome do garçom!
-            return res.json({ ativo: true, garcom: results[0].nome });
+            // Se achou o garçom vindo, devolve o nome dele bonitinho
+            return res.json({ ativo: true, garcom: results[0].nome_garcom });
         } else {
             return res.json({ ativo: false });
         }
     });
 });
+
 
 // 🍳 4. ROTA CORRIGIDA: Listar pratos prontos usando as colunas reais da foto
 router.get('/entregas-pendentes', (req, res) => {

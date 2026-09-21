@@ -58,7 +58,7 @@
             .catch(erro => console.error("Erro ao carregar chamados:", erro));
         }
 
-        // 🎨 Desenhar cards de chamados
+                // 🎨 Desenhar cards diferenciando AJUDA (Pendente) de CONTA (Pagamento) de forma limpa!
         function renderizarChamados(listaDeChamados) {
             const container = document.getElementById('container-chamados');
             container.innerHTML = "";
@@ -68,15 +68,29 @@
                 const horaChamado = new Date(ch.horario_chamado);
                 const diferencaMinutos = Math.floor((new Date() - horaChamado) / 1000 / 60);
 
+                // 🟢 SEPARAÇÃO VISUAL POR STATUS DO CÓDIGO:
+                let corCard = "#fffde7"; // Amarelo clássico para ajuda comum
+                let textoTipo = "🛎️ Chamado de Ajuda";
+                let bordaCard = "2px solid #333";
+
+                // Se o status gravado pelo botão for 'Pagamento', o card muda na hora!
+                if (ch.status_chamado === 'Pagamento') {
+                    corCard = "#ffeacc"; // Laranja suave financeiro
+                    textoTipo = "💳 PEDIDO DE CONTA (Levar Maquininha)";
+                    bordaCard = "2px dashed #ff9800";
+                }
+
                 container.innerHTML += `
-                    <div class="card-chamado">
+                    <div class="card-chamado" style="background-color: ${corCard}; border: ${bordaCard}; text-align: center; padding: 15px; width: 220px; border-radius: 8px;">
+                        <h4 style="margin: 0 0 10px 0; color: #555; font-size: 11px; font-weight: bold; text-transform: uppercase;">${textoTipo}</h4>
                         <h3>Mesa ${ch.id_mesa}</h3>
                         <p>Aguardando há: <strong>${diferencaMinutos} min</strong></p>
-                        <button class="btn-acao btn-azul" onclick="atenderMesa(${ch.id_chamado}, ${ch.id_mesa})">Atender</button>
+                        <button class="btn-acao btn-azul" onclick="atenderMesa(${ch.id_chamado}, ${ch.id_mesa})" style="padding: 8px; background: #007bff; color: white; border: none; cursor: pointer; font-weight: bold; border-radius: 4px; width: 100%;">Atender</button>
                     </div>
                 `;
             });
         }
+
 
         // 📥 2. Buscar os pratos 'Prontos' vindo da Cozinha/Bar
         function carregarEntregasProntas() {

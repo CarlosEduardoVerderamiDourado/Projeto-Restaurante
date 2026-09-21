@@ -81,27 +81,40 @@ router.post('/ativar', (req, res) => {
 // =========================================================
 // 4. ROTA QUE chama o grason ja abrindo a comanda
 // =========================================================
+// 🛎️ ROTA 1: Exclusiva para AJUDA COMUM (Disparada pelo portal.html)
 router.post('/solicitar-garcom', (req, res) => {
     const { mesa } = req.body;
-    console.log("Chamando garçom para a mesa:", mesa);
-    
-    const querySQL = "SELECT id_comanda FROM comandas WHERE id_mesa = ? AND status_comanda = 'Aberta'";
+    console.log(`🛎️ Mesa ${mesa} solicitou AJUDA COMUM no salão...`);
+
+    // 🟢 GRAVA COMO 'Pendente' -> Garçom vai ver o cartão AMARELO!
+    const querySQL = "INSERT INTO chamados_atendimento (id_mesa, status_chamado, horario_chamado) VALUES (?, 'Pendente', NOW())";
 
     db.query(querySQL, [mesa], (err, results) => {
         if (err) {
-            console.error("Erro ao abrir comanda:", err.message);
-            return res.status(500).json({ erro: "Erro ao abrir a comanda no servidor" });
+            console.error("❌ Erro ao registrar chamado de ajuda:", err.message);
+            return res.status(500).json({ erro: "Erro ao chamar o garçom" });
         }
-        
-        if (results.length > 0) {
-            // Usa a fábrica de chamados se a mesa já tiver conta
-            criarChamado(mesa, res, "Garçom notificado! Um funcionário está a caminho da sua mesa.");
-        } else {
-            // Usa a fábrica de comandas se a mesa estiver livre (passando true para chamar garçom)
-            nova_comanda(mesa, res, true);
-        }
+        return res.json({ sucesso: true, mensagem: "Garçom acionado para ajuda!" });
     });
-}); 
+});
+
+// 💳 ROTA 2: Exclusiva para PAGAMENTO / MAQUININHA (Disparada pelo cardapio.html)
+router.post('/solicitar-maquininha', (req, res) => {
+    const { mesa } = req.body;
+    console.log(`💳 Mesa ${mesa} solicitou a MAQUININHA para fechar a conta...`);
+
+    // 🟢 GRAVA COMO 'Pagamento' -> Garçom vai ver o cartão LANREJA!
+    const querySQL = "INSERT INTO chamados_atendimento (id_mesa, status_chamado, horario_chamado) VALUES (?, 'Pagamento', NOW())";
+
+    db.query(querySQL, [mesa], (err, results) => {
+        if (err) {
+            console.error("❌ Erro ao registrar chamado de conta:", err.message);
+            return res.status(500).json({ erro: "Erro ao chamar a maquininha" });
+        }
+        return res.json({ sucesso: true, mensagem: "Maquininha solicitada com sucesso!" });
+    });
+});
+
 
 // =========================================================
 // 5. Rota alto atendimento 

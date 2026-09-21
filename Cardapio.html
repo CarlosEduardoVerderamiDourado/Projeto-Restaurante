@@ -324,19 +324,16 @@
         function chamarGarcomParaConta() {
             const mesaNumero = localStorage.getItem('id_mesa_configurada');
             
-            fetch("http://localhost:3000/api/mesas/solicitar-garcom", {
+            // 🟢 CORREÇÃO: Aponta para a nova rota exclusiva de maquininha!
+            fetch("http://localhost:3000/api/mesas/solicitar-maquininha", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ mesa: mesaNumero })
             })
             .then(res => res.json())
             .then(dados => {
-                // 🟢 Passo 1: Aciona a cortina customizada de aviso na tela
                 mostrarCortinaAviso("💳 Maquininha Solicitada", "Solicitação enviada com sucesso!\nO garçom foi acionado no salão e está trazendo a maquininha de cartão até a sua mesa.\n\nRetornando ao portal principal...");
                 
-                // 🟢 Passo 2: A NOVA AUTOMAÇÃO! 
-                // Aguarda 4 segundos para o cliente ler o aviso e faz a página viajar sozinha para o portal!
-                console.log("Maquininha chamada! Redirecionando para o portal da mesa...");
                 setTimeout(() => {
                     window.location.href = "portal.html";
                 }, 4000);

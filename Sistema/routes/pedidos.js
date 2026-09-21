@@ -185,4 +185,21 @@ router.get('/extrato/:mesa', (req, res) => {
     });
 });
 
+// 💳 ROTA ADICIONADA: Acionar Garçom para a Conta (Salvando como status 'Pagamento')
+router.post('/solicitar-garcom', (req, res) => {
+    const { mesa } = req.body;
+    console.log(`💳 Mesa ${mesa} solicitou a maquininha para fechar a conta...`);
+
+    // 🟢 GRAVAÇÃO COM STATUS EXCLUSIVO: 'Pagamento' para o painel do garçom saber separar!
+    const querySQL = "INSERT INTO chamados_atendimento (id_mesa, status_chamado, horario_chamado) VALUES (?, 'Pagamento', NOW())";
+
+    db.query(querySQL, [mesa], (err, results) => {
+        if (err) {
+            console.error("❌ Erro ao registrar chamado de conta:", err.message);
+            return res.status(500).json({ erro: "Erro ao chamar o garçom para a conta" });
+        }
+        return res.json({ sucesso: true, mensagem: "Maquininha solicitada com sucesso!" });
+    });
+});
+
 module.exports = router;
