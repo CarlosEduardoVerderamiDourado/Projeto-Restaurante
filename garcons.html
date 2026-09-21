@@ -5,143 +5,151 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ratatue - Painel do Garçom</title>
     <style>
-        .painel-chamados {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            padding: 20px;
-        }
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+        .secao { margin-bottom: 40px; border-bottom: 2px solid #eee; padding-bottom: 20px; }
+        .painel-cards { display: flex; flex-wrap: wrap; gap: 15px; padding: 10px 0; }
         .card-chamado {
-            border: 2px solid #333;
-            border-radius: 8px;
-            padding: 15px;
-            background-color: #fffde7; /* Amarelo clarinho para chamar atenção */
-            width: 220px;
-            box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
-            text-align: center;
+            border: 2px solid #333; border-radius: 8px; padding: 15px;
+            background-color: #fffde7; width: 220px; box-shadow: 2px 2px 10px rgba(0,0,0,0.1); text-align: center;
         }
-        .btn-atender {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
+        .card-entrega {
+            border: 2px solid #28a745; border-radius: 8px; padding: 15px;
+            background-color: #e8f5e9; width: 220px; box-shadow: 2px 2px 10px rgba(0,0,0,0.1); text-align: center;
         }
-        .btn-atender:hover {
-            background-color: #0056b3;
-        }
+        .btn-acao { color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; }
+        .btn-azul { background-color: #007bff; } .btn-azul:hover { background-color: #0056b3; }
+        .btn-verde { background-color: #28a745; } .btn-verde:hover { background-color: #218838; }
     </style>
 </head>
 <body>
 
-    <h1>🛎️ Painel de Chamados do Salão</h1>
-
+    <h1>🛎️ Painel Operacional do Garçom</h1>
     <button onclick="fazerLogoutGarcom()" style="padding: 6px 12px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-bottom: 20px;">🚪 Sair / Deslogar</button>
 
-    <p>Fique atento! Novas solicitações de clientes aparecerão aqui automaticamente.</p>
+    <!-- CONTAINER 1: CHAMADOS DE SOCORRO -->
+    <div class="secao">
+        <h2>🚨 Chamados de Ajuda (Mesas Solicitando Garçom)</h2>
+        <div id="container-chamados" class="painel-cards"></div>
+    </div>
 
-    <!-- O tabuleiro onde as mesas que chamaram vão aparecer soltas -->
-    <div id="container-chamados" class="painel-chamados">
-        <!-- Injetado dinamicamente pelo JavaScript -->
+    <!-- CONTAINER 2: FILA DE PRATOS PRONTOS PARA ENTREGA -->
+    <div class="secao">
+        <h2>🍳 Fila de Entregas (Pratos Prontos na Cozinha/Bar)</h2>
+        <div id="container-entregas" class="painel-cards"></div>
     </div>
 
     <script>
-        // 🔄 Passo 1: Polling Automático - Carrega ao abrir a página e atualiza a cada 5 segundos
+        // 🔄 Polling Automático - Sincroniza o salão inteiro a cada 5 segundos
         window.onload = function() {
-            carregarChamadosPendentes();
-            setInterval(carregarChamadosPendentes, 5000); // Fica de olho no salão sem precisar de F5!
+            carregarDadosSalao();
+            setInterval(carregarDadosSalao, 5000); 
         }
 
-        // 📥 Passo 2: Buscar os chamados 'Pendentes' direto da API do Backend
+        function carregarDadosSalao() {
+            carregarChamadosPendentes();
+            carregarEntregasProntas();
+        }
+
+        // 📥 1. Buscar os chamados 'Pendentes'
         function carregarChamadosPendentes() {
             fetch("http://localhost:3000/api/garcons/chamados")
-            .then(resposta => resposta.json())
-            .then(chamados => {
-                renderizarChamados(chamados);
-            })
-            .catch(erro => console.error("Erro ao carregar chamados do salão:", erro));
+            .then(res => res.json())
+            .then(chamados => renderizarChamados(chamados))
+            .catch(erro => console.error("Erro ao carregar chamados:", erro));
         }
 
-        // 🎨 Passo 3: Desenhar os cartões das mesas na tela dinamicamente
+        // 🎨 Desenhar cards de chamados
         function renderizarChamados(listaDeChamados) {
             const container = document.getElementById('container-chamados');
             container.innerHTML = "";
+            if (listaDeChamados.length === 0) { container.innerHTML = "<p>Nenhuma mesa chamando no momento.</p>"; return; }
 
-            if (listaDeChamados.length === 0) {
-                container.innerHTML = "<h3>✅ Salão tranquilo! Nenhuma mesa chamando no momento.</h3>";
-                return;
-            }
+            listaDeChamados.forEach(ch => {
+                const horaChamado = new Date(ch.horario_chamado);
+                const diferencaMinutos = Math.floor((new Date() - horaChamado) / 1000 / 60);
 
-            listaDeChamados.forEach(chamado => {
-                // Calcula quantos minutos se passaram desde o clique do cliente
-                const horaChamado = new Date(chamado.horario_chamado);
-                const agora = new Date();
-                const diferencaMinutos = Math.floor((agora - horaChamado) / 1000 / 60);
-
-                // Monta o cartão visual da mesa com o botão de ação
-                const cardHTML = `
+                container.innerHTML += `
                     <div class="card-chamado">
-                        <h3>Mesa ${chamado.id_mesa}</h3>
+                        <h3>Mesa ${ch.id_mesa}</h3>
                         <p>Aguardando há: <strong>${diferencaMinutos} min</strong></p>
-                        <p>Status: <span>${chamado.status_chamado}</span></p>
-                        <hr style="border: 1px dashed #ccc; margin: 15px 0;">
-                        <button class="btn-atender" onclick="atenderMesa(${chamado.id_chamado}, ${chamado.id_mesa})">Atender</button>
+                        <button class="btn-acao btn-azul" onclick="atenderMesa(${ch.id_chamado}, ${ch.id_mesa})">Atender</button>
                     </div>
                 `;
-                container.innerHTML += cardHTML;
             });
         }
 
-        // 🏃‍♂️ Passo 4: Ação do Clique - O Garçom aceita atender a mesa
+        // 📥 2. Buscar os pratos 'Prontos' vindo da Cozinha/Bar
+        function carregarEntregasProntas() {
+            fetch("http://localhost:3000/api/garcons/entregas-pendentes")
+            .then(res => res.json())
+            .then(entregas => renderizarEntregas(entregas))
+            .catch(erro => console.error("Erro ao carregar entregas:", erro));
+        }
+
+        // 🎨 Desenhar cards de entregas
+        function renderizarEntregas(listaDeEntregas) {
+            const container = document.getElementById('container-entregas');
+            container.innerHTML = "";
+            if (listaDeEntregas.length === 0) { container.innerHTML = "<p>Nenhum prato aguardando entrega nas esteiras.</p>"; return; }
+
+            listaDeEntregas.forEach(ent => {
+                container.innerHTML += `
+                    <div class="card-entrega">
+                        <h3>Mesa ${ent.id_mesa}</h3>
+                        <p>Pedido: <strong>#${ent.id_pedido}</strong></p>
+                        <p style="color: green; font-weight: bold;">🍽️ PRATO PRONTO!</p>
+                        <button class="btn-acao btn-verde" onclick="finalizarEntregaMesa(${ent.id_pedido}, ${ent.id_mesa})">Confirmar Entrega</button>
+                    </div>
+                `;
+            });
+        }
+
+        // 🏃‍♂️ AÇÃO A: Aceitar Chamado + Desvio Inteligente para o Cardápio!
         function atenderMesa(id_chamado, id_mesa) {
-            // Resgata o ID do garçom logado (se não achar nada no localStorage, usa o 1 como teste provisório)
-            const id_funcionario = localStorage.getItem('id_funcionario_logado') || 1;
+            const id_funcionario = localStorage.getItem('id_funcionario_logado');
 
-            console.log(`Disparando atendimento para o chamado #${id_chamado} pelo Garçom #${id_funcionario}`);
-
-            // Envia o pacote direto para a rota de POST que você criou no Backend!
             fetch("http://localhost:3000/api/garcons/aceitar-chamado", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ 
-                    id_chamado: id_chamado, 
-                    id_funcionario: id_funcionario 
-                })
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id_chamado, id_funcionario })
             })
-            .then(resposta => resposta.json())
+            .then(res => res.json())
             .then(dados => {
                 if (dados.sucesso) {
-                    alert(`Atendimento confirmado para a Mesa ${id_mesa}! Vá até o salão.`);
-                    // Atualiza a tela imediatamente para sumir com o cartão atendido
-                    carregarChamadosPendentes();
-                } else {
-                    alert("Erro ao aceitar o chamado.");
+                    // 🟢 CORREÇÃO DOS BASTIDORES:
+                    // Usamos uma chave inédita ('id_mesa_garcom') para não colidir com o monitor do cliente durante seus testes no mesmo PC!
+                    if (confirm(`Atendimento aceito para a Mesa ${id_mesa}!\n\nDeseja abrir o Cardápio digital no seu aparelho para lançar um produto para o cliente agora?`)) {
+                        localStorage.setItem('id_mesa_garcom', id_mesa); // 🧠 Exclusivo do Garçom!
+                        window.location.href = "cardapio.html";
+                    } else {
+                        carregarDadosSalao(); 
+                    }
                 }
             })
-            .catch(erro => {
-                console.error("Erro na comunicação de atendimento:", erro);
-                alert("Não foi possível conectar ao servidor do salão.");
-            });
+            .catch(erro => console.error("Erro ao atender chamado:", erro));
         }
 
-                // 🚪 FUNÇÃO 5: Deslogar o funcionário com segurança e voltar ao Login
-        function fazerLogoutGarcom() {
-            if (!confirm("Deseja realmente encerrar a sua sessão de trabalho?")) return;
 
-            // Limpa o ID do garçom da memória do tablet para segurança de dados
+        // 🏃‍♂️ AÇÃO B: Dar baixa na entrega de comida
+        function finalizarEntregaMesa(id_pedido, id_mesa) {
+            fetch("http://localhost:3000/api/garcons/finalizar-entrega", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id_pedido })
+            })
+            .then(res => res.json())
+            .then(dados => {
+                alert(`Pedido entregue com sucesso na Mesa ${id_mesa}!`);
+                carregarDadosSalao();
+            })
+            .catch(erro => console.error("Erro ao finalizar entrega:", erro));
+        }
+
+        function fazerLogoutGarcom() {
+            if (!confirm("Deseja encerrar sua sessão?")) return;
             localStorage.removeItem('id_funcionario_logado');
-            
-            console.log("Sessão do funcionário encerrada. Redirecionando...");
-            
-            // Faz o navegador viajar de volta para a tela mestre de logins
             window.location.href = "index.html";
         }
-
     </script>
-
 </body>
 </html>

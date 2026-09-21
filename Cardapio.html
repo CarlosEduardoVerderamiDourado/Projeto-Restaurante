@@ -106,10 +106,13 @@
 
         // ⏳ FUNÇÃO 4: Carregamento inicial da página
         window.onload = function() {
-            const mesaNumero = localStorage.getItem('id_mesa_configurada');
+            // 🟢 Tenta ler a mesa do cliente, se estiver vazia (porque é o garçom operando), lê a mesa do garçom!
+            const mesaNumero = localStorage.getItem('id_mesa_configurada') || localStorage.getItem('id_mesa_garcom');
+            
             if (mesaNumero) {
                 document.getElementById('mesa-display').innerText = "Mesa " + mesaNumero;
             }
+
 
             fetch("http://localhost:3000/api/cardapio")
             .then(resposta => resposta.json())
@@ -164,7 +167,6 @@
             }
         }
 
-        // 🚨 FUNÇÃO 7: Monitorar se o garçom aceitou o chamado
         // 🚨 FUNÇÃO 7: Monitorar se o garçom aceitou o chamado E se a conta foi fechada
         function checarStatusChamado() {
             const mesaNumero = localStorage.getItem('id_mesa_configurada');
