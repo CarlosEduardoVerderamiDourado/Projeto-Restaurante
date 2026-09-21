@@ -165,4 +165,66 @@ router.post('/cadastrar', (req, res) => {
     });
 });
 
+// 🧾 ROTA A: Listar todas as comandas abertas com o valor total gasto por cada mesa
+router.get('/comandas-abertas', (req, res) => {
+    console.log("🧾 ADM solicitando relatório de comandas abertas no caixa...");
+
+    // Essa query busca todas as comandas abertas, soma os itens de todos os seus pedidos e traz o valor acumulado em dinheiro
+    const querySQL = `
+        SELECT 
+            com.id_comanda,
+            com.id_mesa,
+            com.horario_abertura,
+            IFNULL(SUM(i.quantidade * i.valor_unitario), 0) AS total_gasto
+        FROM comandas com
+        LEFT JOIN pedidos p ON com.id_comanda = p.id_comanda
+        LEFT JOIN pedidos_itens i ON p.id_pedido = i.id_pedido
+        WHERE com.status_comanda = 'Aberta'
+        GROUP BY com.id_comanda, com.id_mesa, com.horario_abertura
+        ORDER BY com.id_mesa ASC
+    `;
+
+    db.query(querySQL, [], (err, results) => {
+        if (err) {
+            console.error("❌ Erro ao buscar comandas abertas no caixa:", err.message);
+            return res.status(500).json({ erro: "Erro ao carregar os dados do caixa" });
+        }
+        return res.json(results);
+    });
+});
+
+// 💳 ROTA B: Dar baixa no pagamento (Fechar comanda para 'Paga' e liberar Mesa para 'Livre')
+router.post('/fechar-comanda', (req, res) => {
+    const { id_comanda, id_mesa } = req.body;
+    console.log(`💳 Caixa recebendo pagamento da Comanda #${id_comanda} (Mesa ${id_mesa})...`);
+
+    // 1. Primeiro UPDATE: Altera o status da comanda para Paga
+    const queryFecharComanda = "UPDATE comandas SET status_comanda = 'Paga' WHERE id_comanda = ?";
+    
+    db.query(queryFecharComanda, [id_comanda], (err, results) => {
+        if (err) {
+            console.error("❌ Erro ao fechar comanda:", err.message);
+            return res.status(500).json({ erro: "Erro ao processar o pagamento da comanda" });
+        }
+
+        // 2. Segundo UPDATE: Devolve o status da mesa física para Livre
+        const queryLiberarMesa = "UPDATE mesas SET status_mesa = 'Livre' WHERE id_mesa = ?";
+        
+        db.query(queryLiberarMesa, [id_mesa], (err, results) => {
+            if (err) {
+                console.error("❌ Erro ao liberar mesa física:", err.message);
+                return res.status(500).json({ erro: "A comanda foi paga, mas a mesa falhou ao ser liberada." });
+            }
+
+            // MÁGICA: No segundo exato em que esse JSON abaixo responder sucesso, 
+            // a trava invisível que fizemos ontem no 'cardapio.html' vai ler a liberação,
+            // vai avisar o cliente na tela e vai expulsar o tablet de volta para o login!
+            return res.json({ 
+                sucesso: true, 
+                mensagem: `Mesa ${id_mesa} encerrada e liberada com sucesso!` 
+            });
+        });
+    });
+});
+
 module.exports = router;

@@ -81,6 +81,90 @@
     </div>
 
     <script>
+
+                // 🔄 Polling Automático - Atualiza o caixa sozinho a cada 5 segundos
+        window.onload = function() {
+            carregarDadosCaixa();
+            setInterval(carregarDadosCaixa, 5000); 
+        }
+
+        // 📥 Buscar a lista de comandas ativas no Backend
+        function carregarDadosCaixa() {
+            fetch("http://localhost:3000/api/mesas/comandas-abertas")
+            .then(res => res.json())
+            .then(comandas => {
+                renderizarTabelaCaixa(comandas);
+            })
+            .catch(erro => console.error("Erro ao carregar dados do caixa:", erro));
+        }
+
+        // 🎨 Desenhar a Tabela Dinâmica do Caixa na Tela
+        function renderizarTabelaCaixa(listaDeComandas) {
+            const container = document.getElementById('container-caixa-contas');
+            
+            if (listaDeComandas.length === 0) {
+                container.innerHTML = "<h3>🎉 Caixa limpo! Nenhuma mesa com conta aberta no momento.</h3>";
+                return;
+            }
+
+            // Desenha a tabela com estilização limpa para o gerente operar
+            let tabelaHTML = `
+                <table border="1" cellpadding="10" style="width: 100%; border-collapse: collapse; margin-top: 15px; text-align: left;">
+                    <thead style="background: #eee;">
+                        <tr>
+                            <th>Mesa</th>
+                            <th>Nº Comanda</th>
+                            <th>Horário de Abertura</th>
+                            <th>Valor Consumido</th>
+                            <th>Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            listaDeComandas.forEach(com => {
+                const dataAbertura = new Date(com.horario_abertura).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+                
+                tabelaHTML += `
+                    <tr>
+                        <td><strong>Mesa ${com.id_mesa}</strong></td>
+                        <td>#${com.id_comanda}</td>
+                        <td>${dataAbertura}</td>
+                        <td style="color: red; font-weight: bold;">R$ ${Number(com.total_gasto).toFixed(2)}</td>
+                        <td>
+                            <button onclick="confirmarPagamentoMesa(${com.id_comanda}, ${com.id_mesa})" 
+                                    style="padding: 6px 12px; background: #28a745; color: white; border: none; font-weight: bold; cursor: pointer; border-radius: 4px;">
+                                Confirmar Pagamento
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tabelaHTML += "</tbody></table>";
+            container.innerHTML = tabelaHTML;
+        }
+
+        // 💳 Disparar a baixa definitiva de pagamento no banco
+        function confirmarPagamentoMesa(id_comanda, id_mesa) {
+            if (!confirm(`Deseja confirmar o recebimento do pagamento da Mesa ${id_mesa}?`)) return;
+
+            fetch("http://localhost:3000/api/mesas/fechar-comanda", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id_comanda, id_mesa })
+            })
+            .then(res => res.json())
+            .then(dados => {
+                alert(dados.mensagem);
+                if (dados.sucesso) {
+                    carregarDadosCaixa(); // Atualiza a tabela na hora!
+                }
+            })
+            .catch(erro => console.error("Erro ao fechar comanda no caixa:", erro));
+        }
+
+
         // 1. Função de Troca Visual entre Abas (Mestre)
         function alternarAba(aba) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
