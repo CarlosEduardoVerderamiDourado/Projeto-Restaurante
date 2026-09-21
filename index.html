@@ -104,10 +104,10 @@ function loginFuncionario(event) {
 
     console.log("Tentando logar funcionário...");
 
-    fetch("http://localhost:3000/api/funcionarios/login",{
+    fetch("http://localhost:3000/api/funcionarios/login", {
         method: "POST",
-        headers:{
-            "Content-Type": "application/json" // 🟢 Ajustado para C maiúsculo
+        headers: {
+            "Content-Type": "application/json"
         },
         body: JSON.stringify({ usuario, senha })
     })
@@ -115,7 +115,25 @@ function loginFuncionario(event) {
     .then(dados => {
         if (dados.sucesso) {
             alert(dados.mensagem); 
-            console.log("Mesa", dados.cargo);
+            
+            // 🟢 1. GRAVA O ID REAL DO FUNCIONÁRIO NA MEMÓRIA LOCAL
+            localStorage.setItem('id_funcionario_logado', dados.id_funcionario);
+            console.log("Funcionário autenticado! ID:", dados.id_funcionario, "Cargo:", dados.cargo);
+
+            // 🟢 2. A LÓGICA DE ENTRADA AUTOMÁTICA POR CARGO
+            // Redireciona o colaborador para a tela operacional correspondente ao seu cargo no banco
+            if (dados.cargo === 'Garçom') {
+                window.location.href = "garcons.html";
+            } else if (dados.cargo === 'Cozinheiro') {
+                window.location.href = "cozinha.html";
+            } else if (dados.cargo === 'Barman') {
+                window.location.href = "bar.html";
+            } else if (dados.cargo === 'Caixa' || dados.cargo === 'Administrador') {
+                window.location.href = "adm.html";
+            } else {
+                alert("Cargo não reconhecido no painel. Contate o suporte.");
+            }
+
         } else {
             alert(dados.mensagem); 
         }
@@ -130,11 +148,10 @@ function loginFuncionario(event) {
 window.onload = function() {
     const mesaSalva = localStorage.getItem('id_mesa_configurada');
     if (mesaSalva) {
-
         window.location.href = "portal.html";
-        
     }
 }
+
 
     </script>
 </body>

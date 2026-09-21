@@ -37,6 +37,9 @@
 <body>
 
     <h1>🛎️ Painel de Chamados do Salão</h1>
+
+    <button onclick="fazerLogoutGarcom()" style="padding: 6px 12px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-bottom: 20px;">🚪 Sair / Deslogar</button>
+
     <p>Fique atento! Novas solicitações de clientes aparecerão aqui automaticamente.</p>
 
     <!-- O tabuleiro onde as mesas que chamaram vão aparecer soltas -->
@@ -124,6 +127,20 @@
                 alert("Não foi possível conectar ao servidor do salão.");
             });
         }
+
+                // 🚪 FUNÇÃO 5: Deslogar o funcionário com segurança e voltar ao Login
+        function fazerLogoutGarcom() {
+            if (!confirm("Deseja realmente encerrar a sua sessão de trabalho?")) return;
+
+            // Limpa o ID do garçom da memória do tablet para segurança de dados
+            localStorage.removeItem('id_funcionario_logado');
+            
+            console.log("Sessão do funcionário encerrada. Redirecionando...");
+            
+            // Faz o navegador viajar de volta para a tela mestre de logins
+            window.location.href = "index.html";
+        }
+
     </script>
 
 </body>
