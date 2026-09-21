@@ -118,30 +118,43 @@
             });
         }
 
-        // 🏃‍♂️ AÇÃO A: Aceitar Chamado + Desvio Inteligente para o Cardápio!
+                // 🏃‍♂️ AÇÃO A: Aceitar Chamado (Totalmente livre de pop-ups cinzas!)
         function atenderMesa(id_chamado, id_mesa) {
             const id_funcionario = localStorage.getItem('id_funcionario_logado');
 
-            fetch("http://localhost:3000/api/garcons/aceitar-chamado", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ id_chamado, id_funcionario })
-            })
-            .then(res => res.json())
-            .then(dados => {
-                if (dados.sucesso) {
-                    // 🟢 CORREÇÃO DOS BASTIDORES:
-                    // Usamos uma chave inédita ('id_mesa_garcom') para não colidir com o monitor do cliente durante seus testes no mesmo PC!
-                    if (confirm(`Atendimento aceito para a Mesa ${id_mesa}!\n\nDeseja abrir o Cardápio digital no seu aparelho para lançar um produto para o cliente agora?`)) {
-                        localStorage.setItem('id_mesa_garcom', id_mesa); // 🧠 Exclusivo do Garçom!
-                        window.location.href = "cardapio.html";
-                    } else {
+            // 1. Configura a nossa cortina de confirmação preta e azul personalizada
+            document.getElementById('tela-confirmacao-garcom').style.display = 'block';
+            document.getElementById('confirm-titulo').innerText = "🛎️ Atender Mesa " + id_mesa;
+            document.getElementById('confirm-texto').innerText = `Você confirma que vai até o salão prestar atendimento para a Mesa ${id_mesa}?`;
+
+            // 2. Configura a ação se o Garçom clicar em "SIM" na nossa cortina
+            document.getElementById('btn-confirm-sim').onclick = function() {
+                document.getElementById('tela-confirmacao-garcom').style.display = 'none';
+
+                fetch("http://localhost:3000/api/garcons/aceitar-chamado", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ id_chamado, id_funcionario })
+                })
+                .then(res => res.json())
+                .then(dados => {
+                    if (dados.sucesso) {
+                        // 🟢 EXTINÇÃO DO POP-UP DA IMAGEM: 
+                        // Em vez de soltar o alert/confirm cinza do Chrome, o sistema apenas 
+                        // atualiza os dados do salão em silêncio e deixa o garçom trabalhar livremente!
+                        console.log(`Atendimento aceito para a Mesa ${id_mesa}! Atualizando salão...`);
                         carregarDadosSalao(); 
                     }
-                }
-            })
-            .catch(erro => console.error("Erro ao atender chamado:", erro));
+                })
+                .catch(erro => console.error("Erro ao atender chamado:", erro));
+            };
+
+            // 3. Configura a ação se o Garçom clicar em "NÃO" na nossa cortina
+            document.getElementById('btn-confirm-nao').onclick = function() {
+                document.getElementById('tela-confirmacao-garcom').style.display = 'none';
+            };
         }
+
 
 
         // 🏃‍♂️ AÇÃO B: Dar baixa na entrega de comida

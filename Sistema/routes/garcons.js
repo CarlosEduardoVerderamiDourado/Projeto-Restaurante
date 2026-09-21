@@ -40,17 +40,17 @@ router.post('/aceitar-chamado', (req, res) => {
 });
 
 
-// 🛎️ 3. ROTA DIAGNÓSTICO: Checa o chamado aceito mais recente da mesa ignorando travas de relógio
+// 🛎️ 3. ROTA BLINDADA DE ALTA PRECISÃO: Checa o chamado aceito mais recente ignorando totalmente fusos horários e relógios do banco!
 router.get('/status-mesa/:mesa', (req, res) => {
     const { mesa } = req.params;
 
-    // Removeu a linha do INTERVAL para testar se o dado está gravando de verdade no MySQL
+    // 🟢 MÁGICA TÉCNICA: Buscamos o ÚLTIMO chamado criado para essa mesa (ORDER BY id_chamado DESC LIMIT 1)
+    // Se o status dele for 'A caminho', significa que o garçom ACABOU de aceitar o chamado atual!
     const querySQL = `
-        SELECT c.status_chamado, f.nome AS nome_garcom
+        SELECT c.id_chamado, c.status_chamado, f.nome AS nome_garcom
         FROM chamados_atendimento c
         INNER JOIN funcionarios f ON c.id_funcionario = f.ID
-        WHERE c.id_mesa = ? 
-          AND c.status_chamado = 'A caminho'
+        WHERE c.id_mesa = ?
         ORDER BY c.id_chamado DESC LIMIT 1
     `;
 
@@ -60,22 +60,28 @@ router.get('/status-mesa/:mesa', (req, res) => {
             return res.status(500).json({ erro: "Erro ao checar status" });
         }
         
-        console.log("Banco de dados respondeu na checagem da Mesa", mesa, ":", results);
+        console.log("🔍 Resposta real do MariaDB para a Mesa " + mesa + ":", results);
 
         if (results.length > 0) {
-            const garcomEncontrado = results[0].nome_garcom; // 🟢 Usando o índice zero correto!
-            console.log(`🟢 SUCESSO: Mesa ${mesa} tem o garçom ${garcomEncontrado} a caminho!`);
+            const linhaDoBanco = results[0]; // 🟢 CORREÇÃO CRUCIAL: Acessa o índice 0 do array retornado!
             
-            return res.json({ 
-                ativo: true, 
-                garcom: garcomEncontrado 
-            });
-        } else {
-            // Se cair aqui, o INNER JOIN falhou (ou o id_funcionario ficou nulo no banco)
-            return res.json({ ativo: false });
+            // Só libera a cortina se o ÚLTIMO chamado dessa mesa estiver com o status 'A caminho'
+            if (linhaDoBanco.status_chamado === 'A caminho') {
+                const garcomEncontrado = linhaDoBanco.nome_garcom;
+                console.log(`🟢 SUCESSO ABSOLUTO: Mesa ${mesa} tem o garçom ${garcomEncontrado} vindo agora!`);
+                
+                return res.json({ 
+                    ativo: true, 
+                    garcom: garcomEncontrado 
+                });
+            }
         }
+        
+        // Se o último chamado ainda estiver 'Pendente' ou 'Pagamento', o cliente continua esperando o clique real!
+        return res.json({ ativo: false });
     });
 });
+
 
 
 
