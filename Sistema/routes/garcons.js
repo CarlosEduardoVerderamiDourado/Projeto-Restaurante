@@ -40,19 +40,18 @@ router.post('/aceitar-chamado', (req, res) => {
 });
 
 
-// 🛎️ 3. ROTA: Cliente checa se algum garçom aceitou o chamado (Trazendo o nome real do Garçom)
+// 🛎️ 3. ROTA DIAGNÓSTICO: Checa o chamado aceito mais recente da mesa ignorando travas de relógio
 router.get('/status-mesa/:mesa', (req, res) => {
     const { mesa } = req.params;
 
-    // Essa query cruza o chamado com a tabela de funcionários para buscar o NOME de quem clicou em atender
+    // Removeu a linha do INTERVAL para testar se o dado está gravando de verdade no MySQL
     const querySQL = `
         SELECT c.status_chamado, f.nome AS nome_garcom
         FROM chamados_atendimento c
         INNER JOIN funcionarios f ON c.id_funcionario = f.ID
         WHERE c.id_mesa = ? 
           AND c.status_chamado = 'A caminho'
-          AND c.horario_chamado >= NOW() - INTERVAL 5 MINUTE
-        ORDER BY c.horario_chamado DESC LIMIT 1
+        ORDER BY c.id_chamado DESC LIMIT 1
     `;
 
     db.query(querySQL, [mesa], (err, results) => {
@@ -61,14 +60,23 @@ router.get('/status-mesa/:mesa', (req, res) => {
             return res.status(500).json({ erro: "Erro ao checar status" });
         }
         
+        console.log("Banco de dados respondeu na checagem da Mesa", mesa, ":", results);
+
         if (results.length > 0) {
-            // Se achou o garçom vindo, devolve o nome dele bonitinho
-            return res.json({ ativo: true, garcom: results[0].nome_garcom });
+            const garcomEncontrado = results[0].nome_garcom; // 🟢 Usando o índice zero correto!
+            console.log(`🟢 SUCESSO: Mesa ${mesa} tem o garçom ${garcomEncontrado} a caminho!`);
+            
+            return res.json({ 
+                ativo: true, 
+                garcom: garcomEncontrado 
+            });
         } else {
+            // Se cair aqui, o INNER JOIN falhou (ou o id_funcionario ficou nulo no banco)
             return res.json({ ativo: false });
         }
     });
 });
+
 
 
 // 🍳 4. ROTA CORRIGIDA: Listar pratos prontos usando as colunas reais da foto
