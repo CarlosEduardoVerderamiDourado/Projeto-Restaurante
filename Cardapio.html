@@ -127,9 +127,16 @@
             .then(resposta => resposta.json())
             .then(dados => {
                 if (dados.sucesso) {
+                    // Exibe o aviso de sucesso vindo da cozinha
                     alert(dados.mensagem);
+                    
+                    // 🧹 Limpa a sacola local
                     carrinho = [];
                     atualizarResumoCarrinho();
+
+                    // 🟢 A NOVA AUTOMAÇÃO: Faz a página pular sozinha de volta para o portal da mesa!
+                    console.log("Pedido gravado! Redirecionando para o portal...");
+                    window.location.href = "portal.html";
                 } else {
                     alert("Erro ao enviar pedido: " + dados.erro);
                 }
@@ -139,6 +146,7 @@
                 alert("Não foi possível conectar ao servidor da cozinha.");
             });
         }
+
 
         // ⏳ FUNÇÃO 4: Carregamento inicial da página
         window.onload = function() {
