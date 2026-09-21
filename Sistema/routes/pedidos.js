@@ -74,11 +74,11 @@ router.post('/enviar', (req, res) => {
     }); 
 });
 
-// 🍳 ROTA: Listar todos os pedidos pendentes para a tela da Cozinha
+// 🍳 ROTA: Listar apenas as COMIDAS pendentes para a tela da Cozinha
 router.get('/pendentes', (req, res) => {
-    console.log("🍳 Cozinha solicitou a lista de pedidos pendentes...");
+    console.log("🍳 Cozinha solicitou a lista de pratos pendentes...");
 
-    // Essa query junta a tabela mãe (pedidos), a tabela filha (pedidos_itens) e traz o nome do prato da tabela cardapio!
+    // Adicionado o filtro: AND c.categoria != 'Bebidas'
     const querySQL = `
         SELECT 
             p.id_pedido,
@@ -87,11 +87,13 @@ router.get('/pendentes', (req, res) => {
             p.status_pedido,
             i.id_item,
             c.nome_item,
-            i.quantidade
+            i.quantidade,
+            c.categoria
         FROM pedidos p
         INNER JOIN pedidos_itens i ON p.id_pedido = i.id_pedido
         INNER JOIN cardapio c ON i.id_item = c.id_item
-        WHERE p.status_pedido IN ('Pendente', 'Em Preparo')
+        WHERE p.status_pedido IN ('Pendente', 'Em Preparo') 
+          AND c.categoria != 'Bebidas'
         ORDER BY p.horario_pedido ASC
     `;
 
@@ -100,11 +102,42 @@ router.get('/pendentes', (req, res) => {
             console.error("❌ Erro ao buscar pedidos na cozinha:", err.message);
             return res.status(500).json({ erro: "Erro ao carregar os pedidos da cozinha" });
         }
-        
-        // Devolve o panel de pedidos prontinho para a tela ler
         return res.json(results);
     });
 });
+
+// 🍹 ROTA INÉDITA: Listar apenas as BEBIDAS pendentes para a tela do Bar
+router.get('/pendentes-bar', (req, res) => {
+    console.log("🍹 Bar solicitou a lista de bebidas pendentes...");
+
+    // Adicionado o filtro: AND c.categoria = 'Bebidas'
+    const querySQL = `
+        SELECT 
+            p.id_pedido,
+            p.id_comanda,
+            p.horario_pedido,
+            p.status_pedido,
+            i.id_item,
+            c.nome_item,
+            i.quantidade,
+            c.categoria
+        FROM pedidos p
+        INNER JOIN pedidos_itens i ON p.id_pedido = i.id_pedido
+        INNER JOIN cardapio c ON i.id_item = c.id_item
+        WHERE p.status_pedido IN ('Pendente', 'Em Preparo') 
+          AND c.categoria = 'Bebidas'
+        ORDER BY p.horario_pedido ASC
+    `;
+
+    db.query(querySQL, [], (err, results) => {
+        if (err) {
+            console.error("❌ Erro ao buscar pedidos no bar:", err.message);
+            return res.status(500).json({ erro: "Erro ao carregar os pedidos do bar" });
+        }
+        return res.json(results);
+    });
+});
+
 
 // 🔄 ROTA: Atualizar o status do pedido (Clicar para mudar de estado na Cozinha)
 router.post('/atualizar-status', (req, res) => {

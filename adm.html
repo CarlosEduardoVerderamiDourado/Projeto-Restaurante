@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ratatue - Painel Administrativo</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #ccc; padding-bottom: 10px; }
+        .tab-btn { padding: 10px 20px; font-weight: bold; cursor: pointer; border: 1px solid #ccc; background: #eee; border-radius: 4px; }
+        .tab-btn.active { background: #333; color: white; border-color: #333; }
+        .form-panel { display: none; background: #f9f9f9; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .form-panel.active { display: block; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-weight: bold; margin-bottom: 5px; }
+        .form-group input, .form-group select { width: 100%; padding: 8px; box-sizing: border-box; }
+        .btn-submit { padding: 10px 20px; background: #28a745; color: white; border: none; cursor: pointer; font-weight: bold; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+    <h1>👔 QG Ratatue - Painel do Administrador</h1>
+    
+    <!-- Botões de Alternância (Abas) -->
+    <div class="tabs">
+        <button class="tab-btn active" onclick="alternarAba('caixa')">Caixa & Contas</button>
+        <button class="tab-btn" onclick="alternarAba('cadastro-func')">Cadastrar Funcionário</button>
+        <button class="tab-btn" onclick="alternarAba('cadastro-mesa')">Cadastrar Mesa</button>
+    </div>
+
+    <!-- ABA 1: CAIXA & CONTAS -->
+    <div id="panel-caixa" class="form-panel active">
+        <h2>🧾 Monitoramento do Caixa</h2>
+        <p>Aqui você poderá fechar as contas das mesas e liberar os dispositivos. (A lógica de listagem será integrada a seguir).</p>
+        <div id="container-caixa-contas"></div>
+    </div>
+
+    <!-- ABA 2: CADASTRO DE FUNCIONÁRIOS -->
+    <div id="panel-cadastro-func" class="form-panel">
+        <h2>👤 Cadastrar Novo Colaborador</h2>
+        <form onsubmit="cadastrarFuncionario(event)">
+            <div class="form-group">
+                <label>Nome Completo:</label>
+                <input type="text" id="func-nome" placeholder="Ex: Carlos Eduardo" required>
+            </div>
+            <div class="form-group">
+                <label>Login de Acesso:</label>
+                <input type="text" id="func-login" placeholder="Ex: carlos.garcom" required>
+            </div>
+            <div class="form-group">
+                <label>Senha:</label>
+                <input type="password" id="func-senha" placeholder="••••" required>
+            </div>
+            <div class="form-group">
+                <label>Cargo / Função:</label>
+                <select id="func-cargo" required>
+                    <option value="Garçom">Garçom</option>
+                    <option value="Cozinheiro">Cozinheiro</option>
+                    <option value="Barman">Barman</option>
+                    <option value="Caixa">Caixa</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-submit">Salvar Funcionário</button>
+        </form>
+    </div>
+
+    <!-- ABA 3: CADASTRO DE MESAS -->
+    <div id="panel-cadastro-mesa" class="form-panel">
+        <h2>🪑 Adicionar Nova Mesa ao Salão</h2>
+        <form onsubmit="cadastrarMesa(event)">
+            <div class="form-group">
+                <label>Número da Mesa:</label>
+                <input type="number" id="mesa-numero" placeholder="Ex: 11" required>
+            </div>
+            <div class="form-group">
+                <label>Senha do Gerente para Ativação:</label>
+                <input type="password" id="mesa-senha" placeholder="Senha mestre da mesa" required>
+            </div>
+            <button type="submit" class="btn-submit">Adicionar Mesa</button>
+        </form>
+    </div>
+
+    <script>
+        // 1. Função de Troca Visual entre Abas (Mestre)
+        function alternarAba(aba) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.form-panel').forEach(p => p.classList.remove('active'));
+
+            if (aba === 'caixa') {
+                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+                document.getElementById('panel-caixa').classList.add('active');
+            } else if (aba === 'cadastro-func') {
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+                document.getElementById('panel-cadastro-func').classList.add('active');
+            } else if (aba === 'cadastro-mesa') {
+                document.querySelectorAll('.tab-btn')[2].classList.add('active');
+                document.getElementById('panel-cadastro-mesa').classList.add('active');
+            }
+        }
+
+        // 2. Ação de Salvar Funcionário no Banco via Fetch
+        function cadastrarFuncionario(event) {
+            event.preventDefault();
+            const nome = document.getElementById('func-nome').value;
+            const login = document.getElementById('func-login').value;
+            const senha = document.getElementById('func-senha').value;
+            const cargo = document.getElementById('func-cargo').value;
+
+            fetch("http://localhost:3000/api/funcionarios/cadastrar", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ nome, login, senha, cargo })
+            })
+            .then(res => res.json())
+            .then(dados => {
+                alert(dados.mensagem || dados.erro);
+                if (dados.sucesso) event.target.reset(); // Limpa o formulário
+            })
+            .catch(erro => console.error("Erro ao cadastrar funcionário:", erro));
+        }
+
+        // 3. Ação de Salvar Nova Mesa no Banco via Fetch
+        function cadastrarMesa(event) {
+            event.preventDefault();
+            const numero_mesa = document.getElementById('mesa-numero').value;
+            const senha_gerente = document.getElementById('mesa-senha').value;
+
+            fetch("http://localhost:3000/api/mesas/cadastrar", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ numero_mesa, senha_gerente })
+            })
+            .then(res => res.json())
+            .then(dados => {
+                alert(dados.mensagem || dados.erro);
+                if (dados.sucesso) event.target.reset(); // Limpa o formulário
+            })
+            .catch(erro => console.error("Erro ao cadastrar mesa:", erro));
+        }
+    </script>
+</body>
+</html>

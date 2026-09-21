@@ -127,7 +127,42 @@ router.post('/altoatendimento', (req, res) =>{
         })
 })
 
-// =========================================================
-// 6. A EXPORTAÇÃO MESTRE (Na última linha)
-// =========================================================
+// 🔒 ROTA: Verificar se a mesa ainda possui uma comanda aberta (Segurança do Cardápio)
+router.get('/verificar-comanda/:mesa', (req, res) => {
+    const { mesa } = req.params;
+
+    const querySQL = "SELECT id_comanda FROM comandas WHERE id_mesa = ? AND status_comanda = 'Aberta'";
+
+    db.query(querySQL, [mesa], (err, results) => {
+        if (err) {
+            console.error("❌ Erro ao verificar comanda ativa:", err.message);
+            return res.status(500).json({ erro: "Erro ao verificar status da mesa" });
+        }
+
+        if (results.length > 0) {
+            // Mesa ativa e liberada!
+            return res.json({ ativa: true });
+        } else {
+            // Conta paga ou fechada pelo caixa!
+            return res.json({ ativa: false });
+        }
+    });
+});
+
+// 🪑 ROTA: Administrador cadastra uma nova mesa no salão
+router.post('/cadastrar', (req, res) => {
+    const { numero_mesa, senha_gerente } = req.body;
+    console.log(`🪑 ADM tentando cadastrar a Mesa Número ${numero_mesa}...`);
+
+    // Toda mesa nasce com o status padrão 'Livre'
+    const querySQL = "INSERT INTO mesas (id_mesa, status_mesa, senha_gerente) VALUES (?, 'Livre', ?)";
+    db.query(querySQL, [numero_mesa, senha_gerente], (err, results) => {
+        if (err) {
+            console.error("❌ Erro ao cadastrar nova mesa:", err.message);
+            return res.status(500).json({ erro: "Este número de mesa já existe ou o comando falhou." });
+        }
+        return res.json({ sucesso: true, mensagem: `Mesa ${numero_mesa} adicionada ao salão com sucesso!` });
+    });
+});
+
 module.exports = router;

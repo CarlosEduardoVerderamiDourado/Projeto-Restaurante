@@ -36,5 +36,19 @@ router.post('/login', (req, res) => {
     }); 
 });
 
-// Libera as rotas para o server.js conseguir enxergar
+// 👤 ROTA: Administrador cadastra um novo funcionário no sistema
+router.post('/cadastrar', (req, res) => {
+    const { nome, login, senha, cargo } = req.body;
+    console.log(`👤 ADM tentando cadastrar o funcionário: ${nome} (${cargo})...`);
+
+    const querySQL = "INSERT INTO funcionarios (nome, login, senha, cargo) VALUES (?, ?, ?, ?)";
+    db.query(querySQL, [nome, login, senha, cargo], (err, results) => {
+        if (err) {
+            console.error("❌ Erro ao cadastrar funcionário:", err.message);
+            return res.status(500).json({ erro: "Não foi possível salvar o funcionário no banco" });
+        }
+        return res.json({ sucesso: true, mensagem: `Funcionário ${nome} cadastrado com sucesso!` });
+    });
+});
+
 module.exports = router;

@@ -165,10 +165,27 @@
         }
 
         // 🚨 FUNÇÃO 7: Monitorar se o garçom aceitou o chamado
+        // 🚨 FUNÇÃO 7: Monitorar se o garçom aceitou o chamado E se a conta foi fechada
         function checarStatusChamado() {
             const mesaNumero = localStorage.getItem('id_mesa_configurada');
-            if (!mesaNumero || alertaExibido) return;
+            if (!mesaNumero) return;
 
+            // 🟢 TRAVA DE SEGURANÇA MESTRE: Verifica se a conta foi paga no Caixa
+            fetch(`http://localhost:3000/api/mesas/verificar-comanda/${mesaNumero}`)
+            .then(resposta => resposta.json())
+            .then(dadosMesa => {
+                if (!dadosMesa.ativa) {
+                    // Se o caixa fechou a comanda, limpa a mesa da memória e expulsa o tablet!
+                    localStorage.removeItem('id_mesa_configurada');
+                    alert("💳 Conta Encerrada!\nObrigado pela preferência, sua mesa foi liberada no caixa. Volte sempre!");
+                    window.location.href = "index.html";
+                    return;
+                }
+            })
+            .catch(erro => console.error("Erro na trava de segurança da mesa:", erro));
+
+            // Abaixo continua o seu fetch antigo do garçom vindo... (Sem alterar nada!)
+            if (alertaExibido) return;
             fetch(`http://localhost:3000/api/garcons/status-mesa/${mesaNumero}`)
             .then(resposta => resposta.json())
             .then(dados => {
@@ -180,6 +197,7 @@
             })
             .catch(erro => console.error("Erro no monitor de chamados:", erro));
         }
+
 
 // 📑 FUNÇÃO 8: Buscar o extrato real acumulado no banco de dados (Efeito Sanfona)
         function carregarExtratoMesa() {
