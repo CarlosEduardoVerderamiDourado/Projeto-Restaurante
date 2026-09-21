@@ -63,6 +63,66 @@
             })
             .catch(erro => console.error("Erro na comunicação:", erro));
         }
+        // 🚨 FUNÇÃO 2 CORRIGIDA: Monitor que atualiza a cortina e ativa o clique do botão com segurança
+        function checarSeGarcomAceitou() {
+            const mesaNumero = localStorage.getItem('id_mesa_configurada');
+            if (!mesaNumero) return;
+
+            fetch(`http://localhost:3000/api/garcons/status-mesa/${mesaNumero}`)
+            .then(resposta => resposta.json())
+            .then(dados => {
+                console.log("Monitor de chamado respondeu do servidor:", dados);
+
+                if (dados.ativo) {
+                    // 1. Atualiza os textos da cortina escura
+                    document.getElementById('status-espera-titulo').innerText = "🏃‍♂️ Garçom a Caminho!";
+                    const nomeDoColaborador = dados.garcom || "da equipe";
+                    document.getElementById('status-espera-texto').innerHTML = `O garçom <strong>${nomeDoColaborador}</strong> aceitou o seu chamado e está vindo te atender.`;
+                    
+                    // 2. Injeta o botão com um ID limpo para o JavaScript gerenciar o clique de forma isolada
+                    const containerBotao = document.getElementById('container-botao-fechar');
+                    containerBotao.innerHTML = `
+                        <button id="btn-fechar-espera-mestre" style="padding: 10px 20px; background: #28a745; color: white; border: none; font-weight: bold; border-radius: 4px; cursor: pointer;">Ok, Entendido!</button>
+                    `;
+                    
+                    // 3. 🟢 O TRUQUE DO CLIQUE SEGURO: Grampeia a ação de fechar direto no botão sem depender de onclick em texto!
+                    document.getElementById('btn-fechar-espera-mestre').addEventListener('click', fecharTelaEspera);
+
+                    // 4. Desliga o cronômetro para não ficar batendo no banco à toa
+                    clearInterval(monitorChamadoCliente);
+                    monitorChamadoCliente = null;
+                }
+            })
+            .catch(erro => console.error("Erro no monitor de espera do cliente:", erro));
+        }
+
+        // 🟢 FUNÇÃO 3 CORRIGIDA: Garante o fechamento total da cortina escura
+        function fecharTelaEspera() {
+            console.log("Botão clicado! Escondendo a cortina preta e liberando o portal...");
+            
+            // Força a div de bloqueio a sumir da tela visualmente
+            document.getElementById('tela-espera').style.display = 'none';
+            
+            // Limpa o cronômetro por garantia extra de trânsito
+            if (monitorChamadoCliente) {
+                clearInterval(monitorChamadoCliente);
+                monitorChamadoCliente = null;
+            }
+        }
+
+                // 🟢 FUNÇÃO 3 CORRIGIDA: Fecha a cortina escura e devolve o controle total ao cliente
+        function fecharTelaEspera() {
+            console.log("Cortina fechada pelo cliente. Destravando portal...");
+            
+            // 1. Esconde a cortina preta da tela mudando o estilo para 'none'
+            document.getElementById('tela-espera').style.display = 'none';
+            
+            // 2. Trava de segurança: Desliga de vez o cronômetro para o loop não reabrir a tela
+            if (monitorChamadoCliente) {
+                clearInterval(monitorChamadoCliente);
+                monitorChamadoCliente = null;
+            }
+        }
 
         // 🔀 FUNÇÃO 4: Inicializar Autoatendimento (Sem alertas cinzas!)
         function altoatendimento(){
