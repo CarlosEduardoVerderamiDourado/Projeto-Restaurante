@@ -25,6 +25,7 @@ router.post('/login', (req, res) => {
             return res.json({
                 sucesso: true,
                 mensagem: `Bem-vindo, ${funcionario.nome}!`,
+                id_funcionario: funcionario.ID,
                 cargo: funcionario.cargo
             });
         } else {

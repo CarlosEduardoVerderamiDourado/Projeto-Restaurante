@@ -67,4 +67,42 @@ router.get('/status-mesa/:mesa', (req, res) => {
     });
 });
 
+// 🍳 4. ROTA: Listar todos os pedidos que já estão 'Prontos' na cozinha/bar esperando entrega
+router.get('/entregas-pendentes', (req, res) => {
+    console.log("🛎️ Garçom buscando pratos prontos para entregar...");
+
+    const querySQL = `
+        SELECT p.id_pedido, p.id_comanda, com.id_mesa, p.status_pedido
+        FROM pedidos p
+        INNER JOIN comandas com ON p.id_comanda = com.id_comanda
+        WHERE p.status_pedido = 'Pronto'
+        ORDER BY p.horario_pedido ASC
+    `;
+
+    db.query(querySQL, [], (err, results) => {
+        if (err) {
+            console.error("❌ Erro ao buscar entregas no banco:", err.message);
+            return res.status(500).json({ erro: "Erro ao carregar as entregas" });
+        }
+        return res.json(results);
+    });
+});
+
+// 🏁 5. ROTA: Garçom confirma que entregou o prato na mesa (Muda status para 'Entregue')
+router.post('/finalizar-entrega', (req, res) => {
+    const { id_pedido } = req.body;
+    console.log(`🏃‍♂️ Garçom confirmou a entrega do Pedido #${id_pedido} na mesa...`);
+
+    const querySQL = "UPDATE pedidos SET status_pedido = 'Entregue' WHERE id_pedido = ?";
+
+    db.query(querySQL, [id_pedido], (err, results) => {
+        if (err) {
+            console.error("❌ Erro ao finalizar entrega no banco:", err.message);
+            return res.status(500).json({ erro: "Erro ao registrar a entrega" });
+        }
+        return res.json({ sucesso: true, mensagem: "Pedido entregue com sucesso!" });
+    });
+});
+
+
 module.exports = router;
