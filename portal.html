@@ -1,72 +1,175 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title ></title>
+    <title>Ratatue - Portal do Cliente</title>
 </head>
 <body>
-    <h1 id="titulo-mesa"></h1>
-  <button onclick="solicitarGarcom()">Chamar Garçom</button>
-
-  <button onclick="altoatendimento()">Alto atendimento</button>
-  <script>
-     window.onload = function() { 
-        const mesa_numero = localStorage.getItem('id_mesa_configurada') 
-        document.getElementById('titulo-mesa').innerText = mesa_numero; 
-    }
     
-    function solicitarGarcom() {
-        const mesa = localStorage.getItem('id_mesa_configurada') 
-        document.getElementById('titulo-mesa').innerText = mesa; 
+    <!-- 🟢 Cabeçalho com o número da mesa -->
+    <h1 id="titulo-mesa">Mesa: Carregando...</h1>
+    
+    <button onclick="solicitarGarcom()">Chamar Garçom</button>
+    <button onclick="altoatendimento()">Auto atendimento</button>
 
-        fetch("http://localhost:3000/api/mesas/solicitar-garcom",{
-        method: "POST",
-        headers:{
-            "Content-Type": "application/json" 
-        },
-        body: JSON.stringify({ mesa })
-    })
-    .then(resposta => resposta.json())
-    .then(dados => {
-        if (dados.sucesso) {
-            alert(dados.mensagem); 
-            console.log("Mesa", dados.cargo);
-        } else {
-            alert(dados.mensagem); 
+    <!-- 🚨 CORTINA DE ESPERA (Bloqueio Visual do Cliente Inteligente) -->
+    <div id="tela-espera" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); color: white; z-index: 9999; text-align: center; padding-top: 15%;">
+        <div style="background: #222; display: inline-block; padding: 30px; border-radius: 10px; border: 2px solid #ffc107;">
+            <h2 id="status-espera-titulo">🛎️ Chamado Enviado</h2>
+            <p id="status-espera-texto" style="font-size: 18px; margin: 20px 0;">Aguardando um garçom aceitar o atendimento...</p>
+            <div id="container-botao-fechar"></div>
+        </div>
+    </div>
+
+    <script>
+        let monitorChamadoCliente = null;
+
+        // ⏳ Carregamento Inicial da Página
+        window.onload = function() { 
+            const mesa_numero = localStorage.getItem('id_mesa_configurada');
+            if (mesa_numero) {
+                document.getElementById('titulo-mesa').innerText = "Mesa " + mesa_numero; 
+            }
         }
-    })
-    .catch(erro => {
-        console.error("Erro na comunicação:", erro);
-        alert("Não foi possível chamar o garson.");
-    });
-    }
-    function altoatendimento(){
-        const mesa = localStorage.getItem('id_mesa_configurada') 
-        document.getElementById('titulo-mesa').innerText = mesa; 
+        
+                // 🚨 FUNÇÃO 1: Solicitar atendimento e travar a tela visualmente na cortina
+        function solicitarGarcom() {
+            const mesa = localStorage.getItem('id_mesa_configurada'); 
+            if (!mesa) return;
 
-        fetch("http://localhost:3000/api/mesas/altoatendimento",{
-        method: "POST",
-        headers:{
-            "Content-Type": "application/json" 
-        },
-        body: JSON.stringify({ mesa })
-    })
-    .then(resposta => resposta.json())
-    .then(dados => {
-        if (dados.sucesso) {
-            alert(dados.mensagem); 
-            window.location.href = "cardapio.html";
-        } else {
-            alert(dados.mensagem); 
+            document.getElementById('titulo-mesa').innerText = "Mesa " + mesa; 
+
+            fetch("http://localhost:3000/api/mesas/solicitar-garcom", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ mesa })
+            })
+            .then(resposta => resposta.json())
+            .then(dados => {
+                if (dados.sucesso) {
+                    // Ativa a cortina escura de espera de forma profissional
+                    document.getElementById('tela-espera').style.display = 'block';
+                    document.getElementById('status-espera-titulo').innerText = "🛎️ Chamado Enviado";
+                    document.getElementById('status-espera-texto').innerText = "Aguardando um garçom aceitar o atendimento...";
+                    document.getElementById('container-botao-fechar').innerHTML = ""; 
+
+                    if (!monitorChamadoCliente) {
+                        monitorChamadoCliente = setInterval(checarSeGarcomAceitou, 4000);
+                    }
+                } else {
+                    mostrarAvisoCortina("⚠️ Atenção", dados.mensagem, true);
+                }
+            })
+            .catch(erro => console.error("Erro na comunicação:", erro));
         }
-    })
-    .catch(erro => {
-        console.error("Erro na comunicação:", erro);
-        alert("Não foi possível iniciar o autoatendimento.");
-    });
-    }
+        // 🚨 FUNÇÃO 2 CORRIGIDA: Monitor que atualiza a cortina e ativa o clique do botão com segurança
+        function checarSeGarcomAceitou() {
+            const mesaNumero = localStorage.getItem('id_mesa_configurada');
+            if (!mesaNumero) return;
 
-  </script>
+            fetch(`http://localhost:3000/api/garcons/status-mesa/${mesaNumero}`)
+            .then(resposta => resposta.json())
+            .then(dados => {
+                console.log("Monitor de chamado respondeu do servidor:", dados);
+
+                if (dados.ativo) {
+                    // 1. Atualiza os textos da cortina escura
+                    document.getElementById('status-espera-titulo').innerText = "🏃‍♂️ Garçom a Caminho!";
+                    const nomeDoColaborador = dados.garcom || "da equipe";
+                    document.getElementById('status-espera-texto').innerHTML = `O garçom <strong>${nomeDoColaborador}</strong> aceitou o seu chamado e está vindo te atender.`;
+                    
+                    // 2. Injeta o botão com um ID limpo para o JavaScript gerenciar o clique de forma isolada
+                    const containerBotao = document.getElementById('container-botao-fechar');
+                    containerBotao.innerHTML = `
+                        <button id="btn-fechar-espera-mestre" style="padding: 10px 20px; background: #28a745; color: white; border: none; font-weight: bold; border-radius: 4px; cursor: pointer;">Ok, Entendido!</button>
+                    `;
+                    
+                    // 3. 🟢 O TRUQUE DO CLIQUE SEGURO: Grampeia a ação de fechar direto no botão sem depender de onclick em texto!
+                    document.getElementById('btn-fechar-espera-mestre').addEventListener('click', fecharTelaEspera);
+
+                    // 4. Desliga o cronômetro para não ficar batendo no banco à toa
+                    clearInterval(monitorChamadoCliente);
+                    monitorChamadoCliente = null;
+                }
+            })
+            .catch(erro => console.error("Erro no monitor de espera do cliente:", erro));
+        }
+
+        // 🟢 FUNÇÃO 3 CORRIGIDA: Garante o fechamento total da cortina escura
+        function fecharTelaEspera() {
+            console.log("Botão clicado! Escondendo a cortina preta e liberando o portal...");
+            
+            // Força a div de bloqueio a sumir da tela visualmente
+            document.getElementById('tela-espera').style.display = 'none';
+            
+            // Limpa o cronômetro por garantia extra de trânsito
+            if (monitorChamadoCliente) {
+                clearInterval(monitorChamadoCliente);
+                monitorChamadoCliente = null;
+            }
+        }
+
+                // 🟢 FUNÇÃO 3 CORRIGIDA: Fecha a cortina escura e devolve o controle total ao cliente
+        function fecharTelaEspera() {
+            console.log("Cortina fechada pelo cliente. Destravando portal...");
+            
+            // 1. Esconde a cortina preta da tela mudando o estilo para 'none'
+            document.getElementById('tela-espera').style.display = 'none';
+            
+            // 2. Trava de segurança: Desliga de vez o cronômetro para o loop não reabrir a tela
+            if (monitorChamadoCliente) {
+                clearInterval(monitorChamadoCliente);
+                monitorChamadoCliente = null;
+            }
+        }
+
+        // 🔀 FUNÇÃO 4: Inicializar Autoatendimento (Sem alertas cinzas!)
+        function altoatendimento(){
+            const mesa = localStorage.getItem('id_mesa_configurada'); 
+            if (!mesa) return;
+
+            // 🟢 LEVANTA A CORTINA IMEDIATAMENTE COMO CARREGAMENTO!
+            document.getElementById('tela-espera').style.display = 'block';
+            document.getElementById('status-espera-titulo').innerText = "📖 Carregando Cardápio";
+            document.getElementById('status-espera-texto').innerText = "Buscando os hambúrgueres e bebidas direto no banco de dados...";
+            document.getElementById('container-botao-fechar').innerHTML = "";
+
+            fetch("http://localhost:3000/api/mesas/altoatendimento", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ mesa })
+            })
+            .then(resposta => resposta.json())
+            .then(dados => {
+                if (dados.sucesso) {
+                    // Transição suave para o cardápio
+                    setTimeout(() => {
+                        window.location.href = "cardapio.html";
+                    }, 1500); // 1.5 segundos para o cliente ver a animação de carregamento
+                } else {
+                    mostrarAvisoCortina("❌ Erro", dados.mensagem, true);
+                }
+            })
+            .catch(erro => {
+                console.error("Erro na comunicação:", erro);
+                mostrarAvisoCortina("❌ Erro de Rede", "Não foi possível iniciar o autoatendimento.", true);
+            });
+        }
+
+        // 🧠 FUNÇÃO AUXILIAR: Desenhar avisos ou erros direto na cortina escura para abolir os alerts da tela!
+        function mostrarAvisoCortina(titulo, texto, incluirBotaoFechar) {
+            document.getElementById('tela-espera').style.display = 'block';
+            document.getElementById('status-espera-titulo').innerText = titulo;
+            document.getElementById('status-espera-texto').innerText = texto;
+            
+            if (incluirBotaoFechar) {
+                document.getElementById('container-botao-fechar').innerHTML = `
+                    <button onclick="fecharTelaEspera()" style="padding: 10px 20px; background: #dc3545; color: white; border: none; font-weight: bold; border-radius: 4px; cursor: pointer;">Fechar</button>
+                `;
+            }
+        }
+
+    </script>
 </body>
 </html>

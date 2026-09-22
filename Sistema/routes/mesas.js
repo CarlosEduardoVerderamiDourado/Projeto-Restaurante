@@ -81,27 +81,40 @@ router.post('/ativar', (req, res) => {
 // =========================================================
 // 4. ROTA QUE chama o grason ja abrindo a comanda
 // =========================================================
+// 🛎️ ROTA 1: Exclusiva para AJUDA COMUM (Disparada pelo portal.html)
 router.post('/solicitar-garcom', (req, res) => {
     const { mesa } = req.body;
-    console.log("Chamando garçom para a mesa:", mesa);
-    
-    const querySQL = "SELECT id_comanda FROM comandas WHERE id_mesa = ? AND status_comanda = 'Aberta'";
+    console.log(`🛎️ Mesa ${mesa} solicitou AJUDA COMUM no salão...`);
+
+    // 🟢 GRAVA COMO 'Pendente' -> Garçom vai ver o cartão AMARELO!
+    const querySQL = "INSERT INTO chamados_atendimento (id_mesa, status_chamado, horario_chamado) VALUES (?, 'Pendente', NOW())";
 
     db.query(querySQL, [mesa], (err, results) => {
         if (err) {
-            console.error("Erro ao abrir comanda:", err.message);
-            return res.status(500).json({ erro: "Erro ao abrir a comanda no servidor" });
+            console.error("❌ Erro ao registrar chamado de ajuda:", err.message);
+            return res.status(500).json({ erro: "Erro ao chamar o garçom" });
         }
-        
-        if (results.length > 0) {
-            // Usa a fábrica de chamados se a mesa já tiver conta
-            criarChamado(mesa, res, "Garçom notificado! Um funcionário está a caminho da sua mesa.");
-        } else {
-            // Usa a fábrica de comandas se a mesa estiver livre (passando true para chamar garçom)
-            nova_comanda(mesa, res, true);
-        }
+        return res.json({ sucesso: true, mensagem: "Garçom acionado para ajuda!" });
     });
-}); 
+});
+
+// 💳 ROTA 2: Exclusiva para PAGAMENTO / MAQUININHA (Disparada pelo cardapio.html)
+router.post('/solicitar-maquininha', (req, res) => {
+    const { mesa } = req.body;
+    console.log(`💳 Mesa ${mesa} solicitou a MAQUININHA para fechar a conta...`);
+
+    // 🟢 GRAVA COMO 'Pagamento' -> Garçom vai ver o cartão LANREJA!
+    const querySQL = "INSERT INTO chamados_atendimento (id_mesa, status_chamado, horario_chamado) VALUES (?, 'Pagamento', NOW())";
+
+    db.query(querySQL, [mesa], (err, results) => {
+        if (err) {
+            console.error("❌ Erro ao registrar chamado de conta:", err.message);
+            return res.status(500).json({ erro: "Erro ao chamar a maquininha" });
+        }
+        return res.json({ sucesso: true, mensagem: "Maquininha solicitada com sucesso!" });
+    });
+});
+
 
 // =========================================================
 // 5. Rota alto atendimento 
@@ -127,7 +140,104 @@ router.post('/altoatendimento', (req, res) =>{
         })
 })
 
-// =========================================================
-// 6. A EXPORTAÇÃO MESTRE (Na última linha)
-// =========================================================
+// 🔒 ROTA: Verificar se a mesa ainda possui uma comanda aberta (Segurança do Cardápio)
+router.get('/verificar-comanda/:mesa', (req, res) => {
+    const { mesa } = req.params;
+
+    const querySQL = "SELECT id_comanda FROM comandas WHERE id_mesa = ? AND status_comanda = 'Aberta'";
+
+    db.query(querySQL, [mesa], (err, results) => {
+        if (err) {
+            console.error("❌ Erro ao verificar comanda ativa:", err.message);
+            return res.status(500).json({ erro: "Erro ao verificar status da mesa" });
+        }
+
+        if (results.length > 0) {
+            // Mesa ativa e liberada!
+            return res.json({ ativa: true });
+        } else {
+            // Conta paga ou fechada pelo caixa!
+            return res.json({ ativa: false });
+        }
+    });
+});
+
+// 🪑 ROTA: Administrador cadastra uma nova mesa no salão
+router.post('/cadastrar', (req, res) => {
+    const { numero_mesa, senha_gerente } = req.body;
+    console.log(`🪑 ADM tentando cadastrar a Mesa Número ${numero_mesa}...`);
+
+    // Toda mesa nasce com o status padrão 'Livre'
+    const querySQL = "INSERT INTO mesas (id_mesa, status_mesa, senha_gerente) VALUES (?, 'Livre', ?)";
+    db.query(querySQL, [numero_mesa, senha_gerente], (err, results) => {
+        if (err) {
+            console.error("❌ Erro ao cadastrar nova mesa:", err.message);
+            return res.status(500).json({ erro: "Este número de mesa já existe ou o comando falhou." });
+        }
+        return res.json({ sucesso: true, mensagem: `Mesa ${numero_mesa} adicionada ao salão com sucesso!` });
+    });
+});
+
+// 🧾 ROTA A: Listar todas as comandas abertas com o valor total gasto por cada mesa
+router.get('/comandas-abertas', (req, res) => {
+    console.log("🧾 ADM solicitando relatório de comandas abertas no caixa...");
+
+    // Essa query busca todas as comandas abertas, soma os itens de todos os seus pedidos e traz o valor acumulado em dinheiro
+    const querySQL = `
+        SELECT 
+            com.id_comanda,
+            com.id_mesa,
+            com.horario_abertura,
+            IFNULL(SUM(i.quantidade * i.valor_unitario), 0) AS total_gasto
+        FROM comandas com
+        LEFT JOIN pedidos p ON com.id_comanda = p.id_comanda
+        LEFT JOIN pedidos_itens i ON p.id_pedido = i.id_pedido
+        WHERE com.status_comanda = 'Aberta'
+        GROUP BY com.id_comanda, com.id_mesa, com.horario_abertura
+        ORDER BY com.id_mesa ASC
+    `;
+
+    db.query(querySQL, [], (err, results) => {
+        if (err) {
+            console.error("❌ Erro ao buscar comandas abertas no caixa:", err.message);
+            return res.status(500).json({ erro: "Erro ao carregar os dados do caixa" });
+        }
+        return res.json(results);
+    });
+});
+
+// 💳 ROTA B: Dar baixa no pagamento (Fechar comanda para 'Paga' e liberar Mesa para 'Livre')
+router.post('/fechar-comanda', (req, res) => {
+    const { id_comanda, id_mesa } = req.body;
+    console.log(`💳 Caixa recebendo pagamento da Comanda #${id_comanda} (Mesa ${id_mesa})...`);
+
+    // 1. Primeiro UPDATE: Altera o status da comanda para Paga
+    const queryFecharComanda = "UPDATE comandas SET status_comanda = 'Paga' WHERE id_comanda = ?";
+    
+    db.query(queryFecharComanda, [id_comanda], (err, results) => {
+        if (err) {
+            console.error("❌ Erro ao fechar comanda:", err.message);
+            return res.status(500).json({ erro: "Erro ao processar o pagamento da comanda" });
+        }
+
+        // 2. Segundo UPDATE: Devolve o status da mesa física para Livre
+        const queryLiberarMesa = "UPDATE mesas SET status_mesa = 'Livre' WHERE id_mesa = ?";
+        
+        db.query(queryLiberarMesa, [id_mesa], (err, results) => {
+            if (err) {
+                console.error("❌ Erro ao liberar mesa física:", err.message);
+                return res.status(500).json({ erro: "A comanda foi paga, mas a mesa falhou ao ser liberada." });
+            }
+
+            // MÁGICA: No segundo exato em que esse JSON abaixo responder sucesso, 
+            // a trava invisível que fizemos ontem no 'cardapio.html' vai ler a liberação,
+            // vai avisar o cliente na tela e vai expulsar o tablet de volta para o login!
+            return res.json({ 
+                sucesso: true, 
+                mensagem: `Mesa ${id_mesa} encerrada e liberada com sucesso!` 
+            });
+        });
+    });
+});
+
 module.exports = router;

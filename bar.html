@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ratatue - Painel de Controle do Bar</title>
+    <style>
+        .painel-bar { display: flex; flex-wrap: wrap; gap: 15px; padding: 20px; }
+        .card-pedido {
+            border: 2px solid #333; border-radius: 8px; padding: 15px; width: 250px;
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s;
+        }
+        .card-pedido:hover { transform: scale(1.02); }
+    </style>
+</head>
+<body>
+
+    <h1>🍹 KDS Ratatue - Preparo de Bebidas (Bar)</h1>
+    <p>Clique em cima de um pedido de bebida para avançar o estado dele. (Atrasados ficam vermelhos automaticamente!)</p>
+
+    <div id="container-pedidos" class="painel-bar"></div>
+
+    <script>
+        window.onload = function() {
+            carregarPedidosBar();
+            setInterval(carregarPedidosBar, 5000); // Polling automático a cada 5 segundos
+        }
+
+        function carregarPedidosBar() {
+            // 🟢 Bate na rota inédita exclusiva para bebidas
+            fetch("http://localhost:3000/api/pedidos/pendentes-bar")
+            .then(resposta => resposta.json())
+            .then(linhasDoBanco => {
+                const pedidosAgrupados = agruparItensPorPedido(linhasDoBanco);
+                renderizarPainelBar(pedidosAgrupados);
+            })
+            .catch(erro => console.error("Erro ao atualizar painel do bar:", erro));
+        }
+
+        function agruparItensPorPedido(linhas) {
+            const agrupados = {};
+            linhas.forEach(linha => {
+                if (!agrupados[linha.id_pedido]) {
+                    agrupados[linha.id_pedido] = {
+                        id_pedido: linha.id_pedido, id_comanda: linha.id_comanda,
+                        horario_pedido: linha.horario_pedido, status_pedido: linha.status_pedido, itens: []
+                    };
+                }
+                agrupados[linha.id_pedido].itens.push({ nome_item: linha.nome_item, quantidade: inline_quiz.quantidade || linha.quantidade });
+            });
+            return Object.values(agrupados);
+        }
+
+        function renderizarPainelBar(pedidos) {
+            const container = document.getElementById('container-pedidos');
+            container.innerHTML = "";
+
+            if (pedidos.length === 0) {
+                container.innerHTML = "<h3>🎉 Bar limpo! Nenhuma bebida pendente por enquanto.</h3>";
+                return;
+            }
+
+            pedidos.forEach(pedido => {
+                const horaPedido = new Date(pedido.horario_pedido);
+                const agora = new Date();
+                const diferencaMinutos = Math.floor((agora - horaPedido) / 1000 / 60);
+
+                let corDeFundo = "#ffffff"; // Branco
+                let textoStatus = "Em Espera";
+
+                if (pedido.status_pedido === 'Em Preparo') {
+                    corDeFundo = "#ffeb3b"; // Amarelo
+                    textoStatus = "Em Preparo";
+                }
+                if (diferencaMinutos >= 15) {
+                    corDeFundo = "#f44336"; // Vermelho
+                    textoStatus = "🚨 ATRASADO!";
+                }
+
+                let itensHTML = "";
+                pedido.itens.forEach(item => {
+                    itensHTML += `<li><strong>${item.quantidade}x</strong> ${item.nome_item}</li>`;
+                });
+
+                const cardHTML = `
+                    <div class="card-pedido" 
+                         style="background-color: ${corDeFundo}; color: ${corDeFundo === '#f44336' ? 'white' : 'black'}"
+                         onclick="avancarStatusPedido(${pedido.id_pedido}, '${pedido.status_pedido}')">
+                        <h3>Pedido #${pedido.id_pedido}</h3>
+                        <p>Comanda: <strong>${pedido.id_comanda}</strong></p>
+                        <p>Tempo: <strong>${diferencaMinutos} min atrás</strong></p>
+                        <p>Status: <strong>${textoStatus}</strong></p>
+                        <hr>
+                        <ul>${itensHTML}</ul>
+                    </div>
+                `;
+                container.innerHTML += cardHTML;
+            });
+        }
+
+        function avancarStatusPedido(id_pedido, statusAtual) {
+            let proximoStatus = "";
+            if (statusAtual === 'Pendente') proximoStatus = 'Em Preparo';
+            else if (statusAtual === 'Em Preparo') proximoStatus = 'Pronto';
+
+            if (!proximoStatus) return;
+
+            fetch("http://localhost:3000/api/pedidos/atualizar-status", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id_pedido, novo_status: proximoStatus })
+            })
+            .then(resposta => resposta.json())
+            .then(dados => { if (dados.sucesso) carregarPedidosBar(); })
+            .catch(erro => console.error("Erro ao avançar status do pedido:", erro));
+        }
+    </script>
+</body>
+</html>

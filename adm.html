@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ratatue - Painel Administrativo</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #ccc; padding-bottom: 10px; }
+        .tab-btn { padding: 10px 20px; font-weight: bold; cursor: pointer; border: 1px solid #ccc; background: #eee; border-radius: 4px; }
+        .tab-btn.active { background: #333; color: white; border-color: #333; }
+        .form-panel { display: none; background: #f9f9f9; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .form-panel.active { display: block; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-weight: bold; margin-bottom: 5px; }
+        .form-group input, .form-group select { width: 100%; padding: 8px; box-sizing: border-box; }
+        .btn-submit { padding: 10px 20px; background: #28a745; color: white; border: none; cursor: pointer; font-weight: bold; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+    <h1>👔 QG Ratatue - Painel do Administrador</h1>
+    
+    <!-- Botões de Alternância (Abas) -->
+    <div class="tabs">
+        <button class="tab-btn active" onclick="alternarAba('caixa')">Caixa & Contas</button>
+        <button class="tab-btn" onclick="alternarAba('cadastro-func')">Cadastrar Funcionário</button>
+        <button class="tab-btn" onclick="alternarAba('cadastro-mesa')">Cadastrar Mesa</button>
+        <button class="tab-btn" onclick="alternarAba('monitor')">👁️ Monitor Operacional</button>
+
+    </div>
+
+    <!-- ABA 1: CAIXA & CONTAS -->
+    <div id="panel-caixa" class="form-panel active">
+        <h2>🧾 Monitoramento do Caixa</h2>
+        <div id="container-caixa-contas"></div>
+    </div>
+
+    <!-- ABA 2: CADASTRO DE FUNCIONÁRIOS -->
+    <div id="panel-cadastro-func" class="form-panel">
+        <h2>👤 Cadastrar Novo Colaborador</h2>
+        <form onsubmit="cadastrarFuncionario(event)">
+            <div class="form-group">
+                <label>Nome Completo:</label>
+                <input type="text" id="func-nome" placeholder="Ex: Carlos Eduardo" required>
+            </div>
+            <div class="form-group">
+                <label>Login de Acesso:</label>
+                <input type="text" id="func-login" placeholder="Ex: carlos.garcom" required>
+            </div>
+            <div class="form-group">
+                <label>Senha:</label>
+                <input type="password" id="func-senha" placeholder="••••" required>
+            </div>
+            <div class="form-group">
+                <label>Cargo / Função:</label>
+                <select id="func-cargo" required>
+                    <option value="Garçom">Garçom</option>
+                    <option value="Cozinheiro">Cozinheiro</option>
+                    <option value="Barman">Barman</option>
+                    <option value="Caixa">Caixa</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-submit">Salvar Funcionário</button>
+        </form>
+    </div>
+
+    <!-- ABA 3: CADASTRO DE MESAS -->
+    <div id="panel-cadastro-mesa" class="form-panel">
+        <h2>🪑 Adicionar Nova Mesa ao Salão</h2>
+        <form onsubmit="cadastrarMesa(event)">
+            <div class="form-group">
+                <label>Número da Mesa:</label>
+                <input type="number" id="mesa-numero" placeholder="Ex: 11" required>
+            </div>
+            <div class="form-group">
+                <label>Senha do Gerente para Ativação:</label>
+                <input type="password" id="mesa-senha" placeholder="Senha mestre da mesa" required>
+            </div>
+            <button type="submit" class="btn-submit">Adicionar Mesa</button>
+        </form>
+    </div>
+
+        <!-- ABA 4: MONITOR OPERACIONAL (OLHO DE ÁGUIA) -->
+    <div id="panel-monitor" class="form-panel">
+        <h2>👁️ Visão Geral do Restaurante (Cozinha & Salão)</h2>
+        <div style="display: flex; gap: 20px;">
+            <div style="flex: 1; background: #fff; padding: 15px; border: 1px solid #ccc;">
+                <h3>🍳 Fila de Preparos (Cozinha/Bar)</h3>
+                <div id="monitor-fila-pedidos"></div>
+            </div>
+            <div style="flex: 1; background: #fff; padding: 15px; border: 1px solid #ccc;">
+                <h3>🛎️ Chamados do Salão (Garçom)</h3>
+                <div id="monitor-fila-chamados"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 🔄 Polling Automático Atualizado e Unificado (Sem duplicações!)
+        window.onload = function() {
+            carregarDadosCaixa();
+            carregarMonitorOperacional(); // 🟢 Começa a espionar o restaurante
+            
+            setInterval(() => {
+                carregarDadosCaixa();
+                carregarMonitorOperacional(); // 🟢 Atualiza sozinho a cada 5 segundos
+            }, 5000); 
+        }
+
+        // 👁️ FUNÇÃO MESTRE: Puxa os dados da Cozinha e Garçom ao mesmo tempo para o ADM fiscalizar
+        function carregarMonitorOperacional() {
+            // 1. Espiona a fila de pratos da Cozinha/Bar
+            fetch("http://localhost:3000/api/pedidos/pendentes")
+            .then(res => res.json())
+            .then(pedidos => {
+                const container = document.getElementById('monitor-fila-pedidos');
+                if (!container) return; // Proteção caso a div ainda não exista no HTML
+                
+                if (pedidos.length === 0) { 
+                    container.innerHTML = "<p>Nenhum prato sendo preparado.</p>"; 
+                    return; 
+                }
+                
+                let html = "<ul>";
+                pedidos.forEach(p => { 
+                    html += `<li><strong>Mesa ${p.id_mesa || p.id_comanda}:</strong> ${p.quantidade}x ${p.nome_item} (${p.status_pedido})</li>`; 
+                });
+                container.innerHTML = html + "</ul>";
+            })
+            .catch(erro => console.error("Erro no monitor de pedidos:", erro));
+
+            // 2. Espiona os chamados pendentes do Salão
+            fetch("http://localhost:3000/api/garcons/chamados")
+            .then(res => res.json())
+            .then(chamados => {
+                const container = document.getElementById('monitor-fila-chamados');
+                if (!container) return; // Proteção
+                
+                if (chamados.length === 0) { 
+                    container.innerHTML = "<p>Nenhum chamado aberto no salão.</p>"; 
+                    return; 
+                }
+                
+                let html = "<ul>";
+                chamados.forEach(c => { 
+                    html += `<li>🚨 <strong>Mesa ${c.id_mesa}:</strong> Chamando Garçom!</li>`; 
+                });
+                container.innerHTML = html + "</ul>";
+            })
+            .catch(erro => console.error("Erro no monitor de chamados:", erro));
+        }
+
+        // 📥 Buscar a lista de comandas ativas no Backend
+        function carregarDadosCaixa() {
+            fetch("http://localhost:3000/api/mesas/comandas-abertas")
+            .then(res => res.json())
+            .then(comandas => {
+                renderizarTabelaCaixa(comandas);
+            })
+            .catch(erro => console.error("Erro ao carregar dados do caixa:", erro));
+        }
+
+        // 🎨 Desenhar a Tabela Dinâmica do Caixa na Tela
+        function renderizarTabelaCaixa(listaDeComandas) {
+            const container = document.getElementById('container-caixa-contas');
+            if (!container) return;
+
+            if (listaDeComandas.length === 0) {
+                container.innerHTML = "<h3>🎉 Caixa limpo! Nenhuma mesa com conta aberta no momento.</h3>";
+                return;
+            }
+
+            let tabelaHTML = `
+                <table border="1" cellpadding="10" style="width: 100%; border-collapse: collapse; margin-top: 15px; text-align: left;">
+                    <thead style="background: #eee;">
+                        <tr>
+                            <th>Mesa</th>
+                            <th>Nº Comanda</th>
+                            <th>Horário de Abertura</th>
+                            <th>Valor Consumido</th>
+                            <th>Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            listaDeComandas.forEach(com => {
+                const dataAbertura = new Date(com.horario_abertura).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+                
+                tabelaHTML += `
+                    <tr>
+                        <td><strong>Mesa ${com.id_mesa}</strong></td>
+                        <td>#${com.id_comanda}</td>
+                        <td>${dataAbertura}</td>
+                        <td style="color: red; font-weight: bold;">R$ ${Number(com.total_gasto).toFixed(2)}</td>
+                        <td>
+                            <button onclick="confirmarPagamentoMesa(${com.id_comanda}, ${com.id_mesa})" 
+                                    style="padding: 6px 12px; background: #28a745; color: white; border: none; font-weight: bold; cursor: pointer; border-radius: 4px;">
+                                Confirmar Pagamento
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tabelaHTML += "</tbody></table>";
+            container.innerHTML = tabelaHTML;
+        }
+
+        // 💳 Disparar a baixa definitiva de pagamento no banco
+        function confirmarPagamentoMesa(id_comanda, id_mesa) {
+            if (!confirm(`Deseja confirmar o recebimento do pagamento da Mesa ${id_mesa}?`)) return;
+
+            fetch("http://localhost:3000/api/mesas/fechar-comanda", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id_comanda, id_mesa })
+            })
+            .then(res => res.json())
+            .then(dados => {
+                alert(dados.mensagem);
+                if (dados.sucesso) {
+                    carregarDadosCaixa(); 
+                }
+            })
+            .catch(erro => console.error("Erro ao fechar comanda no caixa:", erro));
+        }
+
+        // 1. Função de Troca Visual entre Abas (Corrigida com o Monitor!)
+        function alternarAba(aba) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.form-panel').forEach(p => p.classList.remove('active'));
+
+            if (aba === 'caixa') {
+                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+                document.getElementById('panel-caixa').classList.add('active');
+            } else if (aba === 'cadastro-func') {
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+                document.getElementById('panel-cadastro-func').classList.add('active');
+            } else if (aba === 'cadastro-mesa') {
+                document.querySelectorAll('.tab-btn')[2].classList.add('active');
+                document.getElementById('panel-cadastro-mesa').classList.add('active');
+            } else if (aba === 'monitor') {
+                // 🟢 Suporte para a aba do olho de águia!
+                document.querySelectorAll('.tab-btn')[3].classList.add('active');
+                document.getElementById('panel-monitor').classList.add('active');
+            }
+        }
+
+        // 2. Ação de Salvar Funcionário no Banco via Fetch
+        function cadastrarFuncionario(event) {
+            event.preventDefault();
+            const nome = document.getElementById('func-nome').value;
+            const login = document.getElementById('func-login').value;
+            const senha = document.getElementById('func-senha').value;
+            const cargo = document.getElementById('func-cargo').value;
+
+            fetch("http://localhost:3000/api/funcionarios/cadastrar", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ nome, login, senate: senha, senha, cargo })
+            })
+            .then(res => res.json())
+            .then(dados => {
+                alert(dados.mensagem || dados.erro);
+                if (dados.sucesso) event.target.reset(); 
+            })
+            .catch(erro => console.error("Erro ao cadastrar funcionário:", erro));
+        }
+
+        // 3. Ação de Salvar Nova Mesa no Banco via Fetch
+        function cadastrarMesa(event) {
+            event.preventDefault();
+            const numero_mesa = document.getElementById('mesa-numero').value;
+            const senha_gerente = document.getElementById('mesa-senha').value;
+
+            fetch("http://localhost:3000/api/mesas/cadastrar", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ numero_mesa, senha_gerente })
+            })
+            .then(res => res.json())
+            .then(dados => {
+                alert(dados.mensagem || dados.erro);
+                if (dados.sucesso) event.target.reset(); 
+            })
+            .catch(erro => console.error("Erro ao cadastrar mesa:", erro));
+        }
+    </script>
+
+</body>
+</html>

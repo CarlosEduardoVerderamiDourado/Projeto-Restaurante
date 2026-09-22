@@ -4,6 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ratatue - Cardápio Digital</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; padding-bottom: 120px; }
+        .categorias-abas { display: flex; gap: 10px; margin-bottom: 20px; }
+        .categorias-abas button { padding: 10px 20px; font-weight: bold; cursor: pointer; border: 1px solid #ccc; background: #eee; border-radius: 4px; }
+        #container-produtos { display: flex; flex-wrap: wrap; gap: 20px; }
+        .produto-card { border: 1px solid #ccc; border-radius: 8px; padding: 15px; width: 220px; box-shadow: 2px 2px 8px rgba(0,0,0,0.05); text-align: center; }
+        .produto-card img { width: 120px; height: 120px; object-fit: cover; border-radius: 4px; margin-bottom: 10px; }
+        .seletor-qtd { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 15px 0; }
+        .btn-qtd { width: 30px; height: 30px; font-weight: bold; font-size: 16px; cursor: pointer; border: 1px solid #333; background: #fff; border-radius: 4px; }
+        .input-qtd { width: 40px; text-align: center; font-weight: bold; font-size: 16px; border: none; background: transparent; }
+        .btn-add-sacola { width: 100%; padding: 8px; background: #007bff; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        .btn-add-sacola:hover { background: #0056b3; }
+    </style>
 </head>
 <body>
 
@@ -17,34 +30,73 @@
         <button onclick="filtrarCategoria('Bebidas')">Bebidas</button>
     </div>
 
-    <!-- 🟢 O Tabuleiro Vazio -->
+    <!-- 🟢 O Tabuleiro de Produtos -->
     <div id="container-produtos">
         <!-- Os produtos vão brotar aqui de dentro dinamicamente! -->
     </div>
 
     <!-- 🟢 Painel do Resumo Fixado no Rodapé -->
     <div id="resumo-carrinho"></div>
+    <!-- 🚨 CORTINA DE SUCESSO (Aviso Visual de Pedido Concluído) -->
+<div id="tela-sucesso-pedido" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); color: white; z-index: 9999; text-align: center; padding-top: 15%;">
+    <div style="background: #222; display: inline-block; padding: 30px; border-radius: 10px; border: 2px solid #28a745;">
+        <h2 style="color: #28a745; font-size: 28px; margin: 0;">🚀 Pedido Enviado!</h2>
+        <p style="font-size: 18px; margin: 20px 0; max-width: 400px;">Seu prato já está na esteira de preparo da cozinha/bar e será entregue em breve.</p>
+        <p style="font-size: 14px; color: #aaa;">Redirecionando para o portal da mesa...</p>
+    </div>
+</div>
+
+<div id="tela-aviso-cardapio" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); color: white; z-index: 9999; text-align: center; padding-top: 15%;">
+    <div style="background: #222; display: inline-block; padding: 30px; border-radius: 10px; border: 2px solid #ffc107; max-width: 400px;">
+        <h2 id="aviso-titulo" style="color: #ffc107; font-size: 26px; margin: 0;">⚠️ Atenção</h2>
+        <p id="aviso-texto" style="font-size: 18px; margin: 20px 0;">Mensagem de aviso aqui...</p>
+        <button onclick="fecharCortinaAviso()" style="padding: 10px 20px; background: #ffc107; color: black; border: none; font-weight: bold; border-radius: 4px; cursor: pointer;">Ok, entendi</button>
+    </div>
+</div>
 
     <script>
-       // Variáveis globais de controle
+        // Variáveis globais de controle
         let todosOsProdutos = [];
         let carrinho = [];
-        let alertaExibido = false; // Evita múltiplos alertas em loop na tela
+        let alertaExibido = false;
 
-        // 🛒 FUNÇÃO 1: Adicionar item à sacola inteligente
+        // 🛒 FUNÇÃO 1: Adicionar item à sacola inteligente com a quantidade escolhida (Livre de pop-ups!)
         function adicionarAoCarrinho(id) {
             const produto = todosOsProdutos.find(p => p.id_item === id);
+            
+            // Pega o valor numérico que está digitado no seletor daquele card específico
+            const inputQtd = document.getElementById(`qtd-${id}`);
+            const quantidadeEscolhida = parseInt(inputQtd.value) || 1;
+
             const itemNoCarrinho = carrinho.find(item => item.id_item === id);
 
             if (itemNoCarrinho) {
-                itemNoCarrinho.quantidade++;
+                itemNoCarrinho.quantidade += quantidadeEscolhida;
             } else {
-                carrinho.push({ ...produto, quantidade: 1 });
+                carrinho.push({ ...produto, quantidade: quantidadeEscolhida });
             }
 
-            console.log("Sacola de Compras Atual:", carrinho);
-            alert(`${produto.nome_item} adicionado à sacola!`);
+            console.log("Sacola de Compras Atualizada:", carrinho);
+            
+            // Retorna o contador do card de volta para 1 para o próximo pedido
+            inputQtd.value = 1;
+            
+            // 🟢 Atualiza o painel financeiro na hora de forma silenciosa e elegante!
             atualizarResumoCarrinho();
+        }
+
+        // ⏱️ FUNÇÕES AUXILIARES: Alterar o número no contador visual (+ e -)
+        function alterarContadorVisual(id, operacao) {
+            const input = document.getElementById(`qtd-${id}`);
+            let valorAtual = parseInt(input.value) || 1;
+
+            if (operacao === 'mais') {
+                valorAtual++;
+            } else if (operacao === 'menos' && valorAtual > 1) {
+                valorAtual--;
+            }
+            
+            input.value = valorAtual;
         }
 
         // 📊 FUNÇÃO 2: Atualizar o resumo financeiro (Sacola + Painel de Rodapé Sticky)
@@ -59,25 +111,26 @@
 
             const divResumo = document.getElementById('resumo-carrinho');
             divResumo.innerHTML = `
-                <div style="background: #f4f4f4; padding: 15px; margin-top: 20px; border-top: 2px solid #333; position: sticky; bottom: 0; z-index: 1000;">
-                    <h3>🛒 Sacola Atual</h3>
-                    <p>Itens para enviar: <strong>${totalItens}</strong> | Subtotal: <strong>R$ ${precoTotal.toFixed(2)}</strong></p>
+                <div style="background: #f4f4f4; padding: 15px; margin-top: 20px; border-top: 2px solid #333; position: fixed; bottom: 0; left: 0; right: 0; z-index: 1000; box-shadow: 0 -2px 10px rgba(0,0,0,0.1);">
+                    <h3 style="margin: 0 0 10px 0;">🛒 Sacola Atual</h3>
+                    <p style="margin: 5px 0 15px 0;">Itens para enviar: <strong>${totalItens}</strong> | Subtotal: <strong>R$ ${precoTotal.toFixed(2)}</strong></p>
                     
-                    <button onclick="enviarPedidoParaCozinha()" style="padding: 10px; background: green; color: white; border: none; cursor: pointer; font-weight: bold; margin-right: 10px;">Enviar Pedido para Cozinha</button>
+                    <button onclick="enviarPedidoParaCozinha()" style="padding: 10px 15px; background: green; color: white; border: none; cursor: pointer; font-weight: bold; margin-right: 10px; border-radius: 4px;">Enviar Pedido para Cozinha</button>
                     
-                    <button onclick="carregarExtratoMesa()" style="padding: 10px; background: #007bff; color: white; border: none; cursor: pointer; font-weight: bold;">📄 Ver Extrato / Pedir Conta</button>
+                    <button onclick="carregarExtratoMesa()" style="padding: 10px 15px; background: #007bff; color: white; border: none; cursor: pointer; font-weight: bold; border-radius: 4px;">📄 Ver Extrato / Pedir Conta</button>
                     
                     <div id="detalhe-extrato" style="margin-top: 15px; display: none; background: #fff; padding: 10px; border: 1px solid #ccc; max-height: 200px; overflow-y: auto;"></div>
                 </div>
             `;
         }
 
-        // 🚀 FUNÇÃO 3: Enviar Pedido para o Servidor
+// 🚀 FUNÇÃO 3: Enviar Pedido para o Servidor (Totalmente livre de pop-ups!)
         function enviarPedidoParaCozinha() {
             const mesaNumero = localStorage.getItem('id_mesa_configurada');
             
+            // 🟢 SUBISTITUIÇÃO DO POP-UP DA IMAGEM: Ativa a cortina de aviso com borda amarela!
             if (carrinho.length === 0) {
-                alert("A sua sacola de compras está vazia! Adicione algum item antes de enviar.");
+                mostrarCortinaAviso("🛒 Sacola Vazia", "A sua sacola de compras está vazia! Adicione algum hambúrguer ou bebida antes de enviar para a cozinha.");
                 return;
             }
 
@@ -91,18 +144,36 @@
             .then(resposta => resposta.json())
             .then(dados => {
                 if (dados.sucesso) {
-                    alert(dados.mensagem);
+                    document.getElementById('tela-sucesso-pedido').style.display = 'block';
                     carrinho = [];
                     atualizarResumoCarrinho();
+
+                    setTimeout(() => {
+                        window.location.href = "portal.html";
+                    }, 3000);
                 } else {
-                    alert("Erro ao enviar pedido: " + dados.erro);
+                    mostrarCortinaAviso("❌ Erro no Pedido", "Erro ao enviar pedido: " + dados.erro);
                 }
             })
             .catch(erro => {
                 console.error("Erro na comunicação com a cozinha:", erro);
-                alert("Não foi possível conectar ao servidor da cozinha.");
+                mostrarCortinaAviso("❌ Erro de Conexão", "Não foi possível conectar ao servidor da cozinha. Verifique se o servidor está ligado.");
             });
         }
+
+        // 🧠 FUNÇÃO AUXILIAR: Abre a cortina de avisos personalizada
+        function mostrarCortinaAviso(titulo, texto) {
+            document.getElementById('tela-aviso-cardapio').style.display = 'block';
+            document.getElementById('aviso-titulo').innerText = titulo;
+            document.getElementById('aviso-texto').innerText = texto;
+        }
+
+        // 🟢 FUNÇÃO AUXILIAR: Fecha a cortina de avisos
+        function fecharCortinaAviso() {
+            document.getElementById('tela-aviso-cardapio').style.display = 'none';
+        }
+
+
 
         // ⏳ FUNÇÃO 4: Carregamento inicial da página
         window.onload = function() {
@@ -117,7 +188,7 @@
                 console.log("Produtos carregados do MariaDB:", produtosDoBanco);
                 todosOsProdutos = produtosDoBanco;
                 renderizarProdutos(todosOsProdutos);
-                atualizarResumoCarrinho(); // Garante o rodapé renderizado desde o início!
+                atualizarResumoCarrinho(); 
             })
             .catch(erro => {
                 console.error("Erro ao carregar cardápio:", erro);
@@ -129,7 +200,7 @@
             }
         }
 
-        // 🎨 FUNÇÃO 5: Renderizar os cards HTML dinamicamente
+        // 🎨 FUNÇÃO 5: Renderizar os cards HTML dinamicamente (Com os botões de + e -)
         function renderizarProdutos(listaDeProdutos) {
             const container = document.getElementById('container-produtos');
             container.innerHTML = "";
@@ -140,13 +211,21 @@
             }
 
             listaDeProdutos.forEach(produto => {
+                // 🟢 Injetados botões de controle de quantidade e ID dinâmico por input
                 const cardHTML = `
-                    <div class="produto-card" style="border: 1px solid #ccc; margin: 10px; padding: 10px;">
-                        <img src="${produto.imagem_url}" alt="${produto.nome_item}" style="width: 100px; height: 100px; object-fit: cover;">
-                        <h3>${produto.nome_item}</h3>
-                        <p>${produto.descricao}</p>
-                        <p><strong>R$ ${Number(produto.preco).toFixed(2)}</strong></p>
-                        <button onclick="adicionarAoCarrinho(${produto.id_item})">Adicionar</button>
+                    <div class="produto-card">
+                        <img src="${produto.imagem_url}" alt="${produto.nome_item}">
+                        <h3 style="margin: 10px 0 5px 0; font-size: 18px;">${produto.nome_item}</h3>
+                        <p style="font-size: 13px; color: #666; height: 40px; overflow: hidden; margin: 0 0 10px 0;">${produto.descricao || ''}</p>
+                        <p style="font-size: 16px; font-weight: bold; margin: 5px 0;">R$ ${Number(produto.preco).toFixed(2)}</p>
+                        
+                        <div class="seletor-qtd">
+                            <button type="button" class="btn-qtd" onclick="alterarContadorVisual(${produto.id_item}, 'menos')">-</button>
+                            <input type="text" id="qtd-${produto.id_item}" class="input-qtd" value="1" readonly>
+                            <button type="button" class="btn-qtd" onclick="alterarContadorVisual(${produto.id_item}, 'mais')">+</button>
+                        </div>
+
+                        <button class="btn-add-sacola" onclick="adicionarAoCarrinho(${produto.id_item})">Adicionar</button>
                     </div>
                 `;
                 container.innerHTML += cardHTML;
@@ -164,11 +243,27 @@
             }
         }
 
-        // 🚨 FUNÇÃO 7: Monitorar se o garçom aceitou o chamado
+        // 🚨 FUNÇÃO 7: Monitorar se o garçom aceitou o chamado E se a conta foi fechada
         function checarStatusChamado() {
             const mesaNumero = localStorage.getItem('id_mesa_configurada');
-            if (!mesaNumero || alertaExibido) return;
+            if (!mesaNumero) return;
 
+            // 🟢 TRAVA DE SEGURANÇA MESTRE: Verifica se a conta foi paga no Caixa
+            fetch(`http://localhost:3000/api/mesas/verificar-comanda/${mesaNumero}`)
+            .then(resposta => resposta.json())
+            .then(dadosMesa => {
+                if (!dadosMesa.ativa) {
+                    // Se o caixa fechou a comanda, limpa a mesa da memória e expulsa o tablet!
+                    localStorage.removeItem('id_mesa_configurada');
+                    alert("💳 Conta Encerrada!\nObrigado pela preferência, sua mesa foi liberada no caixa. Volte sempre!");
+                    window.location.href = "index.html";
+                    return;
+                }
+            })
+            .catch(erro => console.error("Erro na trava de segurança da mesa:", erro));
+
+            // Continua o monitoramento do garçom vindo...
+            if (alertaExibido) return;
             fetch(`http://localhost:3000/api/garcons/status-mesa/${mesaNumero}`)
             .then(resposta => resposta.json())
             .then(dados => {
@@ -181,7 +276,7 @@
             .catch(erro => console.error("Erro no monitor de chamados:", erro));
         }
 
-// 📑 FUNÇÃO 8: Buscar o extrato real acumulado no banco de dados (Efeito Sanfona)
+        // 📑 FUNÇÃO 8: Buscar o extrato real acumulado no banco de dados (Efeito Sanfona)
         function carregarExtratoMesa() {
             const mesaNumero = localStorage.getItem('id_mesa_configurada');
             const divDetalhe = document.getElementById('detalhe-extrato');
@@ -206,13 +301,14 @@
 
                     let linhasHTML = "<h4>📋 Consumo Acumulado no Banco:</h4><ul>";
                     dados.itens_consumidos.forEach(item => {
-                        linhasHTML += `<li><strong>${item.quantidade_total}x</strong> ${item.nome_item} - R$ ${Number(item.subtotal_item).toFixed(2)}</li>`;
+                        // 🟢 Mantido alinhado com as colunas injetadas pela rota de extrato do seu backend
+                        linhasHTML += `<li><strong>${item.quantidade_total}x</strong> ${item.nome_item || item.nome} - R$ ${Number(item.subtotal_item).toFixed(2)}</li>`;
                     });
                     linhasHTML += "</ul>";
 
                     linhasHTML += `
                         <p style="font-size: 16px; margin-top: 10px;">Valor Total da Conta: <strong style="color: red;">R$ ${Number(dados.total_geral).toFixed(2)}</strong></p>
-                        <button onclick="chamarGarcomParaConta()" style="padding: 8px; background: orange; color: black; border: none; font-weight: bold; cursor: pointer;">💳 Chamar Garçom com a Maquininha</button>
+                        <button onclick="chamarGarcomParaConta()" style="padding: 8px; background: orange; color: black; border: none; font-weight: bold; cursor: pointer; border-radius: 4px;">💳 Chamar Garçom com a Maquininha</button>
                     `;
 
                     divDetalhe.innerHTML = linhasHTML;
@@ -224,20 +320,31 @@
             });
         }
 
-        // 💳 FUNÇÃO 9: Solicitar encerramento de mesa ao salão
+        // 💳 FUNÇÃO 9: Solicitar encerramento de mesa ao salão e voltar ao portal automaticamente
         function chamarGarcomParaConta() {
             const mesaNumero = localStorage.getItem('id_mesa_configurada');
-            fetch("http://localhost:3000/api/mesas/solicitar-garcom", {
+            
+            // 🟢 CORREÇÃO: Aponta para a nova rota exclusiva de maquininha!
+            fetch("http://localhost:3000/api/mesas/solicitar-maquininha", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ mesa: mesaNumero })
             })
             .then(res => res.json())
             .then(dados => {
-                alert("🛎️ Solicitação enviada!\nO garçom foi acionado e está levando a maquininha até a sua mesa.");
+                mostrarCortinaAviso("💳 Maquininha Solicitada", "Solicitação enviada com sucesso!\nO garçom foi acionado no salão e está trazendo a maquininha de cartão até a sua mesa.\n\nRetornando ao portal principal...");
+                
+                setTimeout(() => {
+                    window.location.href = "portal.html";
+                }, 4000);
             })
-            .catch(erro => console.error("Erro ao chamar conta:", erro));
+            .catch(erro => {
+                console.error("Erro ao chamar conta:", erro);
+                mostrarCortinaAviso("❌ Erro", "Não foi possível chamar o garçom para o pagamento. Tente novamente.");
+            });
         }
+
+
     </script>
 </body>
 </html>
