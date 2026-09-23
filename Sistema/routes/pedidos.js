@@ -202,4 +202,34 @@ router.post('/solicitar-garcom', (req, res) => {
     });
 });
 
+// 👁️🦅 6. ROTA: Monitor Geral "Olho de Águia" para o Administrador acompanhar tudo em tempo real
+router.get('/monitor-geral', (req, res) => {
+    console.log("👁️🦅 Gerência solicitou o painel mestre Olho de Águia...");
+
+    // Essa query cruza os itens ativos com o cardápio e comanda para o ADM ver o fluxo por mesa
+    const querySQL = `
+        SELECT 
+            pi.id_pedido,
+            com.id_mesa,
+            c.nome_item,
+            c.categoria,
+            pi.quantidade,
+            pi.status_preparo,
+            pi.horario_pedido
+        FROM pedidos_itens pi
+        INNER JOIN cardapio c ON pi.id_produto = c.id_item
+        INNER JOIN comandas com ON pi.id_comanda = com.id_comanda
+        WHERE pi.status_preparo IN ('Pendente', 'Em Preparo', 'Pronto')
+        ORDER BY pi.horario_pedido ASC
+    `;
+
+    db.query(querySQL, [], (err, results) => {
+        if (err) {
+            console.error("❌ Erro ao buscar dados do monitor geral:", err.message);
+            return res.status(500).json({ erro: "Erro ao carregar o monitor operacional" });
+        }
+        return res.json(results);
+    });
+});
+
 module.exports = router;
