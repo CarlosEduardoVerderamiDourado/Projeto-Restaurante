@@ -28,6 +28,22 @@
 </head>
 <body>
 
+    <!-- 🚨 CORTINA DE CONFIRMAÇÃO VISUAL (Substitui o confirm() nativo do navegador) -->
+<div id="tela-confirmacao-cozinha" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); color: white; z-index: 9999; text-align: center; padding-top: 15%;">
+    <div style="background: #222; display: inline-block; padding: 30px; border-radius: 10px; border: 2px solid #dc3545; max-width: 400px;">
+        <h2 id="confirm-titulo" style="color: #dc3545; font-size: 24px; margin: 0;">🚪 Sair da Cozinha</h2>
+        <p id="confirm-texto" style="font-size: 18px; margin: 20px 0;">Deseja realmente encerrar a sua sessão de trabalho na produção?</p>
+        <div style="display: flex; gap: 15px; justify-content: center;">
+            <button id="btn-confirm-sim" style="padding: 10px 20px; background: #28a745; color: white; border: none; font-weight: bold; border-radius: 4px; cursor: pointer;">Sim</button>
+            <button id="btn-confirm-nao" style="padding: 10px 20px; background: #dc3545; color: white; border: none; font-weight: bold; border-radius: 4px; cursor: pointer;">Não</button>
+        </div>
+    </div>
+</div>
+
+<!-- 🟢 Botão de Logout Físico na barra superior da cozinha -->
+<button onclick="fazerLogoutCozinha()" style="padding: 6px 12px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-bottom: 20px;">🚪 Sair / Deslogar</button>
+
+
     <h1>🍳 KDS Ratatue - Controle de Preparo</h1>
     <p>Clique em cima de um pedido para avançar o estado dele. (Os atrasados ficam vermelhos automaticamente!)</p>
 
@@ -157,6 +173,32 @@
             })
             .catch(erro => console.error("Erro ao avançar status do pedido:", erro));
         }
+
+        // 🚪 AÇÃO: Fazer Logout com Limpeza Estrita de Memória no mesmo PC
+function fazerLogoutCozinha() {
+    // 1. Abre a nossa cortina de confirmação personalizada na tela
+    document.getElementById('tela-confirmacao-cozinha').style.display = 'block';
+    document.getElementById('confirm-titulo').innerText = "🚪 Sair do Sistema";
+    document.getElementById('confirm-texto').innerText = "Deseja realmente encerrar a sua sessão de trabalho na Cozinha?";
+
+    // 2. Configura a ação se o Chef clicar em "SIM"
+    document.getElementById('btn-confirm-sim').onclick = function() {
+        // Limpa estritamente o ID do funcionário logado da cozinha
+        localStorage.removeItem('id_funcionario_logado');
+        
+        console.log("Sessão da cozinha encerrada. Retornando ao Login...");
+        
+        // Joga o navegador de volta para a tela de autenticação mestre
+        window.location.href = "index.html";
+    };
+
+    // 3. Configura a ação se o Chef clicar em "NÃO"
+    document.getElementById('btn-confirm-nao').onclick = function() {
+        // Apenas esconde a cortina escura e devolve a tela da esteira de pratos
+        document.getElementById('tela-confirmacao-cozinha').style.display = 'none';
+    };
+}
+
     </script>
 
     
