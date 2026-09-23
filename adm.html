@@ -96,36 +96,6 @@
         </div>
     </div>
 
-    <!-- 👁️🦅 SEÇÃO: MONITOR OPERACIONAL OLHO DE ÁGUIA -->
-<div style="margin-top: 30px; padding: 20px; border: 2px solid #343a40; border-radius: 8px; background-color: #f8f9fa;">
-    <h2 style="margin: 0 0 10px 0; color: #343a40; display: flex; align-items: center; gap: 10px;">👁️🦅 Monitor Geral "Olho de Águia" <span style="font-size: 14px; background: #007bff; color: white; padding: 3px 8px; border-radius: 20px; font-weight: normal;">Atualizando ao Vivo</span></h2>
-    <p style="color: #666; margin-bottom: 20px;">Acompanhamento passivo dos tempos de preparo e status de todos os pedidos do restaurante.</p>
-
-    <!-- Grade de 3 colunas operacionais -->
-    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-        
-        <!-- COLUNA 1: COZINHA -->
-        <div style="flex: 1; min-width: 250px; background: #fff; border: 1px solid #ced4da; border-radius: 6px; padding: 15px;">
-            <h3 style="margin: 0 0 15px 0; border-bottom: 3px solid #dc3545; padding-bottom: 5px; color: #dc3545;">🍔 Esteira da Cozinha</h3>
-            <div id="monitor-cozinha-lista"><p style="color: #999;">Nenhum prato em preparo...</p></div>
-        </div>
-
-        <!-- COLUNA 2: BAR -->
-        <div style="flex: 1; min-width: 250px; background: #fff; border: 1px solid #ced4da; border-radius: 6px; padding: 15px;">
-            <h3 style="margin: 0 0 15px 0; border-bottom: 3px solid #17a2b8; padding-bottom: 5px; color: #17a2b8;">🍹 Esteira do Bar</h3>
-            <div id="monitor-bar-lista"><p style="color: #999;">Nenhuma bebida em preparo...</p></div>
-        </div>
-
-        <!-- COLUNA 3: SALÃO / GARÇONS -->
-        <div style="flex: 1; min-width: 250px; background: #fff; border: 1px solid #ced4da; border-radius: 6px; padding: 15px;">
-            <h3 style="margin: 0 0 15px 0; border-bottom: 3px solid #28a745; padding-bottom: 5px; color: #28a745;">🛎️ Prontos para Entrega</h3>
-            <div id="monitor-salao-lista"><p style="color: #999;">Nenhum item aguardando entrega...</p></div>
-        </div>
-
-    </div>
-</div>
-
-
     <script>
         // 🔄 Polling Automático Atualizado e Unificado (Sem duplicações!)
         window.onload = function() {
@@ -317,74 +287,7 @@
             })
             .catch(erro => console.error("Erro ao cadastrar mesa:", erro));
         }
-
-        // Ativa o monitor assim que o administrador carregar a tela
-window.addEventListener('DOMContentLoaded', () => {
-    carregarMonitorOlhoDeAguia();
-    setInterval(carregarMonitorOlhoDeAguia, 5000); // 🔄 Sincroniza em segundo plano a cada 5 segundos
-});
-
-function carregarMonitorOlhoDeAguia() {
-    fetch("http://localhost:3000/api/pedidos/monitor-geral")
-    .then(res => res.json())
-    .then(dados => renderizarMonitorOlhoDeAguia(dados))
-    .catch(erro => console.error("Erro ao alimentar o painel Olho de Águia:", erro));
-}
-
-function renderizarMonitorOlhoDeAguia(listaGeral) {
-    const listaCozinha = document.getElementById('monitor-cozinha-lista');
-    const listaBar = document.getElementById('monitor-bar-lista');
-    const listaSalao = document.getElementById('monitor-salao-lista');
-
-    // Limpa os containers antes de desenhar a nova versão do banco
-    listaCozinha.innerHTML = "";
-    listaBar.innerHTML = "";
-    listaSalao.innerHTML = "";
-
-    // Contadores para o ADM saber o volume de trabalho
-    let qtdCozinha = 0, qtdBar = 0, qtdSalao = 0;
-
-    listaGeral.forEach(item => {
-        const horaPedido = new Date(item.horario_pedido);
-        const tempoDecorrido = Math.floor((new Date() - horaPedido) / 1000 / 60); // Calcula em minutos
-
-        // Formatação do estilo com base no status do preparo
-        let badgeStatus = `<span style="font-size: 11px; padding: 2px 6px; border-radius: 3px; font-weight: bold; background: #ffc107; color: #000;">${item.status_preparo}</span>`;
-        if (item.status_preparo === 'Em Preparo') {
-            badgeStatus = `<span style="font-size: 11px; padding: 2px 6px; border-radius: 3px; font-weight: bold; background: #17a2b8; color: #fff;">${item.status_preparo}</span>`;
-        }
-
-        // HTML do pequeno card informativo para o administrador fiscalizar
-        const itemHTML = `
-            <div style="border-left: 4px solid #333; padding: 8px; margin-bottom: 10px; background: #fdfdfd; box-shadow: 1px 1px 4px rgba(0,0,0,0.05); font-size: 14px;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                    <strong>Mesa ${item.id_mesa}</strong>
-                    ${badgeStatus}
-                </div>
-                <div style="color: #333;">${item.quantidade}x ${item.nome_item}</div>
-                <div style="font-size: 11px; color: #888; margin-top: 5px;">⏳ Há: <strong>${tempoDecorrido} minutos</strong></div>
-            </div>
-        `;
-
-        // Divisão inteligente por categoria e status operacional
-        if (item.status_preparo === 'Pronto') {
-            listaSalao.innerHTML += itemHTML;
-            qtdSalao++;
-        } else if (item.categoria === 'Bebidas') {
-            listaBar.innerHTML += itemHTML;
-            qtdBar++;
-        } else {
-            listaCozinha.innerHTML += itemHTML;
-            qtdCozinha++;
-        }
-    });
-
-    // Se as listas ficarem vazias após a varredura, injeta mensagem limpa
-    if (qtdCozinha === 0) listaCozinha.innerHTML = "<p style='color: #999; font-size: 14px;'>Nenhum prato em preparo...</p>";
-    if (qtdBar === 0) listaBar.innerHTML = "<p style='color: #999; font-size: 14px;'>Nenhuma bebida em preparo...</p>";
-    if (qtdSalao === 0) listaSalao.innerHTML = "<p style='color: #999; font-size: 14px;'>Nenhum item aguardando entrega...</p>";
-}
-
+        
     </script>
 
 </body>
