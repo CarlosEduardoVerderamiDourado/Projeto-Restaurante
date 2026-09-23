@@ -240,4 +240,73 @@ router.post('/fechar-comanda', (req, res) => {
     });
 });
 
+// 📑 ROTA BACKEND: Caixa consulta os valores acumulados para emitir a nota fiscal
+router.get('/consultar-fechamento/:mesa', (req, res) => {
+    const { mesa } = req.params;
+    console.log(`💰 Caixa consultando extrato de encerramento da Mesa ${mesa}...`);
+
+    const querySQL = `
+        SELECT 
+            c.id_item,
+            c.nome_item,
+            SUM(pi.quantidade) AS quantidade_total,
+            pi.preco_unitario_pago,
+            SUM(pi.quantidade * pi.preco_unitario_pago) AS subtotal_item
+        FROM comandas com
+        INNER JOIN pedidos_itens pi ON com.id_comanda = pi.id_comanda
+        INNER JOIN cardapio c ON pi.id_produto = c.id_item
+        WHERE com.id_mesa = ? AND com.status_comanda = 'Aberta'
+        GROUP BY c.id_item, c.nome_item, pi.preco_unitario_pago
+    `;
+
+    db.query(querySQL, [mesa], (err, results) => {
+        if (err) {
+            console.error("❌ Erro ao buscar dados de fechamento no banco:", err.message);
+            return res.status(500).json({ erro: "Erro interno no servidor ao consultar fechamento" });
+        }
+
+        let totalGeralAcumulado = 0;
+        results.forEach(linha => {
+            totalGeralAcumulado += Number(linha.subtotal_item);
+        });
+
+        return res.json({
+            sucesso: true,
+            id_comanda: results.length > 0 ? results[0].id_comanda : null,
+            itens_consumidos: results,
+            total_pagar: totalGeralAcumulado
+        });
+    });
+});
+
+// 💳 ROTA BACKEND: Processar Baixa Financeira (Fecha a comanda e encerra chamados de pagamento)
+router.post('/encerrar-comanda', (req, res) => {
+    const { mesa } = req.body;
+    console.log(`🛑 Caixa processando encerramento financeiro da Mesa ${mesa}...`);
+
+    // Inicia um bloco de queries síncronas para garantir consistência relacional
+    const fecharComandaSQL = "UPDATE comandas SET status_comanda = 'Paga' WHERE id_mesa = ? AND status_comanda = 'Aberta'";
+    const arquivarChamadosSQL = "UPDATE chamados_atendimento SET status_chamado = 'Atendido' WHERE id_mesa = ? AND status_chamado = 'Pagamento'";
+
+    db.query(fecharComandaSQL, [mesa], (err, comandaResults) => {
+        if (err) {
+            console.error("❌ Erro ao fechar comanda ativa:", err.message);
+            return res.status(500).json({ erro: "Erro ao encerrar comanda no banco" });
+        }
+
+        // Limpa a esteira do garçom, arquivando a solicitação de maquininha que já foi paga
+        db.query(arquivarChamadosSQL, [mesa], (err) => {
+            if (err) {
+                console.error("❌ Erro ao arquivar chamados de pagamento:", err.message);
+                return res.status(500).json({ erro: "Erro ao limpar chamados pendentes" });
+            }
+
+            return res.json({
+                sucesso: true,
+                mensagem: `Mesa ${mesa} encerrada com sucesso no banco de dados! Comanda definida como Paga.`
+            });
+        });
+    });
+});
+
 module.exports = router;
