@@ -23,6 +23,36 @@
 </head>
 <body>
 
+        <!-- 🚨 CORTINA DE CONFIRMAÇÃO VISUAL (Garante o funcionamento do botão de Sair!) -->
+    <div id="tela-confirmacao-garcom" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); color: white; z-index: 9999; text-align: center; padding-top: 15%;">
+        <div style="background: #222; display: inline-block; padding: 30px; border-radius: 10px; border: 2px solid #007bff; max-width: 400px;">
+            <h2 id="confirm-titulo" style="color: #007bff; font-size: 24px; margin: 0;">🚪 Sair do Sistema</h2>
+            <p id="confirm-texto" style="font-size: 18px; margin: 20px 0;">Deseja realmente encerrar a sua sessão de trabalho?</p>
+            <div style="display: flex; gap: 15px; justify-content: center;">
+                <button id="btn-confirm-sim" style="padding: 10px 20px; background: #28a745; color: white; border: none; font-weight: bold; border-radius: 4px; cursor: pointer;">Sim</button>
+                <button id="btn-confirm-nao" style="padding: 10px 20px; background: #dc3545; color: white; border: none; font-weight: bold; border-radius: 4px; cursor: pointer;">Não</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🚨 CORTINA DE EXTRATO (Exclusiva para o Garçom conferir a conta no Pedido de Conta) -->
+<div id="tela-extrato-garcom" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); color: white; z-index: 9999; text-align: center; padding-top: 10%;">
+    <div style="background: #222; display: inline-block; padding: 30px; border-radius: 10px; border: 2px solid #ff9800; max-width: 450px; text-align: left;">
+        <h2 style="color: #ff9800; font-size: 24px; margin: 0 0 15px 0; text-align: center;">🧾 Extrato da Comanda</h2>
+        <h3 id="extrato-mesa-titulo" style="margin: 0 0 15px 0; text-align: center;">Mesa X</h3>
+        
+        <div id="conteudo-extrato-garcom" style="background: #fff; color: #333; padding: 15px; border-radius: 6px; max-height: 250px; overflow-y: auto; margin-bottom: 20px;">
+            Carregando consumo...
+        </div>
+
+        <div style="display: flex; gap: 15px; justify-content: center;">
+            <button onclick="fecharExtratoGarcom()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; font-weight: bold; border-radius: 4px; cursor: pointer;">Voltar ao Salão</button>
+        </div>
+    </div>
+</div>
+
+
+
     <h1>🛎️ Painel Operacional do Garçom</h1>
     <button onclick="fazerLogoutGarcom()" style="padding: 6px 12px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-bottom: 20px;">🚪 Sair / Deslogar</button>
 
@@ -118,17 +148,22 @@
             });
         }
 
-                // 🏃‍♂️ AÇÃO A: Aceitar Chamado (Totalmente livre de pop-ups cinzas!)
-                // 🏃‍♂️ AÇÃO A: Aceitar Chamado + Viagem Automática para a Tela da Mesa!
+        // 🏃‍♂️ AÇÃO A: Aceitar Chamado com Desvio Inteligente (Ajuda -> Cardápio | Conta -> Extrato Visual)
         function atenderMesa(id_chamado, id_mesa) {
             const id_funcionario = localStorage.getItem('id_funcionario_logado');
 
-            // 1. Configura a nossa cortina de confirmação preta e azul personalizada
+            // Vascula os chamados carregados para descobrir qual é o status desse card específico
+            const cardClicado = document.getElementById('container-chamados').innerHTML;
+            
+            // 🟢 TRUQUE DE CÓDIGO: Descobre se o card clicado é de Pagamento olhando o texto do tipo
+            const ehPedidoDeConta = cardClicado.includes("PEDIDO DE CONTA");
+
             document.getElementById('tela-confirmacao-garcom').style.display = 'block';
             document.getElementById('confirm-titulo').innerText = "🛎️ Atender Mesa " + id_mesa;
-            document.getElementById('confirm-texto').innerText = `Você confirma que vai até o salão prestar atendimento para a Mesa ${id_mesa}?`;
+            document.getElementById('confirm-texto').innerText = ehPedidoDeConta 
+                ? `Você confirma que vai levar a maquininha e fechar a conta da Mesa ${id_mesa}?`
+                : `Você confirma que vai até o salão prestar atendimento para a Mesa ${id_mesa}?`;
 
-            // 2. Configura a ação se o Garçom clicar em "SIM" na nossa cortina
             document.getElementById('btn-confirm-sim').onclick = function() {
                 document.getElementById('tela-confirmacao-garcom').style.display = 'none';
 
@@ -140,48 +175,94 @@
                 .then(res => res.json())
                 .then(dados => {
                     if (dados.sucesso) {
-                        console.log(`Atendimento aceito para a Mesa ${id_mesa}! Configurando trânsito...`);
-                        
-                        // 🟢 A NOVA MÁGICA AUTOMÁTICA:
-                        // 1. Salva o número da mesa aceita na memória do aparelho do garçom
-                        localStorage.setItem('id_mesa_configurada', id_mesa);
-                        
-                        // 2. Empurra o garçom direto para a tela de vendas da mesa do cliente!
-                        window.location.href = "portal.html"; 
+                        // 🔀 O DESVIO INTELIGENTE DE NEGÓCIO:
+                        if (ehPedidoDeConta) {
+                            // 💳 CENÁRIO CONTA: Fica na tela e abre o extrato detalhado com os valores!
+                            buscarEExibirExtratoMesa(id_mesa);
+                        } else {
+                            // 🛎️ CENÁRIO AJUDA: Leva direto para o cardápio para tirar o novo pedido!
+                            localStorage.setItem('id_mesa_configurada', id_mesa);
+                            window.location.href = "cardapio.html"; 
+                        }
                     }
                 })
                 .catch(erro => console.error("Erro ao atender chamado:", erro));
             };
 
-            // 3. Configura a ação se o Garçom clicar em "NÃO" na nossa cortina
             document.getElementById('btn-confirm-nao').onclick = function() {
                 document.getElementById('tela-confirmacao-garcom').style.display = 'none';
             };
         }
 
+        // 🧠 FUNÇÃO NOVA: Puxa o consumo da comanda ativa direto do backend e monta na tela do garçom
+        function buscarEExibirExtratoMesa(id_mesa) {
+            const containerExtrato = document.getElementById('conteudo-extrato-garcom');
+            document.getElementById('extrato-mesa-titulo').innerText = "Mesa " + id_mesa;
+            document.getElementById('tela-extrato-garcom').style.display = 'block';
+            containerExtrato.innerHTML = "<p>Carregando comanda...</p>";
 
-
-
-        // 🏃‍♂️ AÇÃO B: Dar baixa na entrega de comida
-        function finalizarEntregaMesa(id_pedido, id_mesa) {
-            fetch("http://localhost:3000/api/garcons/finalizar-entrega", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ id_pedido })
-            })
+            // Puxa a mesma rota de faturamento que o cliente usa!
+            fetch(`http://localhost:3000/api/pedidos/extrato/${id_mesa}`)
             .then(res => res.json())
             .then(dados => {
-                alert(`Pedido entregue com sucesso na Mesa ${id_mesa}!`);
-                carregarDadosSalao();
+                if (dados.sucesso) {
+                    if (!dados.itens_consumidos || dados.itens_consumidos.length === 0) {
+                        containerExtrato.innerHTML = "<p style='color: red;'>Nenhum item consumido nesta comanda ainda.</p>";
+                        return;
+                    }
+
+                    let listaHTML = "<ul style='padding-left: 20px; margin: 0;'>";
+                    dados.itens_consumidos.forEach(item => {
+                        listaHTML += `<li style='margin-bottom: 8px;'><strong>${item.quantidade_total}x</strong> ${item.nome_item || item.nome} - R$ ${Number(item.subtotal_item).toFixed(2)}</li>`;
+                    });
+                    listaHTML += "</ul>";
+                    
+                    // Mostra o total destacado pro garçom digitar na maquininha
+                    listaHTML += `
+                        <div style='margin-top: 15px; padding-top: 10px; border-top: 2px solid #333; text-align: center;'>
+                            <p style='font-size: 18px; margin: 0;'>Total da Conta:</p>
+                            <h3 style='color: #d9534f; margin: 5px 0 0 0; font-size: 24px;'>R$ ${Number(dados.total_geral).toFixed(2)}</h3>
+                        </div>
+                    `;
+                    containerExtrato.innerHTML = listaHTML;
+                }
             })
-            .catch(erro => console.error("Erro ao finalizar entrega:", erro));
+            .catch(erro => {
+                console.error("Erro ao buscar extrato para o garçom:", erro);
+                containerExtrato.innerHTML = "<p style='color: red;'>Erro ao carregar os valores da comanda.</p>";
+            });
         }
 
-        function fazerLogoutGarcom() {
-            if (!confirm("Deseja encerrar sua sessão?")) return;
-            localStorage.removeItem('id_funcionario_logado');
-            window.location.href = "index.html";
+        function fecharExtratoGarcom() {
+            document.getElementById('tela-extrato-garcom').style.display = 'none';
+            carregarDadosSalao(); // Atualiza o salão limpo
         }
+
+
+        // 🚪 AÇÃO C: Fazer Logout com Limpeza Suprema de Memória
+        function fazerLogoutGarcom() {
+            // Abre o painel preto que adicionamos no Passo 1
+            document.getElementById('tela-confirmacao-garcom').style.display = 'block';
+            document.getElementById('confirm-titulo').innerText = "🚪 Sair do Sistema";
+            document.getElementById('confirm-texto').innerText = "Deseja realmente encerrar a sua sessão de trabalho e limpar o histórico de mesas deste aparelho?";
+
+            // Configura o botão do SIM para limpar tudo e voltar pro login
+            document.getElementById('btn-confirm-sim').onclick = function() {
+                localStorage.removeItem('id_funcionario_logado');
+                localStorage.removeItem('id_mesa_configurada');
+                localStorage.removeItem('id_mesa_garcom');
+
+                console.log("Memória limpa com sucesso. Retornando ao Login...");
+                window.location.href = "index.html";
+            };
+
+            // Configura o botão do NÃO para apenas fechar a janela
+            document.getElementById('btn-confirm-nao').onclick = function() {
+                document.getElementById('tela-confirmacao-garcom').style.display = 'none';
+            };
+        }
+
     </script>
 </body>
 </html>
+
