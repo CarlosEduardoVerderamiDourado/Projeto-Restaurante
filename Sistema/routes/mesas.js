@@ -182,16 +182,15 @@ router.post('/cadastrar', (req, res) => {
 router.get('/comandas-abertas', (req, res) => {
     console.log("🧾 ADM solicitando relatório de comandas abertas no caixa...");
 
-    // Essa query busca todas as comandas abertas, soma os itens de todos os seus pedidos e traz o valor acumulado em dinheiro
+    // 🟢 CORREÇÃO MESTRE: Ligamos 'comandas' direto em 'pedidos_itens' e usamos 'preco_unitario_pago'
     const querySQL = `
         SELECT 
             com.id_comanda,
             com.id_mesa,
             com.horario_abertura,
-            IFNULL(SUM(i.quantidade * i.valor_unitario), 0) AS total_gasto
+            IFNULL(SUM(i.quantidade * i.preco_unitario_pago), 0) AS total_gasto
         FROM comandas com
-        LEFT JOIN pedidos p ON com.id_comanda = p.id_comanda
-        LEFT JOIN pedidos_itens i ON p.id_pedido = i.id_pedido
+        LEFT JOIN pedidos_itens i ON com.id_comanda = i.id_comanda
         WHERE com.status_comanda = 'Aberta'
         GROUP BY com.id_comanda, com.id_mesa, com.horario_abertura
         ORDER BY com.id_mesa ASC
@@ -205,6 +204,7 @@ router.get('/comandas-abertas', (req, res) => {
         return res.json(results);
     });
 });
+
 
 // 💳 ROTA B: Dar baixa no pagamento (Fechar comanda para 'Paga' e liberar Mesa para 'Livre')
 router.post('/fechar-comanda', (req, res) => {
