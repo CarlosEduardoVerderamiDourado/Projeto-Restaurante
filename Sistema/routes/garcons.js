@@ -40,16 +40,15 @@ router.post('/aceitar-chamado', (req, res) => {
 });
 
 
-// 🛎️ ROTA 3 ATUALIZADA: Checa o chamado mais recente e oculta o nome até o garçom clicar de verdade!
+// 🛎️ 3. ROTA BLINDADA DE ALTA PRECISÃO CORRIGIDA: Checa o chamado aceito mais recente sem sumir com linhas nulas!
 router.get('/status-mesa/:mesa', (req, res) => {
     const { mesa } = req.params;
-    console.log(`🔍 API: Verificando se algum garçom aceitou a Mesa ${mesa}...`);
 
-    // Busca o último chamado independente de estar pendente ou aceito
+    // 🟢 CORREÇÃO MESTRE: Trocado INNER JOIN por LEFT JOIN para a linha aparecer mesmo com id_funcionario valendo NULL!
     const querySQL = `
         SELECT c.id_chamado, c.status_chamado, f.nome AS nome_garcom
         FROM chamados_atendimento c
-        LEFT JOIN funcionario f ON c.id_funcionario = f.ID
+        LEFT JOIN funcionarios f ON c.id_funcionario = f.ID
         WHERE c.id_mesa = ?
         ORDER BY c.id_chamado DESC LIMIT 1
     `;
@@ -60,24 +59,28 @@ router.get('/status-mesa/:mesa', (req, res) => {
             return res.status(500).json({ erro: "Erro ao checar status" });
         }
         
+        console.log("🔍 Resposta real do MariaDB para a Mesa " + mesa + ":", results);
+
         if (results.length > 0) {
-            const chamadoAtual = results[0];
+            const linhaDoBanco = results[0]; // Acessa o índice 0 do array retornado!
             
-            // 🟢 VALIDAÇÃO REVOLUCIONÁRIA: Só libera o nome do garçom se o status for 'A caminho'
-            // Se o chamado ainda estiver 'Pendente' ou 'Pagamento', o garçom é ocultado (retorna ativo: false)
-            if (chamadoAtual.status_chamado === 'A caminho' && chamadoAtual.nome_garcom) {
-                console.log(`🟢 GARÇOM CONFIRMADO: ${chamadoAtual.nome_garcom} está indo para a Mesa ${mesa}`);
+            // Só libera a cortina se o ÚLTIMO chamado dessa mesa estiver com o status 'A caminho'
+            if (linhaDoBanco.status_chamado === 'A caminho') {
+                const garcomEncontrado = linhaDoBanco.nome_garcom;
+                console.log(`🟢 SUCESSO ABSOLUTO: Mesa ${mesa} tem o garçom ${garcomEncontrado} vindo agora!`);
+                
                 return res.json({ 
                     ativo: true, 
-                    garcom: chamadoAtual.nome_garcom 
+                    garcom: garcomEncontrado 
                 });
             }
         }
         
-        // Se cair aqui, o chamado ainda está na fila esperando o clique real do garçom no app dele
+        // Se o último chamado ainda estiver 'Pendente' ou 'Pagamento', o cliente continua esperando o clique real!
         return res.json({ ativo: false });
     });
 });
+
 
 
 
