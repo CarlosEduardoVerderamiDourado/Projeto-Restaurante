@@ -96,6 +96,7 @@ function activarMesa(event) {
 }
 
 // 3. Ação ao enviar o formulário do FUNCIONÁRIO
+// 3. Ação ao enviar o formulário do FUNCIONÁRIO (Corrigida!)
 function loginFuncionario(event) {
     event.preventDefault();
     
@@ -118,10 +119,13 @@ function loginFuncionario(event) {
             
             // 🟢 1. GRAVA O ID REAL DO FUNCIONÁRIO NA MEMÓRIA LOCAL
             localStorage.setItem('id_funcionario_logado', dados.id_funcionario);
+            
+            // 🟢 A LINHA SALVADORA: Grava o cargo retornado do banco ('Garçom', 'Cozinheiro', etc.) na memória!
+            localStorage.setItem('cargo', dados.cargo);
+            
             console.log("Funcionário autenticado! ID:", dados.id_funcionario, "Cargo:", dados.cargo);
 
             // 🟢 2. A LÓGICA DE ENTRADA AUTOMÁTICA POR CARGO
-            // Redireciona o colaborador para a tela operacional correspondente ao seu cargo no banco
             if (dados.cargo === 'Garçom') {
                 window.location.href = "garcons.html";
             } else if (dados.cargo === 'Cozinheiro') {
@@ -143,6 +147,7 @@ function loginFuncionario(event) {
         alert("Não foi possível conectar ao servidor.");
     });
 }
+
 
 // 4. O GUARDA DE TRÂNSITO (Higienizado e sem Pop-ups cinzas!)
 window.onload = function() {

@@ -55,6 +55,21 @@
 </div>
 
     <script>
+
+        // 🛡️ GUARDA DE SEGURANÇA DA MESA: Impede abertura do cardápio sem mesa vinculada
+(function() {
+    const mesaConfigurada = localStorage.getItem('id_mesa_configurada');
+
+    // 🚨 TRAVA DE OPERAÇÃO: Se o tablet não tiver número de mesa salvo, barra o cardápio na hora!
+    if (!mesaConfigurada || mesaConfigurada === "undefined" || mesaConfigurada === "null") {
+        console.warn("🚨 ALERTA: Tentativa de abrir o cardápio em um aparelho sem mesa configurada!");
+        alert("Este aparelho ainda não foi configurado! Por favor, chame o garçom para vincular o número da mesa.");
+        
+        // Joga o aparelho de volta para a tela mestre de identificação/login
+        window.location.href = "index.html";
+    }
+})();
+
         // Variáveis globais de controle
         let todosOsProdutos = [];
         let carrinho = [];

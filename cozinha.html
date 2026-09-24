@@ -53,6 +53,17 @@
     </div>
 
 <script>
+    // 🛡️ GUARDA DE SEGURANÇA: Bloqueia acesso direto por link sem login de Cozinheiro
+(function() {
+    const idLogado = localStorage.getItem('id_funcionario_logado');
+    const cargoLogado = localStorage.getItem('cargo');
+
+    if (!idLogado || cargoLogado !== 'Cozinheiro') {
+        alert("Acesso restrito! Por favor, faça login como Cozinheiro.");
+        window.location.href = "index.html";
+    }
+})();
+
     // 🔄 Passo 1: Polling Automático - Roda assim que a página abre e repete a cada 5 segundos
     window.onload = function() {
         carregarPedidosCozinha();
