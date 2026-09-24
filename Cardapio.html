@@ -19,6 +19,18 @@
     </style>
 </head>
 <body>
+    <!-- 🚨 NOTIFICAÇÃO MODERNA FLUTUANTE (Substitui o alert() chato do navegador) -->
+<div id="notificacao-sucesso-cliente" style="display: none; position: fixed; top: 20px; right: 20px; background-color: #28a745; color: white; padding: 15px 25px; border-radius: 8px; font-weight: bold; box-shadow: 0px 4px 15px rgba(0,0,0,0.2); z-index: 9999; animation: surgir 0.3s ease-out;">
+    <span id="texto-notificacao-cliente">🛒 Pedido enviado com sucesso!</span>
+</div>
+
+<style>
+/* Animação rápida para a caixinha brotar de forma suave na tela */
+@keyframes surgir {
+    from { transform: translateY(-20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+</style>
 
     <!-- 🟢 Cabeçalho identificando a mesa atual -->
     <h2 id="mesa-display">Mesa: Carregando...</h2>

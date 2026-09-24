@@ -206,7 +206,7 @@ router.post('/solicitar-garcom', (req, res) => {
 router.get('/monitor-geral', (req, res) => {
     console.log("👁️🦅 Gerência solicitou o painel mestre Olho de Águia...");
 
-    // Essa query cruza os itens ativos com o cardápio e comanda para o ADM ver o fluxo por mesa
+    // 🟢 MÁGICA CONSTRUÍDA: Cruzamos pi.id_comanda com com.id_comanda para buscar com.id_mesa real!
     const querySQL = `
         SELECT 
             pi.id_pedido,
@@ -219,17 +219,20 @@ router.get('/monitor-geral', (req, res) => {
         FROM pedidos_itens pi
         INNER JOIN cardapio c ON pi.id_produto = c.id_item
         INNER JOIN comandas com ON pi.id_comanda = com.id_comanda
-        WHERE pi.status_preparo IN ('Pendente', 'Em Preparo', 'Pronto')
+        WHERE pi.status_preparo IN ('Pendente', 'Em Preparo')
         ORDER BY pi.horario_pedido ASC
     `;
 
     db.query(querySQL, [], (err, results) => {
         if (err) {
-            console.error("❌ Erro ao buscar dados do monitor geral:", err.message);
-            return res.status(500).json({ erro: "Erro ao carregar o monitor operacional" });
+            console.error("❌ Erro no monitor Olho de Águia do banco:", err.message);
+            return res.status(500).json({ erro: "Erro ao carregar o monitor de pedidos gerencial" });
         }
+        
+        console.log("📊 Carga do monitor enviada com Mesas reais:", results);
         return res.json(results);
     });
 });
 
 module.exports = router;
+

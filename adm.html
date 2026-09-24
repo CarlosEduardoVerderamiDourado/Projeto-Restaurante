@@ -237,49 +237,51 @@
             .catch(erro => console.error("Erro ao carregar dados de RH:", erro));
         }
 
-        // 👁️ FUNÇÃO MESTRE: Puxa os dados da Cozinha e Garçom ao mesmo tempo para o ADM fiscalizar
+        // 👁️ FUNÇÃO MESTRE BLINDADA: Garante a extração do id_mesa vindo do JOIN do backend
         function carregarMonitorOperacional() {
-            // 1. Espiona a fila de pratos da Cozinha/Bar
-            fetch("http://localhost:3000/api/pedidos/pendentes")
+            
+            // Consome a rota Olho de Águia que possui o cruzamento relacional de tabelas
+            fetch("http://localhost:3000/api/pedidos/monitor-geral")
             .then(res => res.json())
             .then(pedidos => {
+                console.log("👁️🦅 Monitor Geral - Payload bruto recebido:", pedidos);
+
                 const container = document.getElementById('monitor-fila-pedidos');
-                if (!container) return; // Proteção caso a div ainda não exista no HTML
+                if (!container) return; 
                 
-                if (pedidos.length === 0) { 
-                    container.innerHTML = "<p>Nenhum prato sendo preparado.</p>"; 
+                if (!pedidos || pedidos.length === 0) { 
+                    container.innerHTML = "<p>Nenhum prato ou bebida sendo preparado no momento.</p>"; 
                     return; 
                 }
                 
                 let html = "<ul>";
                 pedidos.forEach(p => { 
-                    // 🟢 ALINHADO: Trocado p.status_pedido por p.status_preparo para bater com pedidos_itens
-                    html += `<li><strong>Mesa ${p.id_mesa || 'Sem Número'}:</strong> ${p.quantidade}x ${p.nome_item} (${p.status_preparo})</li>`; 
+                    // 🟢 CAPTURA CIRÚRGICA: Mapeia todas as possíveis variações de letras maiúsculas/minúsculas vindas do MariaDB
+                    const numeroMesaReal = p.id_mesa || p.id_Mesa || p.ID_MESA || p.id_comanda || "N/A";
+                    const statusAtual = p.status_preparo || p.status_pedido || "Pendente";
+
+                    // Costura o HTML injetando a variável limpa que extraiu o número da comanda/mesa
+                    html += `<li><strong>Mesa ${numeroMesaReal}:</strong> ${p.quantidade}x ${p.nome_item} (${statusAtual})</li>`; 
                 });
                 container.innerHTML = html + "</ul>";
             })
-            .catch(erro => console.error("Erro no monitor de pedidos:", erro));
+            .catch(erro => console.error("❌ Erro no monitor operacional de pedidos:", erro));
 
-            // 2. Espiona os chamados pendentes do Salão
+            // 2. Monitor de Chamados Pendentes (Mantido original)
             fetch("http://localhost:3000/api/garcons/chamados")
             .then(res => res.json())
             .then(chamados => {
                 const container = document.getElementById('monitor-fila-chamados');
-                if (!container) return; // Proteção
-                
-                if (chamados.length === 0) { 
-                    container.innerHTML = "<p>Nenhum chamado aberto no salão.</p>"; 
-                    return; 
-                }
-                
+                if (!container) return;
+                if (chamados.length === 0) { container.innerHTML = "<p>Nenhum chamado aberto no salão.</p>"; return; }
                 let html = "<ul>";
-                chamados.forEach(c => { 
-                    html += `<li>🚨 <strong>Mesa ${c.id_mesa}:</strong> Chamando Garçom!</li>`; 
-                });
+                chamados.forEach(c => { html += `<li>🚨 <strong>Mesa ${c.id_mesa}:</strong> Chamando Garçom!</li>`; });
                 container.innerHTML = html + "</ul>";
             })
             .catch(erro => console.error("Erro no monitor de chamados:", erro));
         }
+
+
 
         // 📥 Buscar la lista de comandas ativas no Backend
         function carregarDadosCaixa() {
