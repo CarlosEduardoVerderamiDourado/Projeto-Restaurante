@@ -15,105 +15,177 @@
 </head>
 <body>
 
-    <h1>🍹 KDS Ratatue - Preparo de Bebidas (Bar)</h1>
-    <p>Clique em cima de um pedido de bebida para avançar o estado dele. (Atrasados ficam vermelhos automaticamente!)</p>
+<!-- 🚨 CORTINA DE CONFIRMAÇÃO VISUAL (Substitui o confirm() nativo do navegador) -->
+<div id="tela-confirmacao-bar" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); color: white; z-index: 9999; text-align: center; padding-top: 15%;">
+    <div style="background: #222; display: inline-block; padding: 30px; border-radius: 10px; border: 2px solid #17a2b8; max-width: 400px;">
+        <h2 id="confirm-titulo" style="color: #17a2b8; font-size: 24px; margin: 0;">🚪 Sair do Bar</h2>
+        <p id="confirm-texto" style="font-size: 18px; margin: 20px 0;">Deseja realmente encerrar a sua sessão de trabalho na produção de bebidas?</p>
+        <div style="display: flex; gap: 15px; justify-content: center;">
+            <button id="btn-confirm-sim" style="padding: 10px 20px; background: #28a745; color: white; border: none; font-weight: bold; border-radius: 4px; cursor: pointer;">Sim</button>
+            <button id="btn-confirm-nao" style="padding: 10px 20px; background: #dc3545; color: white; border: none; font-weight: bold; border-radius: 4px; cursor: pointer;">Não</button>
+        </div>
+    </div>
+</div>
 
-    <div id="container-pedidos" class="painel-bar"></div>
+<!-- 🚪 Botão de Logout Físico na barra superior -->
+<button onclick="fazerLogoutBar()" style="padding: 6px 12px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-bottom: 20px;">🚪 Sair / Deslogar</button>
 
-    <script>
-        window.onload = function() {
-            carregarPedidosBar();
-            setInterval(carregarPedidosBar, 5000); // Polling automático a cada 5 segundos
-        }
+<h1>🍹 KDS Ratatue - Controle de Bebidas</h1>
+<p>Clique em cima de uma bebida para avançar o estado dela. (Bebidas paradas há mais de 15 min acendem alerta de atraso!).</p>
 
-        function carregarPedidosBar() {
-            // 🟢 Bate na rota inédita exclusiva para bebidas
-            fetch("http://localhost:3000/api/pedidos/pendentes-bar")
-            .then(resposta => resposta.json())
-            .then(linhasDoBanco => {
-                const pedidosAgrupados = agruparItensPorPedido(linhasDoBanco);
-                renderizarPainelBar(pedidosAgrupados);
-            })
-            .catch(erro => console.error("Erro ao atualizar painel do bar:", erro));
-        }
+<!-- 🟢 CONTAINER CRUCIAL: Onde as bebidas agrupadas serão injetadas -->
+<div id="container-pedidos" style="display: flex; flex-wrap: wrap; gap: 15px; padding: 10px 0;"></div>
 
-        function agruparItensPorPedido(linhas) {
-            const agrupados = {};
-            linhas.forEach(linha => {
-                if (!agrupados[linha.id_pedido]) {
-                    agrupados[linha.id_pedido] = {
-                        id_pedido: linha.id_pedido, id_comanda: linha.id_comanda,
-                        horario_pedido: linha.horario_pedido, status_pedido: linha.status_pedido, itens: []
-                    };
-                }
-                agrupados[linha.id_pedido].itens.push({ nome_item: linha.nome_item, quantidade: inline_quiz.quantidade || linha.quantidade });
-            });
-            return Object.values(agrupados);
-        }
 
-        function renderizarPainelBar(pedidos) {
-            const container = document.getElementById('container-pedidos');
-            container.innerHTML = "";
+<script>
+    // 🔄 Passo 1: Polling Automático - Sincroniza a esteira do bar a cada 5 segundos sem F5
+    window.onload = function() {
+        carregarPedidosBar();
+        setInterval(carregarPedidosBar, 5000);
+    }
 
-            if (pedidos.length === 0) {
-                container.innerHTML = "<h3>🎉 Bar limpo! Nenhuma bebida pendente por enquanto.</h3>";
-                return;
+    // 📥 Passo 2: Buscar os dados do Backend batendo na rota exclusiva de BEBIDAS
+    function carregarPedidosBar() {
+        fetch("http://localhost:3000/api/pedidos/pendentes-bar")
+        .then(resposta => resposta.json())
+        .then(linhasDoBanco => {
+            console.log("Bebidas brutas que chegaram no bar:", linhasDoBanco);
+            // Agrupa as latas e sucos soltos pelo mesmo ID do pedido
+            const pedidosAgrupados = agruparItensPorPedido(linhasDoBanco);
+            renderizarPainelBar(pedidosAgrupados);
+        })
+        .catch(erro => console.error("Erro ao atualizar painel do bar:", erro));
+    }
+
+    // 🧠 Passo 3: Função auxiliar de agrupamento
+    function agruparItensPorPedido(linhas) {
+        const agrupados = {};
+        
+        linhas.forEach(linha => {
+            if (!agrupados[linha.id_pedido]) {
+                agrupados[linha.id_pedido] = {
+                    id_pedido: linha.id_pedido,
+                    id_comanda: linha.id_comanda,
+                    horario_pedido: linha.horario_pedido,
+                    status_preparo: linha.status_preparo,
+                    itens: []
+                };
             }
+            agrupados[linha.id_pedido].itens.push({
+                nome_item: linha.nome_item,
+                quantidade: linha.quantidade
+            });
+        });
+        
+        return Object.values(agrupados);
+    }
 
-            pedidos.forEach(pedido => {
-                const horaPedido = new Date(pedido.horario_pedido);
-                const agora = new Date();
-                const diferencaMinutos = Math.floor((agora - horaPedido) / 1000 / 60);
+    // 🎨 Passo 4: Renderizar os cartões com o Semáforo de Cores (Branco, Amarelo, Vermelho e Laranja)
+    function renderizarPainelBar(pedidos) {
+        const container = document.getElementById('container-pedidos');
+        if (!container) return;
+        container.innerHTML = "";
 
-                let corDeFundo = "#ffffff"; // Branco
-                let textoStatus = "Em Espera";
+        if (pedidos.length === 0) {
+            container.innerHTML = "<h3>🎉 Bar limpo! Nenhuma bebida na fila de preparo.</h3>";
+            return;
+        }
 
-                if (pedido.status_pedido === 'Em Preparo') {
+        pedidos.forEach(pedido => {
+            const horaPedido = new Date(pedido.horario_pedido);
+            const agora = new Date();
+            const diferencaMinutos = Math.floor((agora - horaPedido) / 1000 / 60);
+
+            let corDeFundo = "#ffffff"; // Padrão: Branco (Pendente)
+            let textoStatus = "Em Espera";
+
+            // Cenário A: Dentro do tempo tolerável (Menos de 15 minutos)
+            if (diferencaMinutos < 15) {
+                if (pedido.status_preparo === 'Em Preparo') {
                     corDeFundo = "#ffeb3b"; // Amarelo
                     textoStatus = "Em Preparo";
                 }
-                if (diferencaMinutos >= 15) {
-                    corDeFundo = "#f44336"; // Vermelho
+            } 
+            // Cenário B: Passou de 15 minutos (Atraso crítico no bar)
+            else {
+                if (pedido.status_preparo === 'Pendente') {
+                    corDeFundo = "#f44336"; // Vermelho (Parado na fila)
                     textoStatus = "🚨 ATRASADO!";
+                } else if (pedido.status_preparo === 'Em Preparo') {
+                    corDeFundo = "#ff9800"; // Laranja (Sucos/Drinks sendo montados sob atraso)
+                    textoStatus = "🔥 APRESSAR PREPARO!";
                 }
+            }
 
-                let itensHTML = "";
-                pedido.itens.forEach(item => {
-                    itensHTML += `<li><strong>${item.quantidade}x</strong> ${item.nome_item}</li>`;
-                });
+            const corTexto = (corDeFundo === '#f44336' || corDeFundo === '#ff9800') ? 'white' : 'black';
 
-                const cardHTML = `
-                    <div class="card-pedido" 
-                         style="background-color: ${corDeFundo}; color: ${corDeFundo === '#f44336' ? 'white' : 'black'}"
-                         onclick="avancarStatusPedido(${pedido.id_pedido}, '${pedido.status_pedido}')">
-                        <h3>Pedido #${pedido.id_pedido}</h3>
-                        <p>Comanda: <strong>${pedido.id_comanda}</strong></p>
-                        <p>Tempo: <strong>${diferencaMinutos} min atrás</strong></p>
-                        <p>Status: <strong>${textoStatus}</strong></p>
-                        <hr>
-                        <ul>${itensHTML}</ul>
-                    </div>
-                `;
-                container.innerHTML += cardHTML;
+            let itensHTML = "";
+            pedido.itens.forEach(item => {
+                itensHTML += `<li><strong>${item.quantidade}x</strong> ${item.nome_item}</li>`;
             });
+
+            const cardHTML = `
+                <div class="card-pedido" 
+                     style="background-color: ${corDeFundo}; color: ${corTexto}; border: 2px solid #333; padding: 15px; margin: 10px; width: 220px; display: inline-block; vertical-align: top; cursor: pointer; border-radius: 6px; text-align: center; box-shadow: 2px 2px 10px rgba(0,0,0,0.1);"
+                     onclick="avancarStatusBebida(${pedido.id_pedido}, '${pedido.status_preparo}')">
+                    <h3>Pedido #${pedido.id_pedido}</h3>
+                    <p>Comanda: <strong>${pedido.id_comanda}</strong></p>
+                    <p>Tempo: <strong>${diferencaMinutos} min atrás</strong></p>
+                    <p>Status: <strong>${textoStatus}</strong></p>
+                    <hr style="border: 0; border-top: 1px solid ${corTexto === 'white' ? 'rgba(255,255,255,0.4)' : '#ccc'}; margin: 10px 0;">
+                    <ul style="text-align: left; padding-left: 20px; margin: 0;">${itensHTML}</ul>
+                </div>
+            `;
+            container.innerHTML += cardHTML;
+        });
+    }
+
+    // 🔀 Passo 5: Gerenciar o Clique Seguro para trocar o Estado da Bebida no Banco
+    function avancarStatusBebida(id_pedido, statusAtual) {
+        let proximoStatus = "";
+
+        if (statusAtual === 'Pendente') {
+            proximoStatus = 'Em Preparo'; // Branco/Vermelho -> Amarelo
+        } else if (statusAtual === 'Em Preparo') {
+            proximoStatus = 'Pronto';     // Amarelo/Laranja -> Some do bar e brota no Garçom
         }
 
-        function avancarStatusPedido(id_pedido, statusAtual) {
-            let proximoStatus = "";
-            if (statusAtual === 'Pendente') proximoStatus = 'Em Preparo';
-            else if (statusAtual === 'Em Preparo') proximoStatus = 'Pronto';
+        if (!proximoStatus) return;
 
-            if (!proximoStatus) return;
+        console.log(`🔀 API Bar: Atualizando Pedido #${id_pedido} de '${statusAtual}' para '${proximoStatus}'...`);
 
-            fetch("http://localhost:3000/api/pedidos/atualizar-status", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ id_pedido, novo_status: proximoStatus })
-            })
-            .then(resposta => resposta.json())
-            .then(dados => { if (dados.sucesso) carregarPedidosBar(); })
-            .catch(erro => console.error("Erro ao avançar status do pedido:", erro));
-        }
-    </script>
+        fetch("http://localhost:3000/api/pedidos/atualizar-status", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id_pedido, novo_status: proximoStatus })
+        })
+        .then(resposta => resposta.json())
+        .then(dados => {
+            if (dados.sucesso) {
+                // Sincroniza a esteira imediatamente refletindo o clique do barman
+                carregarPedidosBar();
+            }
+        })
+        .catch(erro => console.error("Erro ao avançar status da bebida:", erro));
+    }
+
+    // 🚪 AÇÃO: Fazer Logout com Limpeza Estrita de Memória
+    function fazerLogoutBar() {
+        document.getElementById('tela-confirmacao-bar').style.display = 'block';
+        document.getElementById('confirm-titulo').innerText = "🚪 Sair do Sistema";
+        document.getElementById('confirm-texto').innerText = "Deseja realmente encerrar a sua sessão de trabalho na produção do Bar?";
+
+        document.getElementById('btn-confirm-sim').onclick = function() {
+            localStorage.removeItem('id_funcionario_logado');
+            console.log("Sessão do bar encerrada. Retornando ao Login...");
+            window.location.href = "index.html";
+        };
+
+        document.getElementById('btn-confirm-nao').onclick = function() {
+            document.getElementById('tela-confirmacao-bar').style.display = 'none';
+        };
+    }
+</script>
+
 </body>
 </html>

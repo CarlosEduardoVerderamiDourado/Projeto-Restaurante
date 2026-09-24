@@ -19,7 +19,76 @@
 </head>
 <body>
 
+    <!-- 🚨 CORTINA DE CONFIRMAÇÃO VISUAL DO ADM (Para o Logout Seguro) -->
+<div id="tela-confirmacao-adm" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); color: white; z-index: 9999; text-align: center; padding-top: 15%;">
+    <div style="background: #222; display: inline-block; padding: 30px; border-radius: 10px; border: 2px solid #dc3545; max-width: 400px;">
+        <h2 id="confirm-titulo-adm" style="color: #dc3545; font-size: 24px; margin: 0;">🚪 Encerrar Sessão</h2>
+        <p id="confirm-texto-adm" style="font-size: 18px; margin: 20px 0;">Deseja realmente sair do painel gerencial e fechar o QG?</p>
+        <div style="display: flex; gap: 15px; justify-content: center;">
+            <button id="btn-adm-sim" style="padding: 10px 20px; background: #28a745; color: white; border: none; font-weight: bold; border-radius: 4px; cursor: pointer;">Sim, Sair</button>
+            <button id="btn-adm-nao" style="padding: 10px 20px; background: #dc3545; color: white; border: none; font-weight: bold; border-radius: 4px; cursor: pointer;">Não, Ficar</button>
+        </div>
+    </div>
+</div>
+
+<!-- 🚨 CORTINA / JANELA FLUTUANTE DE EDIÇÃO DE FUNCIONÁRIO (Padrão Corporativo) -->
+<div id="tela-edicao-funcionario" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); color: white; z-index: 9999; text-align: center; padding-top: 10%;">
+    <div style="background: #222; display: inline-block; padding: 30px; border-radius: 10px; border: 2px solid #007bff; max-width: 400px; text-align: left;">
+        <h2 style="color: #007bff; font-size: 24px; margin: 0 0 20px 0; text-align: center;">✏️ Editar Colaborador</h2>
+        
+        <!-- Campo oculto para guardar o ID do funcionário que está sendo editado -->
+        <input type="hidden" id="edit-id-modal">
+
+        <p>Nome Completo:<br>
+        <input type="text" id="edit-nome-modal" style="width: 100%; padding: 8px; margin-top: 5px; background: #fff; color: #333; border: none; border-radius: 4px;"></p>
+        
+        <p>Login de Acesso:<br>
+        <input type="text" id="edit-login-modal" style="width: 100%; padding: 8px; margin-top: 5px; background: #fff; color: #333; border: none; border-radius: 4px;"></p>
+        
+        <p>Cargo / Função:<br>
+        <select id="edit-cargo-modal" style="width: 100%; padding: 8px; margin-top: 5px; background: #fff; color: #333; border: none; border-radius: 4px;">
+            <option value="Garçom">Garçom</option>
+            <option value="Cozinheiro">Cozinheiro</option>
+            <option value="Barman">Barman</option>
+            <option value="Caixa">Caixa</option>
+            <option value="Administrador">Administrador</option>
+        </select></p>
+        
+        <div style="display: flex; gap: 15px; justify-content: center; margin-top: 25px;">
+            <button onclick="enviarEdicaoModal()" style="padding: 10px 20px; background: #28a745; color: white; border: none; font-weight: bold; border-radius: 4px; cursor: pointer;">Salvar Alterações</button>
+            <button onclick="fecharModalEdicao()" style="padding: 10px 20px; background: #dc3545; color: white; border: none; font-weight: bold; border-radius: 4px; cursor: pointer;">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<!-- 🚨 CORTINA / JANELA FLUTUANTE DE RESETAR SENHA -->
+<div id="tela-senha-funcionario" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); color: white; z-index: 9999; text-align: center; padding-top: 12%;">
+    <div style="background: #222; display: inline-block; padding: 30px; border-radius: 10px; border: 2px solid #ffc107; max-width: 400px; text-align: left;">
+        <h2 style="color: #ffc107; font-size: 24px; margin: 0 0 10px 0; text-align: center;">🔑 Resetar Senha</h2>
+        <p id="senha-nome-titulo" style="text-align: center; color: #aaa; margin: 0 0 20px 0;">Funcionário: ...</p>
+        
+        <!-- Campo oculto para guardar o ID do alvo -->
+        <input type="hidden" id="pass-id-modal">
+
+        <p>Nova Senha:<br>
+        <input type="password" id="pass-nova-modal" placeholder="Digite a nova senha" style="width: 100%; padding: 8px; margin-top: 5px; background: #fff; color: #333; border: none; border-radius: 4px;"></p>
+        
+        <p>Confirme a Nova Senha:<br>
+        <input type="password" id="pass-confirma-modal" placeholder="Repita a nova senha" style="width: 100%; padding: 8px; margin-top: 5px; background: #fff; color: #333; border: none; border-radius: 4px;"></p>
+        
+        <div style="display: flex; gap: 15px; justify-content: center; margin-top: 25px;">
+            <button onclick="enviarSenhaModal()" style="padding: 10px 20px; background: #28a745; color: white; border: none; font-weight: bold; border-radius: 4px; cursor: pointer;">Confirmar Reset</button>
+            <button onclick="fecharModalSenha()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; font-weight: bold; border-radius: 4px; cursor: pointer;">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+
     <h1>👔 QG Ratatue - Painel do Administrador</h1>
+
+    <button onclick="fazerLogoutAdministrador()" style="padding: 8px 16px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-bottom: 20px; float: right;">🚪 Sair / Deslogar QG</button>
+<div style="clear: both;"></div>
+
     
     <!-- Botões de Alternância (Abas) -->
     <div class="tabs">
@@ -27,6 +96,8 @@
         <button class="tab-btn" onclick="alternarAba('cadastro-func')">Cadastrar Funcionário</button>
         <button class="tab-btn" onclick="alternarAba('cadastro-mesa')">Cadastrar Mesa</button>
         <button class="tab-btn" onclick="alternarAba('monitor')">👁️ Monitor Operacional</button>
+        <button class="tab-btn" onclick="alternarAba('comida')">🍔 Cadastrar Comida/Bebida</button>
+
 
     </div>
 
@@ -36,34 +107,39 @@
         <div id="container-caixa-contas"></div>
     </div>
 
-    <!-- ABA 2: CADASTRO DE FUNCIONÁRIOS -->
-    <div id="panel-cadastro-func" class="form-panel">
-        <h2>👤 Cadastrar Novo Colaborador</h2>
+ <!-- 👤 SEÇÃO MESTRE: CENTRAL DE RECURSOS HUMANOS -->
+<div id="panel-cadastro-func" class="form-panel" style="display: none;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2>👤 Central de Gerenciamento de Funcionários</h2>
+        <!-- 🟢 O BOTÃO DE LIBERAÇÃO: Abre e fecha a gaveta do formulário dinamicamente! -->
+        <button onclick="alternarGavetaCadastroFunc()" style="padding: 10px 15px; background: #007bff; color: white; border: none; font-weight: bold; border-radius: 4px; cursor: pointer;">
+            ➕ Cadastrar Novo Colaborador
+        </button>
+    </div>
+
+    <!-- 📁 A GAVETA OCULTA DE CADASTRO (Só expande ao clicar no botão acima!) -->
+    <div id="gaveta-cadastro-func" style="display: none; background: #f8f9fa; padding: 20px; border: 1px solid #ced4da; border-radius: 6px; margin-bottom: 25px;">
+        <h3 style="margin-top: 0; color: #007bff;">📋 Formulário de Novo Registro</h3>
         <form onsubmit="cadastrarFuncionario(event)">
-            <div class="form-group">
-                <label>Nome Completo:</label>
-                <input type="text" id="func-nome" placeholder="Ex: Carlos Eduardo" required>
-            </div>
-            <div class="form-group">
-                <label>Login de Acesso:</label>
-                <input type="text" id="func-login" placeholder="Ex: carlos.garcom" required>
-            </div>
-            <div class="form-group">
-                <label>Senha:</label>
-                <input type="password" id="func-senha" placeholder="••••" required>
-            </div>
-            <div class="form-group">
-                <label>Cargo / Função:</label>
-                <select id="func-cargo" required>
-                    <option value="Garçom">Garçom</option>
-                    <option value="Cozinheiro">Cozinheiro</option>
-                    <option value="Barman">Barman</option>
-                    <option value="Caixa">Caixa</option>
-                </select>
-            </div>
-            <button type="submit" class="btn-submit">Salvar Funcionário</button>
+            <p>Nome Completo:<br><input type="text" id="func-nome" required style="width: 100%; padding: 8px; margin-top: 5px;"></p>
+            <p>Login de Acesso:<br><input type="text" id="func-login" required style="width: 100%; padding: 8px; margin-top: 5px;"></p>
+            <p>Senha:<br><input type="password" id="func-senha" required style="width: 100%; padding: 8px; margin-top: 5px;"></p>
+            <p>Cargo / Função:<br>
+            <select id="func-cargo" required style="width: 100%; padding: 8px; margin-top: 5px;">
+                <option value="Garçom">Garçom</option>
+                <option value="Cozinheiro">Cozinheiro</option>
+                <option value="Barman">Barman</option>
+                <option value="Caixa">Caixa</option>
+            </select></p>
+            <button type="submit" style="padding: 10px 20px; background: #28a745; color: white; border: none; font-weight: bold; border-radius: 4px; cursor: pointer; margin-top: 10px;">Salvar Funcionário</button>
         </form>
     </div>
+
+    <!-- 📊 TABELA DE HISTÓRICO E REGISTROS DE COLABORADORES -->
+    <h3>📋 Quadro de Funcionários Ativos</h3>
+    <div id="container-tabela-funcionarios"><p style="color: #999;">Carregando colaboradores...</p></div>
+</div>
+
 
     <!-- ABA 3: CADASTRO DE MESAS -->
     <div id="panel-cadastro-mesa" class="form-panel">
@@ -96,16 +172,57 @@
         </div>
     </div>
 
+    <!-- 🍔 NOVO PAINEL: CADASTRO DE PRODUTOS COM UPLOAD DE IMAGEM -->
+<div id="panel-comida" class="form-panel" style="display: none; margin-top: 20px; padding: 20px; border: 1px solid #ccc; background: #fff; border-radius: 6px;">
+    <h2>🍔 Cadastrar Novo Item no Cardápio</h2>
+    <form onsubmit="cadastrarProduto(event)">
+        <p>Nome do Item:<br>
+        <input type="text" id="comida-nome" required style="width: 100%; padding: 8px; margin-top: 5px;"></p>
+        
+        <p>Descrição / Ingredientes:<br>
+        <textarea id="comida-descricao" rows="3" style="width: 100%; padding: 8px; margin-top: 5px;"></textarea></p>
+        
+        <p>Preço de Venda (R$):<br>
+        <input type="number" id="comida-preco" step="0.01" required style="width: 100%; padding: 8px; margin-top: 5px;"></p>
+        
+        <p>Categoria do Insumo:<br>
+        <select id="comida-categoria" required style="width: 100%; padding: 8px; margin-top: 5px;">
+            <option value="Hambúrgueres">Hambúrgueres</option>
+            <option value="Bebidas">Bebidas</option>
+            <option value="Acompanhamentos">Acompanhamentos</option>
+            <option value="Sobremesas">Sobremesas</option>
+        </select></p>
+        
+        <!-- Input de arquivo físico casado com o Multer do backend -->
+        <p>Foto Ilustrativa do Prato:<br>
+        <input type="file" id="comida-foto" name="foto_prato" accept="image/*" required style="margin-top: 5px;"></p>
+        
+        <button type="submit" style="padding: 10px 20px; background: #28a745; color: white; border: none; font-weight: bold; border-radius: 4px; cursor: pointer; margin-top: 15px;">Salvar Item no Cardápio</button>
+    </form>
+</div>
+
     <script>
-        // 🔄 Polling Automático Atualizado e Unificado (Sem duplicações!)
+        // 🔄 Polling Automático Sincronizado (Igualzinho ao Caixa!)
         window.onload = function() {
             carregarDadosCaixa();
-            carregarMonitorOperacional(); // 🟢 Começa a espionar o restaurante
+            carregarMonitorOperacional();
+            carregarDadosFuncionarios(); // 🟢 GATILHO INJETADO: Chama a listagem de RH
             
             setInterval(() => {
                 carregarDadosCaixa();
-                carregarMonitorOperacional(); // 🟢 Atualiza sozinho a cada 5 segundos
+                carregarMonitorOperacional();
+                carregarDadosFuncionarios(); // 🔄 Atualiza o RH em segundo plano a cada 5 segundos
             }, 5000); 
+        }
+
+                // 📥 Buscar a lista de funcionários ativos no Backend (Seguindo a lógica do Caixa!)
+        function carregarDadosFuncionarios() {
+            fetch("http://localhost:3000/api/funcionarios/listar-todos")
+            .then(res => res.json())
+            .then(funcionarios => {
+                renderizarTabelaFuncionarios(funcionarios); // Envia para o desenhista de tabelas
+            })
+            .catch(erro => console.error("Erro ao carregar dados de RH:", erro));
         }
 
         // 👁️ FUNÇÃO MESTRE: Puxa os dados da Cozinha e Garçom ao mesmo tempo para o ADM fiscalizar
@@ -124,7 +241,8 @@
                 
                 let html = "<ul>";
                 pedidos.forEach(p => { 
-                    html += `<li><strong>Mesa ${p.id_mesa || p.id_comanda}:</strong> ${p.quantidade}x ${p.nome_item} (${p.status_pedido})</li>`; 
+                    // 🟢 ALINHADO: Trocado p.status_pedido por p.status_preparo para bater com pedidos_itens
+                    html += `<li><strong>Mesa ${p.id_mesa || 'Sem Número'}:</strong> ${p.quantidade}x ${p.nome_item} (${p.status_preparo})</li>`; 
                 });
                 container.innerHTML = html + "</ul>";
             })
@@ -151,7 +269,7 @@
             .catch(erro => console.error("Erro no monitor de chamados:", erro));
         }
 
-        // 📥 Buscar a lista de comandas ativas no Backend
+        // 📥 Buscar la lista de comandas ativas no Backend
         function carregarDadosCaixa() {
             fetch("http://localhost:3000/api/mesas/comandas-abertas")
             .then(res => res.json())
@@ -212,10 +330,11 @@
         function confirmarPagamentoMesa(id_comanda, id_mesa) {
             if (!confirm(`Deseja confirmar o recebimento do pagamento da Mesa ${id_mesa}?`)) return;
 
-            fetch("http://localhost:3000/api/mesas/fechar-comanda", {
+            // 🟢 ALINHADO: Aponta para a nossa rota unificada de encerramento do caixa
+            fetch("http://localhost:3000/api/mesas/encerrar-comanda", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ id_comanda, id_mesa })
+                body: JSON.stringify({ id_comanda, id_mesa, mesa: id_mesa })
             })
             .then(res => res.json())
             .then(dados => {
@@ -227,26 +346,33 @@
             .catch(erro => console.error("Erro ao fechar comanda no caixa:", erro));
         }
 
-        // 1. Função de Troca Visual entre Abas (Corrigida com o Monitor!)
+        // 1. Função de Troca Visual entre Abas (Atualizada com a Aba de Comida!)
         function alternarAba(aba) {
+            // Remove a classe ativa de todos os botões e painéis para limpar a tela
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.form-panel').forEach(p => p.classList.remove('active'));
+            
+            // Força todos os painéis a sumirem visualmente usando display none
+            document.getElementById('panel-caixa').style.display = 'none';
+            document.getElementById('panel-cadastro-func').style.display = 'none';
+            document.getElementById('panel-cadastro-mesa').style.display = 'none';
+            document.getElementById('panel-monitor').style.display = 'none';
+            document.getElementById('panel-comida').style.display = 'none';
 
+            // Mostra apenas o painel clicado e ativa o botão correspondente
             if (aba === 'caixa') {
-                document.querySelectorAll('.tab-btn')[0].classList.add('active');
-                document.getElementById('panel-caixa').classList.add('active');
+                document.getElementById('panel-caixa').style.display = 'block';
             } else if (aba === 'cadastro-func') {
-                document.querySelectorAll('.tab-btn')[1].classList.add('active');
-                document.getElementById('panel-cadastro-func').classList.add('active');
+                document.getElementById('panel-cadastro-func').style.display = 'block';
             } else if (aba === 'cadastro-mesa') {
-                document.querySelectorAll('.tab-btn')[2].classList.add('active');
-                document.getElementById('panel-cadastro-mesa').classList.add('active');
+                document.getElementById('panel-cadastro-mesa').style.display = 'block';
             } else if (aba === 'monitor') {
-                // 🟢 Suporte para a aba do olho de águia!
-                document.querySelectorAll('.tab-btn')[3].classList.add('active');
-                document.getElementById('panel-monitor').classList.add('active');
+                document.getElementById('panel-monitor').style.display = 'block';
+            } else if (aba === 'comida') {
+                // 🟢 Ativa visualmente o painel de upload que criamos no Passo 1
+                document.getElementById('panel-comida').style.display = 'block';
             }
         }
+
 
         // 2. Ação de Salvar Funcionário no Banco via Fetch
         function cadastrarFuncionario(event) {
@@ -259,7 +385,7 @@
             fetch("http://localhost:3000/api/funcionarios/cadastrar", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ nome, login, senate: senha, senha, cargo })
+                body: JSON.stringify({ nome, login, senha, cargo }) // 🟢 HIGIENIZADO: Removido 'senate: senha'
             })
             .then(res => res.json())
             .then(dados => {
@@ -269,25 +395,274 @@
             .catch(erro => console.error("Erro ao cadastrar funcionário:", erro));
         }
 
-        // 3. Ação de Salvar Nova Mesa no Banco via Fetch
+        // 3. 🟢 COMPLEMENTADO: Ação de Salvar Nova Mesa no Banco via Fetch
         function cadastrarMesa(event) {
             event.preventDefault();
             const numero_mesa = document.getElementById('mesa-numero').value;
-            const senha_gerente = document.getElementById('mesa-senha').value;
 
             fetch("http://localhost:3000/api/mesas/cadastrar", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ numero_mesa, senha_gerente })
+                body: JSON.stringify({ numero_mesa })
             })
             .then(res => res.json())
             .then(dados => {
                 alert(dados.mensagem || dados.erro);
-                if (dados.sucesso) event.target.reset(); 
+                if (dados.sucesso) event.target.reset();
             })
-            .catch(erro => console.error("Erro ao cadastrar mesa:", erro));
+            .catch(erro => console.error("Erro ao cadastrar nova mesa:", erro));
         }
-    </script>
 
+                // 🍔 AÇÃO GERENCIAL: Compacta o formulário e envia o arquivo de imagem via FormData
+        function cadastrarProduto(event) {
+            event.preventDefault(); // Impede a página de recarregar e quebrar o fluxo assíncrono
+
+            // Usamos FormData em vez de JSON puro para trafegar o binário da imagem com segurança
+            const formData = new FormData();
+            
+            formData.append('nome_item', document.getElementById('comida-nome').value);
+            formData.append('descricao', document.getElementById('comida-descricao').value);
+            formData.append('preco', document.getElementById('comida-preco').value);
+            formData.append('categoria', document.getElementById('comida-categoria').value);
+            
+            // Captura o arquivo real selecionado pelo administrador
+            const inputFoto = document.getElementById('comida-foto');
+            if (inputFoto.files.length > 0) {
+                formData.append('foto_prato', inputFoto.files[0]);
+            }
+
+            console.log("🚀 ADM: Enviando nova comida com arquivo de mídia para o servidor Node...");
+
+            // Dispara o tráfego multipart/form-data direto para a rota do Multer
+            fetch("http://localhost:3000/api/cardapio/cadastrar", {
+                method: "POST",
+                body: formData
+            })
+            .then(res => res.json())
+            .then(dados => {
+                alert(dados.mensagem || dados.erro);
+                if (dados.sucesso) {
+                    event.target.reset(); // Limpa os campos e o input de arquivo na tela
+                    carregarMonitorOperacional(); // Atualiza os indicadores em segundo plano
+                }
+            })
+            .catch(erro => {
+                console.error("❌ Erro no upload do produto gerencial:", erro);
+                alert("Não foi possível conectar ao servidor para realizar o upload da imagem.");
+            });
+        }
+                // 🧠 FUNÇÃO VISUAL: Abre e fecha a gaveta do formulário de RH (Efeito Sanfona)
+        function alternarGavetaCadastroFunc() {
+            const gaveta = document.getElementById('gaveta-cadastro-func');
+            if (gaveta.style.display === 'none') {
+                gaveta.style.display = 'block';
+            } else {
+                gaveta.style.display = 'none';
+            }
+        }
+
+        // 🎨 Desenhar a Tabela Dinâmica de RH (Atualizada com Botão de Resetar Senha!)
+        function renderizarTabelaFuncionarios(listaDeFuncionarios) {
+            const container = document.getElementById('container-tabela-funcionarios');
+            if (!container) return;
+
+            if (listaDeFuncionarios.length === 0) {
+                container.innerHTML = "<h3>🎉 RH limpo! Nenhum colaborador cadastrado no momento.</h3>";
+                return;
+            }
+
+            let tabelaHTML = `
+                <table border="1" cellpadding="10" style="width: 100%; border-collapse: collapse; margin-top: 15px; text-align: left;">
+                    <thead style="background: #eee;">
+                        <tr>
+                            <th>ID</th>
+                            <th>Nome</th>
+                            <th>Login</th>
+                            <th>Cargo</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            listaDeFuncionarios.forEach(f => {
+                const idReal = f.ID || f.id;
+
+                tabelaHTML += `
+                    <tr>
+                        <td>#${idReal}</td>
+                        <td><strong>${f.nome}</strong></td>
+                        <td>${f.login}</td>
+                        <td><span style="background: #007bff; color: white; padding: 3px 8px; border-radius: 4px; font-size: 13px;">${f.cargo}</span></td>
+                        <td>
+                            <!-- ✏️ Botão Editar Dados -->
+                            <button onclick="abrirModalEdicao(${idReal}, '${f.nome}', '${f.login}', '${f.cargo}')" 
+                                    style="padding: 6px 12px; background: #ffc107; color: black; border: none; font-weight: bold; cursor: pointer; border-radius: 4px; margin-right: 5px;">
+                                ✏️ Editar
+                            </button>
+                            
+                            <!-- 🔑 NOVO BOTÃO: Chama a cortina de reset de senha -->
+                            <button onclick="abrirModalSenha(${idReal}, '${f.nome}')" 
+                                    style="padding: 6px 12px; background: #17a2b8; color: white; border: none; font-weight: bold; cursor: pointer; border-radius: 4px; margin-right: 5px;">
+                                🔑 Senha
+                            </button>
+
+                            <!-- ❌ Botão Demitir -->
+                            <button onclick="removerFuncionarioDefinitivo(${idReal})" 
+                                    style="padding: 6px 12px; background: #dc3545; color: white; border: none; font-weight: bold; cursor: pointer; border-radius: 4px;">
+                                ❌ Demitir
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tabelaHTML += "</tbody></table>";
+            container.innerHTML = tabelaHTML;
+        }
+
+
+        // 🧠 FUNÇÃO COMPLEMENTADA: Captura os dados da linha clicada e abre a janela flutuante preenchida
+        function abrirModalEdicao(id, nome, login, cargo) {
+            console.log(`✏️ Abrindo modal de edição para o colaborador ID #${id}...`);
+            
+            document.getElementById('edit-id-modal').value = id;
+            document.getElementById('edit-nome-modal').value = nome;
+            document.getElementById('edit-login-modal').value = login;
+            document.getElementById('edit-cargo-modal').value = cargo;
+            
+            // Exibe a cortina escura na tela
+            document.getElementById('tela-edicao-funcionario').style.display = 'block';
+        }
+
+        // 🧠 FUNÇÃO AUXILIAR: Apenas fecha a cortina escura de edição
+        function fecharModalEdicao() {
+            document.getElementById('tela-edicao-funcionario').style.display = 'none';
+        }
+
+        // 💾 AÇÃO DO BOTÃO CONFIRMAR: Captura o formulário flutuante e dispara o POST de UPDATE para o MariaDB
+        function enviarEdicaoModal() {
+            const id_func = document.getElementById('edit-id-modal').value;
+            const nome = document.getElementById('edit-nome-modal').value;
+            const login = document.getElementById('edit-login-modal').value;
+            const cargo = document.getElementById('edit-cargo-modal').value;
+
+            // Validação de segurança básica para impedir inputs vazios de corromperem o registro
+            if (!nome || !login || !cargo) {
+                alert("Por favor, preencha todos os campos do colaborador antes de salvar!");
+                return;
+            }
+
+            console.log(`🚀 ADM: Enviando dados atualizados do ID #${id_func} para o banco...`);
+
+            fetch("http://localhost:3000/api/funcionarios/editar", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id_func, nome, login, cargo })
+            })
+            .then(res => {
+                if (!res.ok) throw new Error("Erro na rota de atualização do servidor");
+                return res.json();
+            })
+            .then(dados => {
+                alert(dados.mensagem || "Cadastro atualizado com sucesso!");
+                if (dados.sucesso) {
+                    fecharModalEdicao(); // 🟢 Tranca a janela flutuante na hora!
+                    carregarDadosFuncionarios(); // 🔄 Atualiza a tabela ao fundo com os novos dados em tempo real!
+                }
+            })
+            .catch(erro => {
+                console.error("❌ Erro fatal ao salvar alterações via modal:", erro);
+                alert("Não foi possível conectar ao servidor para salvar as alterações.");
+            });
+        }
+
+
+
+        // ❌ AÇÃO DE REMOÇÃO: Dispara o DELETE para o backend dar a baixa no MariaDB
+        function removerFuncionarioDefinitivo(id_func) {
+            if (!confirm(`Deseja realmente remover permanentemente o funcionário #${id_func} do sistema?`)) return;
+
+            fetch(`http://localhost:3000/api/funcionarios/remover/${id_func}`, {
+                method: "DELETE"
+            })
+            .then(res => res.json())
+            .then(dados => {
+                alert(dados.mensagem || dados.erro);
+                carregarDadosFuncionarios(); // Recarrega a tabela de RH na hora
+            })
+            .catch(erro => console.error("Erro ao remover funcionário:", erro));
+        }
+
+                // 🧠 FUNÇÃO NOVO: Abre o painel de redefinição de senha limpando os campos anteriores
+        function abrirModalSenha(id, nome) {
+            document.getElementById('pass-id-modal').value = id;
+            document.getElementById('senha-nome-titulo').innerText = "Funcionário: " + nome;
+            
+            // Zera os inputs de texto para não herdar digitações passadas
+            document.getElementById('pass-nova-modal').value = "";
+            document.getElementById('pass-confirma-modal').value = "";
+
+            document.getElementById('tela-senha-funcionario').style.display = 'block';
+        }
+
+        function fecharModalSenha() {
+            document.getElementById('tela-senha-funcionario').style.display = 'none';
+        }
+
+        // 🧠 FUNÇÃO NOVO COM VERIFICAÇÃO: Checa se as senhas batem antes de mandar pro banco
+        function enviarSenhaModal() {
+            const id_func = document.getElementById('pass-id-modal').value;
+            const nova_senha = document.getElementById('pass-nova-modal').value;
+            const confirma_senha = document.getElementById('pass-confirma-modal').value;
+
+            // 🛡️ TRAVA DE VERIFICAÇÃO LOCAL: Compara as duas strings digitadas no formulário
+            if (!nova_senha || !confirma_senha) {
+                alert("Por favor, preencha ambos os campos de senha!");
+                return;
+            }
+
+            if (nova_senha !== confirma_senha) {
+                // Barra a requisição imediatamente impedindo o tráfego de dados errados
+                alert("❌ ERRO DE VERIFICAÇÃO: As senhas digitadas não são iguais! Digite novamente.");
+                return;
+            }
+
+            console.log(`🔑 Enviando nova senha criptografada/validada para o ID #${id_func}...`);
+
+            fetch("http://localhost:3000/api/funcionarios/resetar-senha", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id_func, nova_senha })
+            })
+            .then(res => res.json())
+            .then(dados => {
+                alert(dados.mensagem || dados.erro);
+                if (dados.sucesso) {
+                    fecharModalSenha(); // Tranca o modal flutuante
+                }
+            })
+            .catch(erro => console.error("Erro ao resetar senha no servidor:", erro));
+        }
+
+                // 🚪 AÇÃO ADM: Logout mestre limpando as chaves locais no mesmo PC
+        function fazerLogoutAdministrador() {
+            document.getElementById('tela-confirmacao-adm').style.display = 'block';
+
+            document.getElementById('btn-adm-sim').onclick = function() {
+                // 🧹 LIMPEZA SUPREMA: Varre toda a memória do admin para não travar sessões vizinhas nos testes
+                localStorage.clear(); 
+                
+                console.log("QG Administrativo fechado. Retornando à recepção...");
+                window.location.href = "index.html";
+            };
+
+            document.getElementById('btn-adm-nao').onclick = function() {
+                document.getElementById('tela-confirmacao-adm').style.display = 'none';
+            };
+        }
+
+
+    </script>
 </body>
 </html>

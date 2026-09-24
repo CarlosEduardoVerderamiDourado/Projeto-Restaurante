@@ -16,28 +16,32 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `mesas`
+-- Table structure for table `funcionarios`
 --
 
-DROP TABLE IF EXISTS `mesas`;
+DROP TABLE IF EXISTS `funcionarios`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `mesas` (
-  `id_mesa` int(11) NOT NULL,
-  `status_mesa` varchar(45) NOT NULL DEFAULT 'Livre',
-  `senha_gerente` varchar(45) NOT NULL,
-  PRIMARY KEY (`id_mesa`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `funcionarios` (
+  `ID` int(11) NOT NULL AUTO_INCREMENT,
+  `nome` varchar(45) NOT NULL,
+  `login` varchar(45) NOT NULL,
+  `senha` varchar(45) NOT NULL,
+  `cargo` varchar(45) NOT NULL,
+  PRIMARY KEY (`ID`),
+  UNIQUE KEY `login_UNIQUE` (`login`),
+  UNIQUE KEY `ID_UNIQUE` (`ID`)
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `mesas`
+-- Dumping data for table `funcionarios`
 --
 
-LOCK TABLES `mesas` WRITE;
-/*!40000 ALTER TABLE `mesas` DISABLE KEYS */;
-INSERT INTO `mesas` VALUES (1,'Ocupada','9876');
-/*!40000 ALTER TABLE `mesas` ENABLE KEYS */;
+LOCK TABLES `funcionarios` WRITE;
+/*!40000 ALTER TABLE `funcionarios` DISABLE KEYS */;
+INSERT INTO `funcionarios` VALUES (1,'Carlos Silva','carlos.garcom','1234','Garçom'),(7,'Chef Cozinheiro','chef.cozinha','1234','Cozinheiro'),(8,'Bruna Barman','bruna.bar','1234','Barman'),(9,'Admin Caixa','admin.caixa','1234','Administrador');
+/*!40000 ALTER TABLE `funcionarios` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -49,4 +53,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-09-03 16:42:38
+-- Dump completed on 2026-09-23 22:00:24
