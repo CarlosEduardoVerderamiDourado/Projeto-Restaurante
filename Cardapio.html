@@ -68,16 +68,16 @@
 
     <script>
 
-        // 🛡️ GUARDA DE SEGURANÇA DA MESA: Impede abertura do cardápio sem mesa vinculada
+// 🛡️ GUARDA DE SEGURANÇA DA MESA: Impede abertura do cardápio sem mesa vinculada (Sem alert!)
 (function() {
     const mesaConfigurada = localStorage.getItem('id_mesa_configurada');
 
     // 🚨 TRAVA DE OPERAÇÃO: Se o tablet não tiver número de mesa salvo, barra o cardápio na hora!
     if (!mesaConfigurada || mesaConfigurada === "undefined" || mesaConfigurada === "null") {
         console.warn("🚨 ALERTA: Tentativa de abrir o cardápio em um aparelho sem mesa configurada!");
-        alert("Este aparelho ainda não foi configurado! Por favor, chame o garçom para vincular o número da mesa.");
         
-        // Joga o aparelho de volta para a tela mestre de identificação/login
+        // Como o elemento HTML da cortina pode não ter carregado na primeira linha absoluta,
+        // usamos o redirecionamento imediato limpando o fluxo silenciosamente
         window.location.href = "index.html";
     }
 })();
@@ -144,18 +144,18 @@
                     
                     <button onclick="enviarPedidoParaCozinha()" style="padding: 10px 15px; background: green; color: white; border: none; cursor: pointer; font-weight: bold; margin-right: 10px; border-radius: 4px;">Enviar Pedido para Cozinha</button>
                     
-                    <button onclick="carregarExtratoMesa()" style="padding: 10px 15px; background: #007bff; color: white; border: none; cursor: pointer; font-weight: bold; border-radius: 4px;">📄 Ver Extrato / Pedir Conta</button>
+                    <button onclick="carregarExtratoMesa()" style="padding: 10px 15px; background: #007bff; color: white; border: none; pointer; font-weight: bold; border-radius: 4px;">📄 Ver Extrato / Pedir Conta</button>
                     
                     <div id="detalhe-extrato" style="margin-top: 15px; display: none; background: #fff; padding: 10px; border: 1px solid #ccc; max-height: 200px; overflow-y: auto;"></div>
                 </div>
             `;
         }
 
-// 🚀 FUNÇÃO 3: Enviar Pedido para o Servidor (Totalmente livre de pop-ups!)
+        // 🚀 FUNÇÃO 3: Enviar Pedido para o Servidor (Totalmente livre de pop-ups!)
         function enviarPedidoParaCozinha() {
             const mesaNumero = localStorage.getItem('id_mesa_configurada');
             
-            // 🟢 SUBISTITUIÇÃO DO POP-UP DA IMAGEM: Ativa a cortina de aviso com borda amarela!
+            // 🟢 SUBSTITUIÇÃO DO POP-UP DA IMAGEM: Ativa a cortina de aviso com borda amarela!
             if (carrinho.length === 0) {
                 mostrarCortinaAviso("🛒 Sacola Vazia", "A sua sacola de compras está vazia! Adicione algum hambúrguer ou bebida antes de enviar para a cozinha.");
                 return;
@@ -200,9 +200,7 @@
             document.getElementById('tela-aviso-cardapio').style.display = 'none';
         }
 
-
-
-        // ⏳ FUNÇÃO 4: Carregamento inicial da página
+        // ⏳ FUNÇÃO 4: Carregamento inicial da página (Higienizada e sem alerts cinzas!)
         window.onload = function() {
             const mesaNumero = localStorage.getItem('id_mesa_configurada');
             if (mesaNumero) {
@@ -219,7 +217,8 @@
             })
             .catch(erro => {
                 console.error("Erro ao carregar cardápio:", erro);
-                alert("Não foi possível carregar os itens do cardápio.");
+                // 🟢 MUDANÇA MASTER: Trocado alert() travável pela cortina nativa estilizada do salão
+                mostrarCortinaAviso("❌ Erro de Sincronia", "Não foi possível carregar os itens do cardápio ativo no banco de dados.");
             });
 
             if (mesaNumero) {
@@ -238,6 +237,7 @@
             }
 
             listaDeProdutos.forEach(produto => {
+
                 // 🟢 Injetados botões de controle de quantidade e ID dinâmico por input
                 const cardHTML = `
                     <div class="produto-card">
@@ -270,7 +270,7 @@
             }
         }
 
-        // 🚨 FUNÇÃO 7: Monitorar se o garçom aceitou o chamado E se a conta foi fechada
+        // 🚨 FUNÇÃO 7 ATUALIZADA: Monitoramento contínuo usando Cortinas Visuais Nativas (Sem Alerts!)
         function checarStatusChamado() {
             const mesaNumero = localStorage.getItem('id_mesa_configurada');
             if (!mesaNumero) return;
@@ -280,10 +280,18 @@
             .then(resposta => resposta.json())
             .then(dadosMesa => {
                 if (!dadosMesa.ativa) {
-                    // Se o caixa fechou a comanda, limpa a mesa da memória e expulsa o tablet!
+                    // Limpa a mesa da memória antes do redirecionamento
                     localStorage.removeItem('id_mesa_configurada');
-                    alert("💳 Conta Encerrada!\nObrigado pela preferência, sua mesa foi liberada no caixa. Volte sempre!");
-                    window.location.href = "index.html";
+                    
+                    // 🟢 MUDANÇA MASTER: Exibe a sua cortina de aviso nativa e desvia em seguida
+                    mostrarCortinaAviso(
+                        "💳 Conta Encerrada!", 
+                        "Obrigado pela preferência, sua mesa foi liberada no caixa. Volte sempre!\n\nEncerrando sessão do dispositivo..."
+                    );
+                    
+                    setTimeout(() => {
+                        window.location.href = "index.html";
+                    }, 4000);
                     return;
                 }
             })
@@ -296,14 +304,21 @@
             .then(dados => {
                 if (dados.ativo) {
                     alertaExibido = true;
-                    alert(`🛎️ Atendimento Confirmado!\nO garçom ${dados.garcom || "da equipe"} já aceitou sua solicitação e está a caminho da sua mesa.`);
+                    
+                    // 🟢 MUDANÇA MASTER: Substituído o alert() travável pela cortina nativa estilizada do portal
+                    const nomeGarcom = dados.garcom || "da equipe";
+                    mostrarCortinaAviso(
+                        "🛎️ Atendimento Confirmado!", 
+                        `O garçom ${nomeGarcom} já aceitou sua solicitação e está a caminho da sua mesa para te atender.`
+                    );
+                    
                     setTimeout(() => { alertaExibido = false; }, 15000);
                 }
             })
             .catch(erro => console.error("Erro no monitor de chamados:", erro));
         }
 
-        // 📑 FUNÇÃO 8: Buscar o extrato real acumulado no banco de dados (Efeito Sanfona)
+        // 📑 FUNÇÃO 8 ATUALIZADA: Buscar o extrato real acumulado no banco de dados (Sem Alerts!)
         function carregarExtratoMesa() {
             const mesaNumero = localStorage.getItem('id_mesa_configurada');
             const divDetalhe = document.getElementById('detalhe-extrato');
@@ -322,20 +337,21 @@
                     divDetalhe.style.display = 'block';
                     
                     if (!dados.itens_consumidos || dados.itens_consumidos.length === 0) {
-                        divDetalhe.innerHTML = "<p>Você ainda não enviou nenhum pedido nesta comanda.</p>";
+                        divDetalhe.innerHTML = "<p style='padding: 10px; text-align: center; color: #777;'>Você ainda não enviou nenhum pedido nesta comanda.</p>";
                         return;
                     }
 
                     let linhasHTML = "<h4>📋 Consumo Acumulado no Banco:</h4><ul>";
                     dados.itens_consumidos.forEach(item => {
-                        // 🟢 Mantido alinhado com as colunas injetadas pela rota de extrato do seu backend
                         linhasHTML += `<li><strong>${item.quantidade_total}x</strong> ${item.nome_item || item.nome} - R$ ${Number(item.subtotal_item).toFixed(2)}</li>`;
                     });
                     linhasHTML += "</ul>";
 
                     linhasHTML += `
-                        <p style="font-size: 16px; margin-top: 10px;">Valor Total da Conta: <strong style="color: red;">R$ ${Number(dados.total_geral).toFixed(2)}</strong></p>
-                        <button onclick="chamarGarcomParaConta()" style="padding: 8px; background: orange; color: black; border: none; font-weight: bold; cursor: pointer; border-radius: 4px;">💳 Chamar Garçom com a Maquininha</button>
+                        <div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #ddd;">
+                            <p style="font-size: 16px;">Valor Total da Conta: <strong style="color: #dc3545; font-size: 18px;">R$ ${Number(dados.total_geral).toFixed(2)}</strong></p>
+                            <button onclick="chamarGarcomParaConta()" style="width: 100%; padding: 10px; background: #ff9800; color: white; border: none; font-weight: bold; cursor: pointer; border-radius: 4px; box-shadow: 1px 1px 5px rgba(0,0,0,0.1);">💳 Chamar Garçom com a Maquininha</button>
+                        </div>
                     `;
 
                     divDetalhe.innerHTML = linhasHTML;
@@ -343,7 +359,8 @@
             })
             .catch(erro => {
                 console.error("Erro ao puxar extrato:", erro);
-                alert("Não foi possível carregar a sua conta.");
+                // 🟢 MUDANÇA MASTER: Notifica o erro usando a cortina sem congelar a tela
+                mostrarCortinaAviso("❌ Erro no Extrato", "Não foi possível carregar os valores acumulados da sua conta. Verifique a rede.");
             });
         }
 
@@ -351,7 +368,6 @@
         function chamarGarcomParaConta() {
             const mesaNumero = localStorage.getItem('id_mesa_configurada');
             
-            // 🟢 CORREÇÃO: Aponta para a nova rota exclusiva de maquininha!
             fetch("http://localhost:3000/api/mesas/solicitar-maquininha", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
