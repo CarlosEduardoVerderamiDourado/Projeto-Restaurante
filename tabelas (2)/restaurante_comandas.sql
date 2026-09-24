@@ -16,32 +16,33 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `funcionarios`
+-- Table structure for table `comandas`
 --
 
-DROP TABLE IF EXISTS `funcionarios`;
+DROP TABLE IF EXISTS `comandas`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `funcionarios` (
-  `ID` int(11) NOT NULL AUTO_INCREMENT,
-  `nome` varchar(45) NOT NULL,
-  `login` varchar(45) NOT NULL,
-  `senha` varchar(45) NOT NULL,
-  `cargo` varchar(45) NOT NULL,
-  PRIMARY KEY (`ID`),
-  UNIQUE KEY `login_UNIQUE` (`login`),
-  UNIQUE KEY `ID_UNIQUE` (`ID`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `comandas` (
+  `id_comanda` int(11) NOT NULL AUTO_INCREMENT,
+  `id_mesa` int(11) NOT NULL,
+  `status_comanda` varchar(45) NOT NULL DEFAULT 'Aberta',
+  `valor_total` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `senha_gerente` varchar(45) NOT NULL,
+  `horario_abertura` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id_comanda`),
+  KEY `fk_comandas_mesas` (`id_mesa`),
+  CONSTRAINT `fk_comandas_mesas` FOREIGN KEY (`id_mesa`) REFERENCES `mesas` (`id_mesa`) ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `funcionarios`
+-- Dumping data for table `comandas`
 --
 
-LOCK TABLES `funcionarios` WRITE;
-/*!40000 ALTER TABLE `funcionarios` DISABLE KEYS */;
-INSERT INTO `funcionarios` VALUES (1,'Carlos Silva','carlos.garcom','1234','garcom');
-/*!40000 ALTER TABLE `funcionarios` ENABLE KEYS */;
+LOCK TABLES `comandas` WRITE;
+/*!40000 ALTER TABLE `comandas` DISABLE KEYS */;
+INSERT INTO `comandas` VALUES (3,1,'Paga',0.00,'2608','2026-09-03 19:23:31'),(4,1,'Paga',0.00,'8702','2026-09-23 23:00:06'),(5,1,'Paga',0.00,'5605','2026-09-24 00:11:30');
+/*!40000 ALTER TABLE `comandas` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -53,4 +54,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-09-03 16:42:39
+-- Dump completed on 2026-09-23 22:00:24

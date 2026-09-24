@@ -34,8 +34,8 @@ CREATE TABLE `pedidos_itens` (
   KEY `fk_pedidos_comandas` (`id_comanda`),
   KEY `fk_pedidos_produtos` (`id_produto`),
   CONSTRAINT `fk_pedidos_comandas` FOREIGN KEY (`id_comanda`) REFERENCES `comandas` (`id_comanda`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fk_pedidos_produtos` FOREIGN KEY (`id_produto`) REFERENCES `cardapio` (`id_produto`) ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  CONSTRAINT `fk_pedidos_produtos` FOREIGN KEY (`id_produto`) REFERENCES `cardapio` (`id_item`) ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -44,6 +44,7 @@ CREATE TABLE `pedidos_itens` (
 
 LOCK TABLES `pedidos_itens` WRITE;
 /*!40000 ALTER TABLE `pedidos_itens` DISABLE KEYS */;
+INSERT INTO `pedidos_itens` VALUES (1,3,2,3,39.90,'Entregue','2026-09-21 21:48:11'),(2,3,1,3,28.90,'Entregue','2026-09-21 21:51:39'),(3,3,1,3,28.90,'Entregue','2026-09-21 22:10:07'),(4,3,2,1,39.90,'Entregue','2026-09-21 22:11:46'),(5,3,3,1,26.50,'Entregue','2026-09-21 22:11:46'),(6,3,4,1,6.00,'Entregue','2026-09-21 22:11:46'),(7,3,5,1,8.50,'Entregue','2026-09-21 22:11:46'),(8,3,6,1,14.00,'Entregue','2026-09-21 22:11:46'),(9,3,3,1,26.50,'Entregue','2026-09-21 22:14:05'),(10,3,3,4,26.50,'Entregue','2026-09-23 19:55:58'),(11,3,1,2,28.90,'Entregue','2026-09-23 20:27:55'),(12,3,4,2,6.00,'Entregue','2026-09-23 22:38:47');
 /*!40000 ALTER TABLE `pedidos_itens` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -56,4 +57,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-09-03 16:42:38
+-- Dump completed on 2026-09-23 22:00:11

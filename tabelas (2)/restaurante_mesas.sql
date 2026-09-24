@@ -16,34 +16,28 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `chamados_atendimento`
+-- Table structure for table `mesas`
 --
 
-DROP TABLE IF EXISTS `chamados_atendimento`;
+DROP TABLE IF EXISTS `mesas`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `chamados_atendimento` (
-  `id_chamado` int(11) NOT NULL AUTO_INCREMENT,
+CREATE TABLE `mesas` (
   `id_mesa` int(11) NOT NULL,
-  `status_chamado` varchar(50) NOT NULL DEFAULT 'Pendente',
-  `horario_chamado` timestamp NOT NULL DEFAULT current_timestamp(),
-  `id_funcionario` int(11) DEFAULT NULL,
-  PRIMARY KEY (`id_chamado`),
-  KEY `id_mesa` (`id_mesa`),
-  KEY `id_funcionario` (`id_funcionario`),
-  CONSTRAINT `chamados_atendimento_ibfk_1` FOREIGN KEY (`id_mesa`) REFERENCES `mesas` (`id_mesa`),
-  CONSTRAINT `chamados_atendimento_ibfk_2` FOREIGN KEY (`id_funcionario`) REFERENCES `funcionarios` (`ID`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `status_mesa` varchar(45) NOT NULL DEFAULT 'Livre',
+  `senha_gerente` varchar(45) NOT NULL,
+  PRIMARY KEY (`id_mesa`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `chamados_atendimento`
+-- Dumping data for table `mesas`
 --
 
-LOCK TABLES `chamados_atendimento` WRITE;
-/*!40000 ALTER TABLE `chamados_atendimento` DISABLE KEYS */;
-INSERT INTO `chamados_atendimento` VALUES (4,1,'Pendente','2026-09-03 19:14:17',NULL);
-/*!40000 ALTER TABLE `chamados_atendimento` ENABLE KEYS */;
+LOCK TABLES `mesas` WRITE;
+/*!40000 ALTER TABLE `mesas` DISABLE KEYS */;
+INSERT INTO `mesas` VALUES (1,'Ocupada','9876');
+/*!40000 ALTER TABLE `mesas` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -55,4 +49,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-09-03 16:42:38
+-- Dump completed on 2026-09-23 22:00:24
