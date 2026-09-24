@@ -33,7 +33,7 @@
             }
         }
         
-                // 🚨 FUNÇÃO 1: Solicitar atendimento e travar a tela visualmente na cortina
+        // 🚨 FUNÇÃO 1: Solicitar atendimento e travar a tela visualmente na cortina
         function solicitarGarcom() {
             const mesa = localStorage.getItem('id_mesa_configurada'); 
             if (!mesa) return;
@@ -63,7 +63,8 @@
             })
             .catch(erro => console.error("Erro na comunicação:", erro));
         }
-        // 🚨 FUNÇÃO 2 CORRIGIDA: Monitor que atualiza a cortina e ativa o clique do botão com segurança
+
+        // 🚨 FUNÇÃO 2: Monitor que atualiza a cortina e ativa o clique do botão com segurança
         function checarSeGarcomAceitou() {
             const mesaNumero = localStorage.getItem('id_mesa_configurada');
             if (!mesaNumero) return;
@@ -96,35 +97,21 @@
             .catch(erro => console.error("Erro no monitor de espera do cliente:", erro));
         }
 
-        // 🟢 FUNÇÃO 3 CORRIGIDA: Garante o fechamento total da cortina escura
+        // 🟢 FUNÇÃO 3 CONSOLIDADA: Garante o fechamento total da cortina escura e desliga loops pendentes
         function fecharTelaEspera() {
-            console.log("Botão clicado! Escondendo a cortina preta e liberando o portal...");
-            
-            // Força a div de bloqueio a sumir da tela visualmente
-            document.getElementById('tela-espera').style.display = 'none';
-            
-            // Limpa o cronômetro por garantia extra de trânsito
-            if (monitorChamadoCliente) {
-                clearInterval(monitorChamadoCliente);
-                monitorChamadoCliente = null;
-            }
-        }
-
-                // 🟢 FUNÇÃO 3 CORRIGIDA: Fecha a cortina escura e devolve o controle total ao cliente
-        function fecharTelaEspera() {
-            console.log("Cortina fechada pelo cliente. Destravando portal...");
+            console.log("Cortina fechada pelo cliente. Destravando portal principal...");
             
             // 1. Esconde a cortina preta da tela mudando o estilo para 'none'
             document.getElementById('tela-espera').style.display = 'none';
             
-            // 2. Trava de segurança: Desliga de vez o cronômetro para o loop não reabrir a tela
+            // 2. Trava de segurança: Desliga de vez o cronômetro para o loop não tentar atualizar elementos ocultos
             if (monitorChamadoCliente) {
                 clearInterval(monitorChamadoCliente);
                 monitorChamadoCliente = null;
             }
         }
 
-        // 🔀 FUNÇÃO 4: Inicializar Autoatendimento (Sem alertas cinzas!)
+        // 🔀 FUNÇÃO 4: Inicializar Autoatendimento (Totalmente livre de pop-ups cinzas!)
         function altoatendimento(){
             const mesa = localStorage.getItem('id_mesa_configurada'); 
             if (!mesa) return;

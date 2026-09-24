@@ -40,16 +40,15 @@ router.post('/aceitar-chamado', (req, res) => {
 });
 
 
-// 🛎️ 3. ROTA BLINDADA DE ALTA PRECISÃO: Checa o chamado aceito mais recente ignorando totalmente fusos horários e relógios do banco!
+// 🛎️ 3. ROTA BLINDADA DE ALTA PRECISÃO CORRIGIDA: Checa o chamado aceito mais recente sem sumir com linhas nulas!
 router.get('/status-mesa/:mesa', (req, res) => {
     const { mesa } = req.params;
 
-    // 🟢 MÁGICA TÉCNICA: Buscamos o ÚLTIMO chamado criado para essa mesa (ORDER BY id_chamado DESC LIMIT 1)
-    // Se o status dele for 'A caminho', significa que o garçom ACABOU de aceitar o chamado atual!
+    // 🟢 CORREÇÃO MESTRE: Trocado INNER JOIN por LEFT JOIN para a linha aparecer mesmo com id_funcionario valendo NULL!
     const querySQL = `
         SELECT c.id_chamado, c.status_chamado, f.nome AS nome_garcom
         FROM chamados_atendimento c
-        INNER JOIN funcionarios f ON c.id_funcionario = f.ID
+        LEFT JOIN funcionarios f ON c.id_funcionario = f.ID
         WHERE c.id_mesa = ?
         ORDER BY c.id_chamado DESC LIMIT 1
     `;
@@ -63,7 +62,7 @@ router.get('/status-mesa/:mesa', (req, res) => {
         console.log("🔍 Resposta real do MariaDB para a Mesa " + mesa + ":", results);
 
         if (results.length > 0) {
-            const linhaDoBanco = results[0]; // 🟢 CORREÇÃO CRUCIAL: Acessa o índice 0 do array retornado!
+            const linhaDoBanco = results[0]; // Acessa o índice 0 do array retornado!
             
             // Só libera a cortina se o ÚLTIMO chamado dessa mesa estiver com o status 'A caminho'
             if (linhaDoBanco.status_chamado === 'A caminho') {
@@ -81,6 +80,7 @@ router.get('/status-mesa/:mesa', (req, res) => {
         return res.json({ ativo: false });
     });
 });
+
 
 
 
