@@ -38,6 +38,17 @@
 
 
 <script>
+    // 🛡️ GUARDA DE SEGURANÇA: Bloqueia acesso direto por link sem login de Barman
+(function() {
+    const idLogado = localStorage.getItem('id_funcionario_logado');
+    const cargoLogado = localStorage.getItem('cargo');
+
+    if (!idLogado || cargoLogado !== 'Barman') {
+        alert("Acesso restrito! Por favor, faça login como Barman.");
+        window.location.href = "index.html";
+    }
+})();
+
     // 🔄 Passo 1: Polling Automático - Sincroniza a esteira do bar a cada 5 segundos sem F5
     window.onload = function() {
         carregarPedidosBar();

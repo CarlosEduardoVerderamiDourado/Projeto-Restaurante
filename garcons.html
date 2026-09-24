@@ -69,6 +69,29 @@
     </div>
 
     <script>
+// 🛡️ GUARDA DE SEGURANÇA IMUNE A CAIXA ALTA/BAIXA: Valida 'Garçom', 'garçom', 'GARÇOM'
+(function() {
+    const idLogado = localStorage.getItem('id_funcionario_logado');
+    let cargoLogado = localStorage.getItem('cargo');
+
+    console.log("🕵️‍♂️ SEGURANÇA: Validando acesso ao salão...");
+    console.log("ID na memória:", idLogado, "| Cargo na memória:", cargoLogado);
+
+    // Se o cargo veio do banco, sanitiza a string forçando ficar tudo minúsculo
+    if (cargoLogado) {
+        cargoLogado = cargoLogado.trim().toLowerCase();
+    }
+
+    // 🟢 TRAVA INTELIGENTE: Aceita qualquer variação com ou sem acento/cedilha por segurança!
+    if (!idLogado || (cargoLogado !== 'garçom' && cargoLogado !== 'garcom')) {
+        console.warn("🚨 ACESSO RESTRITO: Credenciais inválidas para o painel de garçons!");
+        alert("Acesso restrito! Por favor, faça login com uma conta de Garçom.");
+        window.location.href = "index.html";
+    }
+})();
+
+
+
         // 🔄 Polling Automático - Sincroniza o salão inteiro a cada 5 segundos
         window.onload = function() {
             carregarDadosSalao();
