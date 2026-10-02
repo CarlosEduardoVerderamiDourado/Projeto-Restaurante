@@ -1,0 +1,1295 @@
+/* ===========================================================
+   Ratatue — Estilos Gerais
+   Paleta: vermelhos (predominante) + laranjas (secundário)
+   =========================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Baloo+2:wght@500;600;700;800&display=swap');
+
+:root {
+    --vermelho-principal: #d62828;
+    --vermelho-escuro: #a51c1c;
+    --vermelho-claro: #ff5c5c;
+    --laranja: #f77f00;
+    --laranja-claro: #ffb347;
+    --creme: #fff8f0;
+    --texto-escuro: #3a2020;
+    --branco: #ffffff;
+    --sombra: rgba(166, 28, 28, 0.18);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Quicksand', 'Baloo 2', sans-serif;
+    background: linear-gradient(160deg, var(--vermelho-escuro) 0%, var(--vermelho-principal) 100%);
+    color: var(--texto-escuro);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px;
+}
+
+h1, h2, h3 {
+    font-family: 'Baloo 2', 'Quicksand', sans-serif;
+    color: var(--creme);
+    text-align: center;
+}
+
+/* Títulos dentro de cards/containers brancos continuam escuros */
+.container h1, .container h2, .container h3,
+.portal-container h1, .portal-container h2, .portal-container h3,
+.produto-card h1, .produto-card h2, .produto-card h3,
+#resumo-carrinho h1, #resumo-carrinho h2, #resumo-carrinho h3,
+.admin-wrapper h1, .admin-wrapper h2, .admin-wrapper h3,
+.gerencia-conteudo h1, .gerencia-conteudo h2, .gerencia-conteudo h3 {
+    color: var(--vermelho-escuro);
+}
+
+.admin-wrapper h2, .admin-wrapper h3 {
+    text-align: left;
+}
+
+/* ===========================================================
+   Container principal (index.html - login/autenticação)
+   =========================================================== */
+
+.container {
+    background: var(--branco);
+    border-radius: 28px;
+    padding: 36px 32px;
+    max-width: 420px;
+    width: 100%;
+    margin: 40px auto;
+    box-shadow: 0 12px 30px var(--sombra);
+    text-align: center;
+}
+
+.container h2 {
+    font-size: 1.8rem;
+    margin-bottom: 24px;
+    letter-spacing: 0.5px;
+}
+
+/* Abas */
+.tabs {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 24px;
+    background: #ffece0;
+    padding: 6px;
+    border-radius: 999px;
+}
+
+.tab-btn {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 12px 16px;
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--vermelho-escuro);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.tab-btn:hover {
+    background: rgba(214, 40, 40, 0.1);
+}
+
+.tab-btn.active {
+    background: linear-gradient(135deg, var(--vermelho-principal), var(--laranja));
+    color: var(--branco);
+    box-shadow: 0 4px 12px var(--sombra);
+}
+
+/* Formulários */
+.form-panel {
+    display: none;
+    flex-direction: column;
+    gap: 18px;
+    text-align: left;
+}
+
+.form-panel.active {
+    display: flex;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-group label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--vermelho-escuro);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    padding: 12px 16px;
+    border: 2px solid #ffd9b3;
+    border-radius: 16px;
+    font-family: inherit;
+    font-size: 1rem;
+    background: var(--creme);
+    color: var(--texto-escuro);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 90px;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--vermelho-principal);
+    box-shadow: 0 0 0 4px rgba(214, 40, 40, 0.12);
+}
+
+.btn-submit {
+    margin-top: 8px;
+    padding: 14px;
+    border: none;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--vermelho-principal), var(--laranja));
+    color: var(--branco);
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 1rem;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    box-shadow: 0 8px 18px var(--sombra);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 22px var(--sombra);
+}
+
+.btn-submit:active {
+    transform: translateY(0);
+}
+
+/* ===========================================================
+   Portal (portal.html)
+   =========================================================== */
+
+.portal-container {
+    background: var(--branco);
+    border-radius: 28px;
+    padding: 40px 32px;
+    max-width: 420px;
+    width: 100%;
+    margin: 60px auto;
+    text-align: center;
+    box-shadow: 0 12px 30px var(--sombra);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+}
+
+#titulo-mesa {
+    font-size: 1.6rem;
+    background: linear-gradient(135deg, var(--vermelho-principal), var(--laranja));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.portal-container button {
+    width: 100%;
+    padding: 32px 16px;
+    border: none;
+    border-radius: 20px;
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    color: var(--branco);
+    box-shadow: 0 8px 18px var(--sombra);
+}
+
+.btn-login,
+.btn-logout {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 10px 22px;
+    border: none;
+    border-radius: 999px;
+    background: var(--branco);
+    color: var(--vermelho-escuro);
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    box-shadow: 0 8px 18px var(--sombra);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    z-index: 10;
+}
+
+.btn-login:hover,
+.btn-logout:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 22px var(--sombra);
+}
+
+.portal-container button:hover {
+    transform: translateY(-2px);
+}
+
+.btn-garcom {
+    background: linear-gradient(135deg, var(--vermelho-principal), var(--vermelho-claro));
+}
+
+.btn-autoatendimento {
+    background: linear-gradient(135deg, var(--laranja), var(--laranja-claro));
+}
+
+/* ===========================================================
+   Cardápio (cardapio.html)
+   =========================================================== */
+
+#mesa-display {
+    font-size: 1.6rem;
+    margin-bottom: 20px;
+    padding: 12px 28px;
+    background: var(--branco);
+    border-radius: 999px;
+    box-shadow: 0 8px 20px var(--sombra);
+    display: inline-block;
+    color: var(--vermelho-escuro);
+}
+
+.categorias-abas {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 28px;
+    background: var(--branco);
+    padding: 10px 14px;
+    border-radius: 999px;
+    box-shadow: 0 8px 20px var(--sombra);
+}
+
+.categorias-abas button {
+    padding: 10px 22px;
+    border: 2px solid var(--laranja);
+    background: var(--branco);
+    color: var(--vermelho-escuro);
+    border-radius: 999px;
+    font-family: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.categorias-abas button:hover,
+.categorias-abas button.categoria-ativa {
+    background: linear-gradient(135deg, var(--vermelho-principal), var(--laranja));
+    color: var(--branco);
+    border-color: transparent;
+    box-shadow: 0 6px 14px var(--sombra);
+}
+
+.blocos-destaque {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto 28px;
+}
+
+.bloco-destaque {
+    padding: 28px 16px;
+    border: none;
+    border-radius: 20px;
+    background: linear-gradient(135deg, var(--vermelho-principal), var(--laranja));
+    color: var(--branco);
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 1.1rem;
+    cursor: pointer;
+    box-shadow: 0 8px 20px var(--sombra);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.bloco-destaque:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 28px var(--sombra);
+}
+
+#container-produtos {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.produto-card {
+    background: var(--branco);
+    border: none !important;
+    border-radius: 22px !important;
+    padding: 16px !important;
+    margin: 0 !important;
+    text-align: center;
+    box-shadow: 0 8px 20px var(--sombra);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.produto-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 28px var(--sombra);
+}
+
+.produto-card img {
+    width: 100% !important;
+    height: 140px !important;
+    object-fit: cover;
+    border-radius: 16px;
+}
+
+.produto-card h3 {
+    font-size: 1.1rem;
+    color: var(--vermelho-escuro);
+}
+
+.produto-card p {
+    font-size: 0.9rem;
+    color: #6b4a3a;
+}
+
+.produto-card button {
+    margin-top: auto;
+    padding: 10px;
+    border: none;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--vermelho-principal), var(--laranja));
+    color: var(--branco);
+    font-family: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.produto-card button:hover {
+    transform: translateY(-2px);
+}
+
+/* Resumo do carrinho */
+#resumo-carrinho {
+    width: 100%;
+    max-width: 500px;
+    margin: 30px auto 0;
+}
+
+#resumo-carrinho > div {
+    background: var(--branco) !important;
+    border-top: none !important;
+    border-radius: 24px !important;
+    padding: 24px !important;
+    box-shadow: 0 12px 26px var(--sombra);
+    text-align: center;
+}
+
+#resumo-carrinho h3 {
+    margin-bottom: 12px;
+    color: var(--vermelho-escuro);
+}
+
+#resumo-carrinho p {
+    margin: 6px 0;
+    font-size: 1rem;
+}
+
+#resumo-carrinho button {
+    margin-top: 14px;
+    padding: 12px 20px !important;
+    border-radius: 999px !important;
+    background: linear-gradient(135deg, var(--vermelho-principal), var(--laranja)) !important;
+    border: none !important;
+    color: var(--branco) !important;
+    font-family: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+#resumo-carrinho button:hover {
+    transform: translateY(-2px);
+}
+
+/* Responsivo */
+@media (max-width: 480px) {
+    .container, .portal-container {
+        padding: 28px 20px;
+        margin: 20px auto;
+    }
+}
+
+/* ===========================================================
+   Painel da Cozinha (painel-cozinha.html)
+   =========================================================== */
+
+body:has(.painel-wrapper) {
+    align-items: flex-start;
+    padding: 32px;
+}
+
+.painel-wrapper {
+    display: flex;
+    gap: 28px;
+    width: 100%;
+    max-width: 1300px;
+    margin: 0 auto;
+    align-items: flex-start;
+}
+
+.painel-coluna {
+    flex: 1;
+    background: var(--branco);
+    border-radius: 28px;
+    padding: 28px;
+    box-shadow: 0 12px 30px var(--sombra);
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    min-width: 320px;
+}
+
+.painel-coluna:has(.status-bloco) {
+    display: block;
+}
+
+.painel-titulo {
+    color: var(--vermelho-escuro);
+    font-size: 1.5rem;
+    text-align: left;
+    margin-bottom: 4px;
+}
+
+/* Grade dos blocos de status: 2 por linha, altura livre conforme conteúdo */
+.status-grade {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+}
+
+/* Blocos de status (Espera / Preparo / Atraso / Pronto) */
+.status-bloco {
+    border-radius: 22px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 220px;
+}
+
+.status-titulo {
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+
+.status-lista {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Cores de cada status */
+.status-espera {
+    background: var(--creme);
+    border: 2px solid #e6d9c8;
+}
+
+.status-espera .status-titulo {
+    color: var(--texto-escuro);
+}
+
+.status-preparo {
+    background: #fff3b0;
+    border: 2px solid #f4d35e;
+}
+
+.status-preparo .status-titulo {
+    color: #7a5c00;
+}
+
+.status-atraso {
+    background: #ffb3b3;
+    border: 2px solid var(--vermelho-principal);
+}
+
+.status-atraso .status-titulo {
+    color: var(--vermelho-escuro);
+}
+
+.status-pronto {
+    background: #b7e4c7;
+    border: 2px solid #52b788;
+}
+
+.status-pronto .status-titulo {
+    color: #1b4332;
+}
+
+/* Cards de pedido dentro dos blocos de status */
+.pedido-card {
+    background: var(--branco);
+    border-radius: 14px;
+    padding: 10px 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+.pedido-cabecalho {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 6px;
+}
+
+.pedido-mesa {
+    font-weight: 700;
+    color: var(--vermelho-escuro);
+    font-size: 0.95rem;
+}
+
+.pedido-tempo {
+    font-size: 0.8rem;
+    color: #6b4a3a;
+}
+
+.pedido-itens {
+    list-style: none;
+    font-size: 0.85rem;
+    color: var(--texto-escuro);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    text-align: left;
+}
+
+/* Cards de mesas solicitando atendimento */
+.mesas-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.mesa-atendimento-card {
+    border: 2px solid var(--vermelho-escuro);
+    border-radius: 18px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mesa-atendimento-numero {
+    font-family: 'Baloo 2', 'Quicksand', sans-serif;
+    font-weight: 700;
+    font-size: 1.15rem;
+    color: var(--vermelho-escuro);
+}
+
+/* Estado de exemplo: dados fictícios exibidos com opacidade reduzida
+   até que existam pedidos/chamados reais */
+.exemplo {
+    opacity: 0.35;
+    pointer-events: none;
+}
+
+@media (max-width: 900px) {
+    .painel-wrapper {
+        flex-direction: column;
+    }
+
+    .status-grade {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ===========================================================
+   Gerência de Funcionários (gerencia-funcionarios.html)
+   =========================================================== */
+
+body:has(.gerencia-wrapper) {
+    align-items: flex-start;
+    padding: 32px;
+}
+
+.gerencia-wrapper {
+    display: flex;
+    gap: 24px;
+    width: 100%;
+    max-width: 1300px;
+    margin: 0 auto;
+    align-items: stretch;
+}
+
+/* Conteúdo principal (lista + pesquisa) */
+.gerencia-conteudo {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    background: var(--branco);
+    border-radius: 28px;
+    padding: 28px;
+    box-shadow: 0 12px 30px var(--sombra);
+    min-height: 640px;
+}
+
+.gerencia-lista {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.funcionario-linha {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px 6px;
+    border-bottom: 1px solid #f1e2d6;
+    font-weight: 600;
+    color: var(--texto-escuro);
+}
+
+.funcionario-linha:last-child {
+    border-bottom: none;
+}
+
+.funcionario-nome {
+    min-width: 130px;
+}
+
+.input-edicao-nome {
+    padding: 6px 10px;
+    border: 2px solid var(--laranja);
+    border-radius: 10px;
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 1rem;
+    background: var(--creme);
+}
+
+.input-edicao-nome:focus {
+    outline: none;
+    border-color: var(--vermelho-principal);
+}
+
+.funcionario-separador {
+    color: #cbb6a4;
+}
+
+.funcionario-produtividade {
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-weight: 700;
+}
+
+.funcionario-status {
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.status-ativo {
+    background: rgba(46, 158, 91, 0.14);
+    color: #2e9e5b;
+}
+
+.status-faltou {
+    background: rgba(214, 40, 40, 0.12);
+    color: var(--vermelho-principal);
+}
+
+.status-ferias {
+    background: rgba(247, 127, 0, 0.14);
+    color: var(--laranja);
+}
+
+.status-afastado {
+    background: rgba(107, 74, 58, 0.14);
+    color: #6b4a3a;
+}
+
+.funcionario-acoes {
+    display: flex;
+    gap: 12px;
+    margin-left: auto;
+    flex-wrap: wrap;
+}
+
+.acao-link {
+    background: none;
+    border: none;
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--vermelho-escuro);
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 0;
+}
+
+.acao-link:hover {
+    color: var(--laranja);
+}
+
+.acao-excluir {
+    color: var(--vermelho-principal);
+}
+
+.acao-excluir:hover {
+    color: var(--vermelho-escuro);
+}
+
+.sem-resultados {
+    color: #6b4a3a;
+    font-style: italic;
+    text-align: center;
+    padding: 40px 0;
+}
+
+/* Barra de pesquisa */
+.pesquisa-barra {
+    border: 2px solid var(--laranja);
+    border-radius: 16px;
+    padding: 4px;
+}
+
+.pesquisa-barra input {
+    width: 100%;
+    padding: 12px 16px;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 1rem;
+    color: var(--texto-escuro);
+}
+
+.pesquisa-barra input:focus {
+    outline: none;
+}
+
+/* Menu lateral */
+.gerencia-menu {
+    width: 180px;
+    flex-shrink: 0;
+    background: var(--branco);
+    border-radius: 28px;
+    box-shadow: 0 12px 30px var(--sombra);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.gerencia-logo {
+    height: 90px;
+    background: linear-gradient(135deg, var(--vermelho-principal), var(--laranja));
+}
+
+.menu-item {
+    border: none;
+    background: transparent;
+    padding: 24px 20px;
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--vermelho-escuro);
+    cursor: pointer;
+    text-align: left;
+    border-bottom: 1px solid #f1e2d6;
+    transition: background 0.2s ease;
+}
+
+.menu-item:last-child {
+    border-bottom: none;
+}
+
+.menu-item:hover {
+    background: rgba(214, 40, 40, 0.06);
+}
+
+.menu-item-ativo {
+    background: linear-gradient(135deg, var(--vermelho-principal), var(--laranja));
+    color: var(--branco);
+}
+
+.menu-item-ativo:hover {
+    background: linear-gradient(135deg, var(--vermelho-principal), var(--laranja));
+}
+
+/* Modal de confirmação de exclusão */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(58, 32, 32, 0.55);
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+.modal-overlay.modal-visivel {
+    display: flex;
+}
+
+.modal-caixa {
+    background: var(--branco);
+    border-radius: 24px;
+    padding: 32px 28px;
+    max-width: 380px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 16px 34px rgba(0, 0, 0, 0.25);
+}
+
+.modal-caixa p {
+    color: var(--texto-escuro);
+    font-weight: 600;
+    margin-bottom: 24px;
+    line-height: 1.4;
+}
+
+.modal-botoes {
+    display: flex;
+    gap: 12px;
+}
+
+.modal-btn {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 999px;
+    font-family: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.modal-btn:hover {
+    transform: translateY(-2px);
+}
+
+.modal-btn-cancelar {
+    background: #f1e2d6;
+    color: var(--texto-escuro);
+}
+
+.modal-btn-confirmar {
+    background: linear-gradient(135deg, var(--vermelho-principal), var(--vermelho-claro));
+    color: var(--branco);
+}
+
+@media (max-width: 800px) {
+    .gerencia-wrapper {
+        flex-direction: column-reverse;
+    }
+
+    .gerencia-menu {
+        width: 100%;
+        flex-direction: row;
+    }
+
+    .gerencia-logo {
+        display: none;
+    }
+
+    .menu-item {
+        border-bottom: none;
+        border-right: 1px solid #f1e2d6;
+        text-align: center;
+    }
+
+    .funcionario-acoes {
+        margin-left: 0;
+    }
+}
+
+/* ===========================================================
+   Botão pílula pequeno (ações secundárias em vários painéis)
+   =========================================================== */
+
+.btn-pill-sm {
+    padding: 8px 18px;
+    border: none;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--vermelho-principal), var(--laranja));
+    color: var(--branco);
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    box-shadow: 0 6px 14px var(--sombra);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-pill-sm:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 18px var(--sombra);
+}
+
+/* Variante verde: usada em confirmações de entrega/pronto */
+.btn-pill-sm.btn-pill-verde {
+    background: linear-gradient(135deg, #52b788, #2e9e5b);
+}
+
+/* ===========================================================
+   Cardápio — seletor de quantidade e botão de adicionar
+   (complementa a seção "Cardápio" mais acima)
+   =========================================================== */
+
+.seletor-qtd {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin: 6px 0;
+}
+
+.produto-card .btn-qtd {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid var(--laranja);
+    background: var(--creme);
+    color: var(--vermelho-escuro);
+    font-weight: 700;
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.produto-card .btn-qtd:hover {
+    background: var(--laranja);
+    color: var(--branco);
+}
+
+.input-qtd {
+    width: 34px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 1rem;
+    border: none;
+    background: transparent;
+    color: var(--texto-escuro);
+}
+
+.btn-add-sacola {
+    width: 100%;
+}
+
+/* Notificação flutuante de sucesso (cardápio) */
+.notificacao-flutuante {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #52b788, #2e9e5b);
+    color: var(--branco);
+    padding: 14px 24px;
+    border-radius: 16px;
+    font-weight: 700;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
+    z-index: 9999;
+    animation: surgir 0.3s ease-out;
+}
+
+@keyframes surgir {
+    from { transform: translateY(-20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* Resumo do carrinho: os dois botões de ação lado a lado */
+.resumo-acoes {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.resumo-acoes .btn-pill-sm {
+    flex: 1;
+    min-width: 160px;
+}
+
+.extrato-lista {
+    list-style: none;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 0.9rem;
+    color: var(--texto-escuro);
+    max-height: 220px;
+    overflow-y: auto;
+    padding: 4px 2px;
+}
+
+.extrato-total {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 2px solid #f1e2d6;
+    text-align: center;
+}
+
+.extrato-total strong {
+    display: block;
+    font-size: 1.4rem;
+    color: var(--vermelho-principal);
+}
+
+/* ===========================================================
+   Painéis operacionais (cozinha.html, bar.html) — status extra
+   Complementa .status-espera / .status-preparo / .status-atraso /
+   .status-pronto já existentes com o 4º estado "apressar"
+   =========================================================== */
+
+/* Cards de pedido clicáveis (avançam de status ao clicar) */
+.pedido-card[onclick] {
+    cursor: pointer;
+    transition: transform 0.15s ease;
+}
+
+.pedido-card[onclick]:hover {
+    transform: translateY(-2px);
+}
+
+.status-apressar {
+    background: #ffd9a0;
+    border: 2px solid var(--laranja);
+}
+
+.status-apressar .status-titulo {
+    color: #a85700;
+}
+
+/* ===========================================================
+   Painel do Garçom (garcons.html, garcom.html) — chamados
+   Complementa .mesas-lista / .mesa-atendimento-card já existentes
+   =========================================================== */
+
+.mesa-atendimento-card {
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+}
+
+.mesa-atendimento-card.tipo-conta {
+    border-color: var(--laranja);
+}
+
+.chamado-tipo {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--vermelho-escuro);
+}
+
+.tipo-conta .chamado-tipo {
+    color: var(--laranja);
+}
+
+.chamado-tempo {
+    font-size: 0.85rem;
+    color: #6b4a3a;
+}
+
+/* ===========================================================
+   Painel Administrativo (adm.html)
+   =========================================================== */
+
+body:has(.admin-wrapper) {
+    align-items: flex-start;
+    padding: 32px;
+}
+
+.admin-wrapper {
+    width: 100%;
+    max-width: 1300px;
+    margin: 0 auto;
+    background: var(--branco);
+    border-radius: 28px;
+    padding: 32px;
+    box-shadow: 0 12px 30px var(--sombra);
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+}
+
+.admin-cabecalho {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.admin-cabecalho h1 {
+    color: var(--vermelho-escuro);
+    text-align: left;
+    font-size: 1.6rem;
+}
+
+.admin-secao-cabecalho {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 6px;
+}
+
+/* Gaveta de cadastro (formulários recolhíveis) */
+.gaveta-cadastro {
+    background: var(--creme);
+    border: 2px solid #ffd9b3;
+    border-radius: 18px;
+    padding: 22px;
+    margin-bottom: 8px;
+}
+
+.gaveta-cadastro h3 {
+    text-align: left;
+    margin-bottom: 16px;
+    color: var(--vermelho-escuro);
+}
+
+/* Tabela de relatórios (Caixa & Contas) */
+.tabela-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    border-radius: 18px;
+    box-shadow: 0 8px 20px var(--sombra);
+}
+
+table.tabela-dados {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--branco);
+}
+
+table.tabela-dados thead {
+    background: linear-gradient(135deg, var(--vermelho-principal), var(--laranja));
+}
+
+table.tabela-dados th {
+    padding: 14px 16px;
+    color: var(--branco);
+    text-align: left;
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+table.tabela-dados td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #f1e2d6;
+    font-size: 0.9rem;
+    color: var(--texto-escuro);
+}
+
+table.tabela-dados tbody tr:last-child td {
+    border-bottom: none;
+}
+
+table.tabela-dados tbody tr:hover {
+    background: var(--creme);
+}
+
+.oculto {
+    display: none;
+}
+
+.texto-secundario {
+    font-size: 0.85rem;
+    color: #a68c7a;
+}
+
+.valor-destaque {
+    color: var(--vermelho-principal);
+    font-weight: 700;
+}
+
+.badge-cargo {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: rgba(247, 127, 0, 0.14);
+    color: var(--laranja);
+    font-weight: 700;
+    font-size: 0.78rem;
+}
+
+/* Monitor Operacional: colunas simples reutilizando o tom do painel */
+.monitor-grade {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.monitor-coluna {
+    flex: 1;
+    min-width: 260px;
+    background: var(--creme);
+    border: 2px solid #f1e2d6;
+    border-radius: 18px;
+    padding: 18px;
+}
+
+.monitor-coluna h3 {
+    color: var(--vermelho-escuro);
+    text-align: left;
+    margin-bottom: 10px;
+    font-size: 1rem;
+}
+
+.monitor-coluna ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: var(--texto-escuro);
+}
+
+@media (max-width: 900px) {
+    .admin-wrapper {
+        padding: 20px;
+    }
+}

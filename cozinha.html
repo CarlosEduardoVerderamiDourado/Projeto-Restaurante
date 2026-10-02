@@ -4,52 +4,51 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ratatue - Painel de Controle da Cozinha</title>
-    <style>
-        /* Estilos básicos para organizar os cartões na tela */
-        .painel-cozinha {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            padding: 20px;
-        }
-        .card-pedido {
-            border: 2px solid #333;
-            border-radius: 8px;
-            padding: 15px;
-            width: 250px;
-            box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        .card-pedido:hover {
-            transform: scale(1.02);
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <!-- 🚨 CORTINA DE CONFIRMAÇÃO VISUAL (Substitui o confirm() nativo do navegador) -->
-<div id="tela-confirmacao-cozinha" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); color: white; z-index: 9999; text-align: center; padding-top: 15%;">
-    <div style="background: #222; display: inline-block; padding: 30px; border-radius: 10px; border: 2px solid #dc3545; max-width: 400px;">
-        <h2 id="confirm-titulo" style="color: #dc3545; font-size: 24px; margin: 0;">🚪 Sair da Cozinha</h2>
-        <p id="confirm-texto" style="font-size: 18px; margin: 20px 0;">Deseja realmente encerrar a sua sessão de trabalho na produção?</p>
-        <div style="display: flex; gap: 15px; justify-content: center;">
-            <button id="btn-confirm-sim" style="padding: 10px 20px; background: #28a745; color: white; border: none; font-weight: bold; border-radius: 4px; cursor: pointer;">Sim</button>
-            <button id="btn-confirm-nao" style="padding: 10px 20px; background: #dc3545; color: white; border: none; font-weight: bold; border-radius: 4px; cursor: pointer;">Não</button>
+<div id="tela-confirmacao-cozinha" class="modal-overlay">
+    <div class="modal-caixa">
+        <h2 id="confirm-titulo">🚪 Sair da Cozinha</h2>
+        <p id="confirm-texto">Deseja realmente encerrar a sua sessão de trabalho na produção?</p>
+        <div class="modal-botoes">
+            <button id="btn-confirm-sim" class="modal-btn modal-btn-confirmar">Sim</button>
+            <button id="btn-confirm-nao" class="modal-btn modal-btn-cancelar">Não</button>
         </div>
     </div>
 </div>
 
-<!-- 🟢 Botão de Logout Físico na barra superior da cozinha -->
-<button onclick="fazerLogoutCozinha()" style="padding: 6px 12px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-bottom: 20px;">🚪 Sair / Deslogar</button>
-
+<!-- 🟢 Botão de Logout fixo no canto superior -->
+<button onclick="fazerLogoutCozinha()" class="btn-logout">🚪 Sair</button>
 
     <h1>🍳 KDS Ratatue - Controle de Preparo</h1>
-    <p>Clique em cima de um pedido para avançar o estado dele. (Os atrasados ficam vermelhos automaticamente!)</p>
+    <p>Clique em cima de um pedido para avançar o estado dele. (Os atrasados são sinalizados automaticamente!)</p>
 
-    <!-- O tabuleiro onde os pedidos coloridos vão brotar sozinhos -->
-    <div id="container-pedidos" class="painel-cozinha">
-        <!-- Injetado dinamicamente pelo JavaScript -->
+    <!-- O painel de status onde os pedidos vão brotar agrupados por fase -->
+    <div class="painel-wrapper">
+        <div class="painel-coluna">
+            <h2 class="painel-titulo">Pedidos em Andamento</h2>
+            <div class="status-grade" id="container-pedidos">
+                <div class="status-bloco status-espera">
+                    <div class="status-titulo">🕐 Em Espera</div>
+                    <div class="status-lista" id="lista-espera"></div>
+                </div>
+                <div class="status-bloco status-preparo">
+                    <div class="status-titulo">👨‍🍳 Em Preparo</div>
+                    <div class="status-lista" id="lista-preparo"></div>
+                </div>
+                <div class="status-bloco status-atraso">
+                    <div class="status-titulo">🚨 Atrasado</div>
+                    <div class="status-lista" id="lista-atraso"></div>
+                </div>
+                <div class="status-bloco status-apressar">
+                    <div class="status-titulo">🔥 Apressar Preparo</div>
+                    <div class="status-lista" id="lista-apressar"></div>
+                </div>
+            </div>
+        </div>
     </div>
 
 <script>
@@ -108,71 +107,63 @@
         return Object.values(agrupados); // Converte o mapa em uma lista pura para renderizar
     }
 
-    // 🎨 Passo 4: Renderizar os cartões com o Semáforo de Cores Operacional
-        // 🎨 Passo 4: Renderizar os cartões com o Novo Semáforo de Cores (Incluindo Alerta Laranja)
+    // 🎨 Passo 4: Renderizar os cartões agrupados por fase (Espera / Preparo / Atraso / Apressar)
     function renderizarPainelCozinha(pedidos) {
-        const container = document.getElementById('container-pedidos');
-        if (!container) return;
-        container.innerHTML = "";
+        const listaEspera = document.getElementById('lista-espera');
+        const listaPreparo = document.getElementById('lista-preparo');
+        const listaAtraso = document.getElementById('lista-atraso');
+        const listaApressar = document.getElementById('lista-apressar');
+        if (!listaEspera) return;
 
-        if (pedidos.length === 0) {
-            container.innerHTML = "<h3>🎉 Cozinha limpa! Nenhum pedido pendente por enquanto.</h3>";
+        // 🚦 REGRA DO SEMÁFORO: separa cada pedido no balde certo conforme tempo + status
+        const baldes = { espera: [], preparo: [], atraso: [], apressar: [] };
+
+        pedidos.forEach(pedido => {
+            const horaPedido = new Date(pedido.horario_pedido);
+            const diferencaMinutos = Math.floor((new Date() - horaPedido) / 1000 / 60);
+
+            let balde = 'espera';
+            if (diferencaMinutos < 15) {
+                balde = (pedido.status_preparo === 'Em Preparo') ? 'preparo' : 'espera';
+            } else if (pedido.status_preparo === 'Pendente') {
+                balde = 'atraso'; // 🚨 Parado na fila há mais de 15min
+            } else if (pedido.status_preparo === 'Em Preparo') {
+                balde = 'apressar'; // 🔥 Já está na chapa, mas correndo contra o tempo
+            }
+
+            baldes[balde].push({ pedido, diferencaMinutos });
+        });
+
+        montarListaDePedidos(listaEspera, baldes.espera, 'Nenhum pedido em espera.', 'avancarStatusPedido');
+        montarListaDePedidos(listaPreparo, baldes.preparo, 'Nada em preparo agora.', 'avancarStatusPedido');
+        montarListaDePedidos(listaAtraso, baldes.atraso, 'Nenhum atraso. 🎉', 'avancarStatusPedido');
+        montarListaDePedidos(listaApressar, baldes.apressar, 'Tudo em dia.', 'avancarStatusPedido');
+    }
+
+    // 🧠 FUNÇÃO AUXILIAR REUTILIZÁVEL: monta a lista de .pedido-card dentro de um status-lista
+    function montarListaDePedidos(elemento, itens, mensagemVazia, funcaoClique) {
+        if (!elemento) return;
+        if (itens.length === 0) {
+            elemento.innerHTML = `<p class="sem-resultados">${mensagemVazia}</p>`;
             return;
         }
 
-        pedidos.forEach(pedido => {
-            // ⏱️ MATEMÁTICA DO TEMPO: Calcula a espera com base no horário real do MariaDB
-            const horaPedido = new Date(pedido.horario_pedido);
-            const agora = new Date();
-            const diferencaMinutos = Math.floor((agora - horaPedido) / 1000 / 60);
-
-            // 🚦 REGRA DO NOVO SEMÁFORO DE CORES INTELIGENTE:
-            let corDeFundo = "#ffffff"; // Padrão: Branco (Pendente)
-            let textoStatus = "Em Espera";
-
-            // Cenário A: Está dentro do tempo tolerável (Menos de 15 minutos)
-            if (diferencaMinutos < 15) {
-                if (pedido.status_preparo === 'Em Preparo') {
-                    corDeFundo = "#ffeb3b"; // Amarelo
-                    textoStatus = "Em Preparo";
-                }
-            } 
-            // Cenário B: Passou de 15 minutos (Atraso crítico)
-            else {
-                if (pedido.status_preparo === 'Pendente') {
-                    corDeFundo = "#f44336"; // Vermelho (Parado na fila)
-                    textoStatus = "🚨 ATRASADO!";
-                } else if (pedido.status_preparo === 'Em Preparo') {
-                    // 🟢 A NOVA REGRA DE NEGÓCIO SOLICITADA:
-                    corDeFundo = "#ff9800"; // Laranja (Já está na chapa, mas correndo contra o tempo!)
-                    textoStatus = "🔥 APRESSAR PREPARO!";
-                }
-            }
-
-            // Garante que o texto fique legível (Branco para fundos escuros, preto para claros)
-            const corTexto = (corDeFundo === '#f44336' || corDeFundo === '#ff9800') ? 'white' : 'black';
-
-            // Agrupa os itens legíveis em tópicos para o Chef ler
+        elemento.innerHTML = itens.map(({ pedido, diferencaMinutos }) => {
             let itensHTML = "";
             pedido.itens.forEach(item => {
-                itensHTML += `<li><strong>${item.quantidade}x</strong> ${item.nome_item}</li>`;
+                itensHTML += `<li>${item.quantidade}x ${item.nome_item}</li>`;
             });
 
-            // Constrói o cartão injetando as variáveis e a nova paleta de cor dinamicamente
-            const cardHTML = `
-                <div class="card-pedido" 
-                     style="background-color: ${corDeFundo}; color: ${corTexto}; border: 2px solid #333; padding: 15px; margin: 10px; width: 220px; display: inline-block; vertical-align: top; cursor: pointer; border-radius: 6px; text-align: center; box-shadow: 2px 2px 10px rgba(0,0,0,0.1);"
-                     onclick="avancarStatusPedido(${pedido.id_pedido}, '${pedido.status_preparo}')">
-                    <h3>Pedido #${pedido.id_pedido}</h3>
-                    <p>Comanda: <strong>${pedido.id_comanda}</strong></p>
-                    <p>Tempo: <strong>${diferencaMinutos} min atrás</strong></p>
-                    <p>Status: <strong>${textoStatus}</strong></p>
-                    <hr style="border: 0; border-top: 1px solid ${corTexto === 'white' ? 'rgba(255,255,255,0.4)' : '#ccc'}; margin: 10px 0;">
-                    <ul style="text-align: left; padding-left: 20px; margin: 0;">${itensHTML}</ul>
+            return `
+                <div class="pedido-card" onclick="${funcaoClique}(${pedido.id_pedido}, '${pedido.status_preparo}')">
+                    <div class="pedido-cabecalho">
+                        <span class="pedido-mesa">Pedido #${pedido.id_pedido} · Comanda ${pedido.id_comanda}</span>
+                        <span class="pedido-tempo">${diferencaMinutos} min</span>
+                    </div>
+                    <ul class="pedido-itens">${itensHTML}</ul>
                 </div>
             `;
-            container.innerHTML += cardHTML;
-        });
+        }).join("");
     }
 
 
@@ -207,7 +198,7 @@
 
     // 🚪 AÇÃO: Fazer Logout com Limpeza Estrita de Memória no mesmo PC
     function fazerLogoutCozinha() {
-        document.getElementById('tela-confirmacao-cozinha').style.display = 'block';
+        document.getElementById('tela-confirmacao-cozinha').classList.add('modal-visivel');
         document.getElementById('confirm-titulo').innerText = "🚪 Sair do Sistema";
         document.getElementById('confirm-texto').innerText = "Deseja realmente encerrar a sua sessão de trabalho na Cozinha?";
 
@@ -218,7 +209,7 @@
         };
 
         document.getElementById('btn-confirm-nao').onclick = function() {
-            document.getElementById('tela-confirmacao-cozinha').style.display = 'none';
+            document.getElementById('tela-confirmacao-cozinha').classList.remove('modal-visivel');
         };
     }
 </script>

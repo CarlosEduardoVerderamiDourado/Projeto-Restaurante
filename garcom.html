@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ratatue - Painel do Garçom</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <h1>🛎️ Painel de Chamados do Salão</h1>
+    <p>Fique atento! Novas solicitações de clientes aparecerão aqui automaticamente.</p>
+
+    <!-- O painel onde as mesas que chamaram vão aparecer -->
+    <div class="painel-wrapper">
+        <div class="painel-coluna">
+            <div id="container-chamados" class="mesas-lista">
+                <!-- Injetado dinamicamente pelo JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 🔄 Passo 1: Polling Automático - Carrega ao abrir a página e atualiza a cada 5 segundos
+        window.onload = function() {
+            carregarChamadosPendentes();
+            setInterval(carregarChamadosPendentes, 5000); // Fica de olho no salão sem precisar de F5!
+        }
+
+        // 📥 Passo 2: Buscar os chamados 'Pendentes' direto da API do Backend
+        function carregarChamadosPendentes() {
+            fetch("http://localhost:3000/api/garcons/chamados")
+            .then(resposta => resposta.json())
+            .then(chamados => {
+                renderizarChamados(chamados);
+            })
+            .catch(erro => console.error("Erro ao carregar chamados do salão:", erro));
+        }
+
+        // 🎨 Passo 3: Desenhar os cartões das mesas na tela dinamicamente
+        function renderizarChamados(listaDeChamados) {
+            const container = document.getElementById('container-chamados');
+            container.innerHTML = "";
+
+            if (listaDeChamados.length === 0) {
+                container.innerHTML = "<p class='sem-resultados'>✅ Salão tranquilo! Nenhuma mesa chamando no momento.</p>";
+                return;
+            }
+
+            listaDeChamados.forEach(chamado => {
+                // Calcula quantos minutos se passaram desde o clique do cliente
+                const horaChamado = new Date(chamado.horario_chamado);
+                const agora = new Date();
+                const diferencaMinutos = Math.floor((agora - horaChamado) / 1000 / 60);
+                const ehConta = chamado.status_chamado === 'Pagamento';
+
+                // Monta o cartão visual da mesa com o botão de ação
+                const cardHTML = `
+                    <div class="mesa-atendimento-card ${ehConta ? 'tipo-conta' : ''}">
+                        <span class="chamado-tipo">${ehConta ? '💳 Pedido de Conta' : '🛎️ ' + chamado.status_chamado}</span>
+                        <span class="mesa-atendimento-numero">Mesa ${chamado.id_mesa}</span>
+                        <span class="chamado-tempo">Aguardando há ${diferencaMinutos} min</span>
+                        <button class="btn-pill-sm" onclick="atenderMesa(${chamado.id_chamado}, ${chamado.id_mesa})">Atender</button>
+                    </div>
+                `;
+                container.innerHTML += cardHTML;
+            });
+        }
+
+        // 🏃‍♂️ Passo 4: Ação do Clique - O Garçom aceita atender a mesa
+        function atenderMesa(id_chamado, id_mesa) {
+            // Resgata o ID do garçom logado (se não achar nada no localStorage, usa o 1 como teste provisório)
+            const id_funcionario = localStorage.getItem('id_funcionario_logado') || 1;
+
+            console.log(`Disparando atendimento para o chamado #${id_chamado} pelo Garçom #${id_funcionario}`);
+
+            // Envia o pacote direto para a rota de POST que você criou no Backend!
+            fetch("http://localhost:3000/api/garcons/aceitar-chamado", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ 
+                    id_chamado: id_chamado, 
+                    id_funcionario: id_funcionario 
+                })
+            })
+            .then(resposta => resposta.json())
+            .then(dados => {
+                if (dados.sucesso) {
+                    alert(`Atendimento confirmado para a Mesa ${id_mesa}! Vá até o salão.`);
+                    // Atualiza a tela imediatamente para sumir com o cartão atendido
+                    carregarChamadosPendentes();
+                } else {
+                    alert("Erro ao aceitar o chamado.");
+                }
+            })
+            .catch(erro => {
+                console.error("Erro na comunicação de atendimento:", erro);
+                alert("Não foi possível conectar ao servidor do salão.");
+            });
+        }
+    </script>
+
+</body>
+</html>
