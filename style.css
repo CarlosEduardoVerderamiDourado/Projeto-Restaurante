@@ -6,11 +6,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Baloo+2:wght@500;600;700;800&display=swap');
 
 :root {
-    --vermelho-principal: #d62828;
-    --vermelho-escuro: #a51c1c;
-    --vermelho-claro: #ff5c5c;
-    --laranja: #f77f00;
-    --laranja-claro: #ffb347;
+    --vermelho-principal: #004aad;
+    --vermelho-escuro: #002c66;
+    --vermelho-claro: #3a85e8;
+    --laranja: #016a79;
+    --laranja-claro: #0097b2;
     --creme: #fff8f0;
     --texto-escuro: #3a2020;
     --branco: #ffffff;
