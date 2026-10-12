@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../database'); // Puxa a conexão compartilhada
 
-// 📥 ROTA ATUALIZADA: Recebe o pedido personalizado e trata os dados antes de salvar no MariaDB
+// 📥 ROTA 1: Receber carrinho do cliente e gravar a observação embutida no status_preparo
 router.post('/enviar', (req, res) => {
     const { mesa, itens } = req.body; 
 
@@ -27,24 +27,26 @@ router.post('/enviar', (req, res) => {
 
         const id_comanda = comandaResults[0].id_comanda;
 
-        // Query padrão de inserção na sua tabela pedidos_itens
         const queryItens = `
             INSERT INTO pedidos_itens 
             (id_comanda, id_produto, quantidade, preco_unitario_pago, status_preparo, horario_pedido) 
-            VALUES (?, ?, ?, ?, 'Pendente', NOW())
+            VALUES (?, ?, ?, ?, ?, NOW())
         `;
         
         let erroNoLaço = false;
         let itensProcessados = 0;
 
         itens.forEach(item => {
-            // 🟢 A MÁGICA DO BACKEND: Como nós não temos a coluna 'observacao' na tabela pedidos_itens,
-            // se o cliente editou o nome do item colocando o parênteses (Ex: "Hambúrguer (Sem picles)"),
-            // o Node roda uma query rápida para salvar temporariamente essa string na sessão ou log,
-            // ou você pode optar por criar a coluna mais tarde. 
-            // Por enquanto, o backend aceita o payload customizado do frontend perfeitamente!
+            // 🟢 A JOGADA OPERACIONAL: Se o nome do item contiver parênteses do front, extraímos a nota
+            let statusComObservacao = 'Pendente';
             
-            db.query(queryItens, [id_comanda, item.id_item, item.quantidade, item.preco], (err) => {
+            if (item.nome_item && item.nome_item.includes('(')) {
+                // Captura tudo o que está dentro ou depois do parênteses (Ex: "(Sem picles)")
+                const trechoObservacao = item.nome_item.substring(item.nome_item.indexOf('('));
+                statusComObservacao = `Pendente ${trechoObservacao}`;
+            }
+
+            db.query(queryItens, [id_comanda, item.id_item, item.quantidade, item.preco, statusComObservacao], (err) => {
                 if (err) {
                     console.error(`❌ Erro ao inserir item ID ${item.id_item}:`, err.message);
                     erroNoLaço = true;
@@ -67,12 +69,11 @@ router.post('/enviar', (req, res) => {
     }); 
 });
 
-
-// 🍳 ROTA: Listar apenas as COMIDAS pendentes para a tela da Cozinha (Lendo de pedidos_itens)
+// 🍳 ROTA 2: Listar apenas as COMIDAS pendentes para a tela da Cozinha (Exibindo o status estendido)
 router.get('/pendentes', (req, res) => {
     console.log("🍳 Cozinha solicitou a lista de pratos pendentes...");
 
-    // 🟢 CORREÇÃO: Alinhado para i.id_produto e i.status_preparo
+    // 🟢 Filtragem inteligente usando LIKE para não travar nos parênteses das customizações!
     const querySQL = `
         SELECT 
             i.id_pedido,
@@ -85,7 +86,7 @@ router.get('/pendentes', (req, res) => {
             c.categoria
         FROM pedidos_itens i
         INNER JOIN cardapio c ON i.id_produto = c.id_item
-        WHERE i.status_preparo IN ('Pendente', 'Em Preparo') 
+        WHERE (i.status_preparo LIKE 'Pendente%' OR i.status_preparo LIKE 'Em Preparo%') 
           AND c.categoria != 'Bebidas'
         ORDER BY i.horario_pedido ASC
     `;
@@ -99,11 +100,10 @@ router.get('/pendentes', (req, res) => {
     });
 });
 
-// 🍹 ROTA: Listar apenas as BEBIDAS pendentes para a tela do Bar (Lendo de pedidos_itens)
+// 🍹 ROTA 3: Listar apenas as BEBIDAS pendentes para a tela do Bar
 router.get('/pendentes-bar', (req, res) => {
     console.log("🍹 Bar solicitou a lista de bebidas pendentes...");
 
-    // 🟢 CORREÇÃO: Alinhado para i.id_produto e i.status_preparo
     const querySQL = `
         SELECT 
             i.id_pedido,
@@ -116,7 +116,7 @@ router.get('/pendentes-bar', (req, res) => {
             c.categoria
         FROM pedidos_itens i
         INNER JOIN cardapio c ON i.id_produto = c.id_item
-        WHERE i.status_preparo IN ('Pendente', 'Em Preparo') 
+        WHERE (i.status_preparo LIKE 'Pendente%' OR i.status_preparo LIKE 'Em Preparo%') 
           AND c.categoria = 'Bebidas'
         ORDER BY i.horario_pedido ASC
     `;
@@ -130,34 +130,46 @@ router.get('/pendentes-bar', (req, res) => {
     });
 });
 
-// 🔄 ROTA: Atualizar o status do pedido (Muda em pedidos_itens)
+// 🔄 ROTA 4: Atualizar o status do pedido preservando as observações se existirem
 router.post('/atualizar-status', (req, res) => {
     const { id_pedido, novo_status } = req.body;
 
-    console.log(`🔀 Mudando o pedido número ${id_pedido} para o status: ${novo_status}`);
+    console.log(`🔀 Atualizando pedido #${id_pedido} para o macro status: ${novo_status}`);
 
-    // 🟢 CORREÇÃO: Alinhado para status_preparo
-    const querySQL = "UPDATE pedidos_itens SET status_preparo = ? WHERE id_pedido = ?";
-
-    db.query(querySQL, [novo_status, id_pedido], (err, results) => {
-        if (err) {
-            console.error("❌ Erro ao atualizar status do pedido:", err.message);
-            return res.status(500).json({ erro: "Erro ao atualizar o status no banco de dados" });
+    // Primeiro buscamos o status antigo para ver se tem alguma nota entre parênteses para não apagar a nota!
+    const queryBusca = "SELECT status_preparo FROM pedidos_itens WHERE id_pedido = ?";
+    
+    db.query(queryBusca, [id_pedido], (err, buscaResults) => {
+        if (err || buscaResults.length === 0) {
+            return res.status(500).json({ erro: "Erro ao localizar pedido para atualização" });
         }
 
-        return res.json({ 
-            sucesso: true, 
-            mensagem: `Pedido updated para '${novo_status}' com sucesso!` 
+        const statusAntigo = buscaResults[0].status_preparo;
+        let statusFinalNovo = novo_status;
+
+        // Se o status antigo tinha parênteses, repassa o parênteses para o novo status (Ex: "Em Preparo (Sem picles)")
+        if (statusAntigo.includes('(')) {
+            const notaExtra = statusAntigo.substring(statusAntigo.indexOf('('));
+            statusFinalNovo = `${novo_status} ${notaExtra}`;
+        }
+
+        const querySQL = "UPDATE pedidos_itens SET status_preparo = ? WHERE id_pedido = ?";
+
+        db.query(querySQL, [statusFinalNovo, id_pedido], (err, results) => {
+            if (err) {
+                console.error("❌ Erro ao atualizar status:", err.message);
+                return res.status(500).json({ erro: "Erro ao salvar o status no banco" });
+            }
+            return res.json({ sucesso: true, mensagem: `Pedido atualizado para '${statusFinalNovo}' com sucesso!` });
         });
     });
 });
 
-// 📑 ROTA: Puxar o extrato completo lendo puramente da tabela pedidos_itens
+// 📑 ROTA 5: Puxar o extrato completo
 router.get('/extrato/:mesa', (req, res) => {
     const { mesa } = req.params;
     console.log(`🧾 Gerando extrato de consumo para a Mesa ${mesa}...`);
 
-    // 🟢 CORREÇÃO: Alinhado para i.id_produto e i.preco_unitario_pago
     const querySQL = `
         SELECT 
             c.id_item,
@@ -183,20 +195,15 @@ router.get('/extrato/:mesa', (req, res) => {
             valorTotalMesa += Number(linha.subtotal_item);
         });
 
-        return res.json({
-            sucesso: true,
-            itens_consumidos: results,
-            total_geral: valorTotalMesa
-        });
+        return res.json({ sucesso: true, itens_consumidos: results, total_geral: valorTotalMesa });
     });
 });
 
-// 💳 ROTA ADICIONADA: Acionar Garçom para a Conta (Salvando como status 'Pagamento')
+// 💳 ROTA 6: Acionar Garçom para a Conta
 router.post('/solicitar-garcom', (req, res) => {
     const { mesa } = req.body;
     console.log(`💳 Mesa ${mesa} solicitou a maquininha para fechar a conta...`);
 
-    // 🟢 GRAVAÇÃO COM STATUS EXCLUSIVO: 'Pagamento' para o painel do garçom saber separar!
     const querySQL = "INSERT INTO chamados_atendimento (id_mesa, status_chamado, horario_chamado) VALUES (?, 'Pagamento', NOW())";
 
     db.query(querySQL, [mesa], (err, results) => {
@@ -208,11 +215,10 @@ router.post('/solicitar-garcom', (req, res) => {
     });
 });
 
-// 👁️🦅 6. ROTA: Monitor Geral "Olho de Águia" para o Administrador acompanhar tudo em tempo real
+// 👁️🦅 ROTA 7: Monitor Geral Olho de Águia
 router.get('/monitor-geral', (req, res) => {
     console.log("👁️🦅 Gerência solicitou o painel mestre Olho de Águia...");
 
-    // 🟢 MÁGICA CONSTRUÍDA: Cruzamos pi.id_comanda com com.id_comanda para buscar com.id_mesa real!
     const querySQL = `
         SELECT 
             pi.id_pedido,
@@ -225,20 +231,17 @@ router.get('/monitor-geral', (req, res) => {
         FROM pedidos_itens pi
         INNER JOIN cardapio c ON pi.id_produto = c.id_item
         INNER JOIN comandas com ON pi.id_comanda = com.id_comanda
-        WHERE pi.status_preparo IN ('Pendente', 'Em Preparo')
+        WHERE pi.status_preparo LIKE 'Pendente%' OR pi.status_preparo LIKE 'Em Preparo%'
         ORDER BY pi.horario_pedido ASC
     `;
 
     db.query(querySQL, [], (err, results) => {
         if (err) {
-            console.error("❌ Erro no monitor Olho de Águia do banco:", err.message);
+            console.error("❌ Erro no monitor Olho de Águia:", err.message);
             return res.status(500).json({ erro: "Erro ao carregar o monitor de pedidos gerencial" });
         }
-        
-        console.log("📊 Carga do monitor enviada com Mesas reais:", results);
         return res.json(results);
     });
 });
 
 module.exports = router;
-
