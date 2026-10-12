@@ -87,30 +87,45 @@
         let carrinho = [];
         let alertaExibido = false;
 
-        // 🛒 FUNÇÃO 1: Adicionar item à sacola inteligente com a quantidade escolhida (Livre de pop-ups!)
-        function adicionarAoCarrinho(id) {
-            const produto = todosOsProdutos.find(p => p.id_item === id);
-            
-            // Pega o valor numérico que está digitado no seletor daquele card específico
-            const inputQtd = document.getElementById(`qtd-${id}`);
-            const quantidadeEscolhida = parseInt(inputQtd.value) || 1;
+// 🛒 FUNÇÃO ATUALIZADA: Adiciona o prato à sacola capturando a string de observação
+function adicionarAoCarrinho(id) {
+    const produto = todosOsProdutos.find(p => p.id_item === id);
+    
+    const inputQtd = document.getElementById(`qtd-${id}`);
+    const quantidadeEscolhida = parseInt(inputQtd.value) || 1;
 
-            const itemNoCarrinho = carrinho.find(item => item.id_item === id);
+    // 🟢 CAPTURA CIRÚRGICA: Pega o que o cliente digitou no campo de observações
+    const inputObs = document.getElementById(`obs-${id}`);
+    const observacaoDigitada = inputObs ? inputObs.value.trim() : "";
 
-            if (itemNoCarrinho) {
-                itemNoCarrinho.quantidade += quantidadeEscolhida;
-            } else {
-                carrinho.push({ ...produto, quantidade: quantidadeEscolhida });
-            }
+    // Se houver texto, concatenamos (juntamos) direto no nome que vai viajar para as esteiras da cozinha
+    let nomeFinalDoPrato = produto.nome_item;
+    if (observacaoDigitada !== "") {
+        nomeFinalDoPrato = `${produto.nome_item} (${observacaoDigitada})`;
+    }
 
-            console.log("Sacola de Compras Atualizada:", carrinho);
-            
-            // Retorna o contador do card de volta para 1 para o próximo pedido
-            inputQtd.value = 1;
-            
-            // 🟢 Atualiza o painel financeiro na hora de forma silenciosa e elegante!
-            atualizarResumoCarrinho();
-        }
+    // Busca se já existe o mesmo item com exatamente a mesma customização na sacola
+    const itemNoCarrinho = carrinho.find(item => item.id_item === id && item.nome_item === nomeFinalDoPrato);
+
+    if (itemNoCarrinho) {
+        itemNoCarrinho.quantidade += quantidadeEscolhida;
+    } else {
+        // Clonamos o objeto injetando o nome customizado para trafegar via API
+        carrinho.push({ 
+            ...produto, 
+            nome_item: nomeFinalDoPrato, 
+            quantidade: quantidadeEscolhida 
+        });
+    }
+
+    console.log("🛒 Sacola atualizada com personalização:", carrinho);
+    
+    // Reseta o card para as próximas inserções
+    inputQtd.value = 1;
+    if (inputObs) inputObs.value = ""; 
+    
+    atualizarResumoCarrinho();
+}
 
         // ⏱️ FUNÇÕES AUXILIARES: Alterar o número no contador visual (+ e -)
         function alterarContadorVisual(id, operacao) {
@@ -226,39 +241,42 @@
             }
         }
 
-        // 🎨 FUNÇÃO 5: Renderizar os cards HTML dinamicamente (Com os botões de + e -)
-        function renderizarProdutos(listaDeProdutos) {
-            const container = document.getElementById('container-produtos');
-            container.innerHTML = "";
+// 🎨 FUNÇÃO ATUALIZADA: Renderiza os cards injetando o input de customização (Sem picles, sem cebola)
+function renderizarProdutos(listaDeProdutos) {
+    const container = document.getElementById('container-produtos');
+    container.innerHTML = "";
 
-            if (listaDeProdutos.length === 0) {
-                container.innerHTML = "<p>Nenhum produto cadastrado nesta categoria.</p>";
-                return;
-            }
+    if (listaDeProdutos.length === 0) {
+        container.innerHTML = "<p>Nenhum produto cadastrado nesta categoria.</p>";
+        return;
+    }
 
-            listaDeProdutos.forEach(produto => {
+    listaDeProdutos.forEach(produto => {
+        const cardHTML = `
+            <div class="produto-card" style="border: 1px solid #ddd; padding: 15px; border-radius: 8px; margin-bottom: 15px; background: #fff;">
+                <img src="${produto.imagem_url}" alt="${produto.nome_item}" style="width: 100%; max-height: 150px; object-fit: cover; border-radius: 6px;">
+                <h3 style="margin: 10px 0 5px 0; font-size: 18px;">${produto.nome_item}</h3>
+                <p style="font-size: 13px; color: #666; height: 40px; overflow: hidden; margin: 0 0 10px 0;">${produto.descricao || ''}</p>
+                <p style="font-size: 16px; font-weight: bold; margin: 5px 0;">R$ ${Number(produto.preco).toFixed(2)}</p>
+                
+                <div class="seletor-qtd" style="margin-bottom: 10px; display: flex; align-items: center; gap: 5px;">
+                    <button type="button" class="btn-qtd" onclick="alterarContadorVisual(${produto.id_item}, 'menos')">-</button>
+                    <input type="text" id="qtd-${produto.id_item}" class="input-qtd" value="1" readonly style="width: 30px; text-align: center;">
+                    <button type="button" class="btn-qtd" onclick="alterarContadorVisual(${produto.id_item}, 'mais')">+</button>
+                </div>
 
-                // 🟢 Injetados botões de controle de quantidade e ID dinâmico por input
-                const cardHTML = `
-                    <div class="produto-card">
-                        <img src="${produto.imagem_url}" alt="${produto.nome_item}">
-                        <h3 style="margin: 10px 0 5px 0; font-size: 18px;">${produto.nome_item}</h3>
-                        <p style="font-size: 13px; color: #666; height: 40px; overflow: hidden; margin: 0 0 10px 0;">${produto.descricao || ''}</p>
-                        <p style="font-size: 16px; font-weight: bold; margin: 5px 0;">R$ ${Number(produto.preco).toFixed(2)}</p>
-                        
-                        <div class="seletor-qtd">
-                            <button type="button" class="btn-qtd" onclick="alterarContadorVisual(${produto.id_item}, 'menos')">-</button>
-                            <input type="text" id="qtd-${produto.id_item}" class="input-qtd" value="1" readonly>
-                            <button type="button" class="btn-qtd" onclick="alterarContadorVisual(${produto.id_item}, 'mais')">+</button>
-                        </div>
+                <!-- 🟢 NOVO CAMPO DE CUSTOMIZAÇÃO: Input de texto para o cliente tirar ingredientes -->
+                <div style="margin-bottom: 12px;">
+                    <input type="text" id="obs-${produto.id_item}" placeholder="Ex: Sem picles, sem cebola..." 
+                           style="width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; box-sizing: border-box;">
+                </div>
 
-                        <button class="btn-add-sacola" onclick="adicionarAoCarrinho(${produto.id_item})">Adicionar</button>
-                    </div>
-                `;
-                container.innerHTML += cardHTML;
-            });
-        }
-
+                <button class="btn-add-sacola" onclick="adicionarAoCarrinho(${produto.id_item})" style="width: 100%; padding: 8px; background: #28a745; color: white; border: none; font-weight: bold; border-radius: 4px; cursor: pointer;">Adicionar</button>
+            </div>
+        `;
+        container.innerHTML += cardHTML;
+    });
+}
         // 🔀 FUNÇÃO 6: Filtro de abas por categoria
         function filtrarCategoria(categoriaSelecionada) {
             console.log("Filtrando por:", categoriaSelecionada);
