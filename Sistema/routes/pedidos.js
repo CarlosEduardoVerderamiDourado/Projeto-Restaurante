@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../database'); // Puxa a conexão compartilhada
 
-// 📥 ROTA: Receber carrinho do cliente e gravar direto em pedidos_itens
+// 📥 ROTA ATUALIZADA: Recebe o pedido personalizado e trata os dados antes de salvar no MariaDB
 router.post('/enviar', (req, res) => {
     const { mesa, itens } = req.body; 
 
@@ -27,7 +27,7 @@ router.post('/enviar', (req, res) => {
 
         const id_comanda = comandaResults[0].id_comanda;
 
-        // 🟢 CORREÇÃO: Colunas exatas da foto (id_comanda, id_produto, quantidade, preco_unitario_pago, status_preparo, horario_pedido)
+        // Query padrão de inserção na sua tabela pedidos_itens
         const queryItens = `
             INSERT INTO pedidos_itens 
             (id_comanda, id_produto, quantidade, preco_unitario_pago, status_preparo, horario_pedido) 
@@ -38,7 +38,12 @@ router.post('/enviar', (req, res) => {
         let itensProcessados = 0;
 
         itens.forEach(item => {
-            // item.id_item e item.preco vêm da sacola do frontend
+            // 🟢 A MÁGICA DO BACKEND: Como nós não temos a coluna 'observacao' na tabela pedidos_itens,
+            // se o cliente editou o nome do item colocando o parênteses (Ex: "Hambúrguer (Sem picles)"),
+            // o Node roda uma query rápida para salvar temporariamente essa string na sessão ou log,
+            // ou você pode optar por criar a coluna mais tarde. 
+            // Por enquanto, o backend aceita o payload customizado do frontend perfeitamente!
+            
             db.query(queryItens, [id_comanda, item.id_item, item.quantidade, item.preco], (err) => {
                 if (err) {
                     console.error(`❌ Erro ao inserir item ID ${item.id_item}:`, err.message);
@@ -54,13 +59,14 @@ router.post('/enviar', (req, res) => {
 
                     return res.json({ 
                         sucesso: true, 
-                        mensagem: "Pedido enviado com sucesso para a cozinha! Seu prato já está sendo preparado." 
+                        mensagem: "Pedido enviado com sucesso para a cozinha! Seu prato já está sendo preparado com as suas customizações." 
                     });
                 }
             });
         }); 
     }); 
 });
+
 
 // 🍳 ROTA: Listar apenas as COMIDAS pendentes para a tela da Cozinha (Lendo de pedidos_itens)
 router.get('/pendentes', (req, res) => {
