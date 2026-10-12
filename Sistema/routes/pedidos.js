@@ -2,31 +2,21 @@ const express = require('express');
 const router = express.Router();
 const db = require('../database'); // Puxa a conexão compartilhada
 
-// 📥 ROTA 1: Receber carrinho do cliente e gravar a observação embutida no status_preparo
+// 📥 ROTA 1 CORRIGIDA: Salva a observação direto na coluna status_preparo de forma compatível
 router.post('/enviar', (req, res) => {
     const { mesa, itens } = req.body; 
-
     console.log(`📦 Processando pedido recebido da Mesa ${mesa}...`);
 
-    if (!itens || itens.length === 0) {
-        return res.status(400).json({ erro: "A sacola de compras está vazia." });
-    }
+    if (!itens || itens.length === 0) return res.status(400).json({ erro: "Sacola vazia." });
 
-    // PASSO 1: Descobrir o ID da comanda ativa dessa mesa
     const queryComanda = "SELECT id_comanda FROM comandas WHERE id_mesa = ? AND status_comanda = 'Aberta'";
 
     db.query(queryComanda, [mesa], (err, comandaResults) => {
-        if (err) {
-            console.error("❌ Erro ao buscar comanda ativa:", err.message);
-            return res.status(500).json({ erro: "Erro interno ao processar o pedido" });
-        }
-
-        if (comandaResults.length === 0) {
-            return res.status(404).json({ erro: "Nenhuma comanda aberta foi encontrada para esta mesa." });
+        if (err || comandaResults.length === 0) {
+            return res.status(500).json({ erro: "Nenhuma comanda aberta para esta mesa." });
         }
 
         const id_comanda = comandaResults[0].id_comanda;
-
         const queryItens = `
             INSERT INTO pedidos_itens 
             (id_comanda, id_produto, quantidade, preco_unitario_pago, status_preparo, horario_pedido) 
@@ -37,43 +27,28 @@ router.post('/enviar', (req, res) => {
         let itensProcessados = 0;
 
         itens.forEach(item => {
-            // 🟢 A JOGADA OPERACIONAL: Se o nome do item contiver parênteses do front, extraímos a nota
-            let statusComObservacao = 'Pendente';
-            
+            // Captura a observação se ela existir no nome (Ex: "(Sem picles)")
+            let statusFinal = "Pendente";
             if (item.nome_item && item.nome_item.includes('(')) {
-                // Captura tudo o que está dentro ou depois do parênteses (Ex: "(Sem picles)")
-                const trechoObservacao = item.nome_item.substring(item.nome_item.indexOf('('));
-                statusComObservacao = `Pendente ${trechoObservacao}`;
+                const obs = item.nome_item.substring(item.nome_item.indexOf('('));
+                statusFinal = `Pendente ${obs}`; // Salva "Pendente (Sem picles)"
             }
 
-            db.query(queryItens, [id_comanda, item.id_item, item.quantidade, item.preco, statusComObservacao], (err) => {
-                if (err) {
-                    console.error(`❌ Erro ao inserir item ID ${item.id_item}:`, err.message);
-                    erroNoLaço = true;
-                }
-
+            db.query(queryItens, [id_comanda, item.id_item, item.quantidade, item.preco, statusFinal], (err) => {
+                if (err) erroNoLaço = true;
                 itensProcessados++;
 
                 if (itensProcessados === itens.length) {
-                    if (erroNoLaço) {
-                        return res.status(500).json({ erro: "Alguns itens falharam ao salvar no banco." });
-                    }
-
-                    return res.json({ 
-                        sucesso: true, 
-                        mensagem: "Pedido enviado com sucesso para a cozinha! Seu prato já está sendo preparado com as suas customizações." 
-                    });
+                    if (erroNoLaço) return res.status(500).json({ erro: "Falha ao salvar itens." });
+                    return res.json({ sucesso: true, mensagem: "Pedido enviado com sucesso!" });
                 }
             });
         }); 
     }); 
 });
 
-// 🍳 ROTA 2: Listar apenas as COMIDAS pendentes para a tela da Cozinha (Exibindo o status estendido)
+// 🍳 ROTA 2 CORRIGIDA: Puxa os pedidos usando LIKE para o card não sumir da tela!
 router.get('/pendentes', (req, res) => {
-    console.log("🍳 Cozinha solicitou a lista de pratos pendentes...");
-
-    // 🟢 Filtragem inteligente usando LIKE para não travar nos parênteses das customizações!
     const querySQL = `
         SELECT 
             i.id_pedido,
@@ -92,13 +67,11 @@ router.get('/pendentes', (req, res) => {
     `;
 
     db.query(querySQL, [], (err, results) => {
-        if (err) {
-            console.error("❌ Erro ao buscar pedidos na cozinha:", err.message);
-            return res.status(500).json({ erro: "Erro ao carregar os pedidos da cozinha" });
-        }
+        if (err) return res.status(500).json({ erro: "Erro ao carregar os pedidos da cozinha" });
         return res.json(results);
     });
 });
+
 
 // 🍹 ROTA 3: Listar apenas as BEBIDAS pendentes para a tela do Bar
 router.get('/pendentes-bar', (req, res) => {
