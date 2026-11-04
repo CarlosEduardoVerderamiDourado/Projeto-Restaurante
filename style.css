@@ -1,16 +1,15 @@
 /* ===========================================================
-   Ratatue — Estilos Gerais
-   Paleta: vermelhos (predominante) + laranjas (secundário)
+   Remy
    =========================================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Baloo+2:wght@500;600;700;800&display=swap');
 
 :root {
-    --vermelho-principal: #004aad;
-    --vermelho-escuro: #002c66;
-    --vermelho-claro: #3a85e8;
-    --laranja: #016a79;
-    --laranja-claro: #0097b2;
+    --cor-primaria: #004aad;
+    --cor-pescuro: #002c66;
+    --cor-pclaro: #3a85e8;
+    --cor-secundaria: #016a79;
+    --cor-sclaro: #0097b2;
     --creme: #fff8f0;
     --texto-escuro: #3a2020;
     --branco: #ffffff;
@@ -25,7 +24,7 @@
 
 body {
     font-family: 'Quicksand', 'Baloo 2', sans-serif;
-    background: linear-gradient(160deg, var(--vermelho-escuro) 0%, var(--vermelho-principal) 100%);
+    background: linear-gradient(160deg, var(--cor-pescuro) 0%, var(--cor-primaria) 100%);
     color: var(--texto-escuro);
     min-height: 100vh;
     display: flex;
@@ -47,7 +46,7 @@ h1, h2, h3 {
 #resumo-carrinho h1, #resumo-carrinho h2, #resumo-carrinho h3,
 .admin-wrapper h1, .admin-wrapper h2, .admin-wrapper h3,
 .gerencia-conteudo h1, .gerencia-conteudo h2, .gerencia-conteudo h3 {
-    color: var(--vermelho-escuro);
+    color: var(--cor-pescuro);
 }
 
 .admin-wrapper h2, .admin-wrapper h3 {
@@ -94,7 +93,7 @@ h1, h2, h3 {
     font-family: inherit;
     font-weight: 600;
     font-size: 0.95rem;
-    color: var(--vermelho-escuro);
+    color: var(--cor-pescuro);
     border-radius: 999px;
     cursor: pointer;
     transition: all 0.25s ease;
@@ -105,7 +104,7 @@ h1, h2, h3 {
 }
 
 .tab-btn.active {
-    background: linear-gradient(135deg, var(--vermelho-principal), var(--laranja));
+    background: linear-gradient(135deg, var(--cor-primaria), var(--cor-secundaria));
     color: var(--branco);
     box-shadow: 0 4px 12px var(--sombra);
 }
@@ -131,7 +130,7 @@ h1, h2, h3 {
 .form-group label {
     font-weight: 600;
     font-size: 0.9rem;
-    color: var(--vermelho-escuro);
+    color: var(--cor-pescuro);
 }
 
 .form-group input,
@@ -156,7 +155,7 @@ h1, h2, h3 {
 .form-group select:focus,
 .form-group textarea:focus {
     outline: none;
-    border-color: var(--vermelho-principal);
+    border-color: var(--cor-primaria);
     box-shadow: 0 0 0 4px rgba(214, 40, 40, 0.12);
 }
 
@@ -165,7 +164,7 @@ h1, h2, h3 {
     padding: 14px;
     border: none;
     border-radius: 999px;
-    background: linear-gradient(135deg, var(--vermelho-principal), var(--laranja));
+    background: linear-gradient(135deg, var(--cor-primaria), var(--cor-secundaria));
     color: var(--branco);
     font-family: inherit;
     font-weight: 700;
@@ -206,7 +205,7 @@ h1, h2, h3 {
 
 #titulo-mesa {
     font-size: 1.6rem;
-    background: linear-gradient(135deg, var(--vermelho-principal), var(--laranja));
+    background: linear-gradient(135deg, var(--cor-primaria), var(--cor-secundaria));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -235,7 +234,7 @@ h1, h2, h3 {
     border: none;
     border-radius: 999px;
     background: var(--branco);
-    color: var(--vermelho-escuro);
+    color: var(--cor-pescuro);
     font-family: inherit;
     font-weight: 700;
     font-size: 0.95rem;
@@ -256,11 +255,11 @@ h1, h2, h3 {
 }
 
 .btn-garcom {
-    background: linear-gradient(135deg, var(--vermelho-principal), var(--vermelho-claro));
+    background: linear-gradient(135deg, var(--cor-primaria), var(--cor-pclaro));
 }
 
 .btn-autoatendimento {
-    background: linear-gradient(135deg, var(--laranja), var(--laranja-claro));
+    background: linear-gradient(135deg, var(--cor-secundaria), var(--cor-sclaro));
 }
 
 /* ===========================================================
@@ -275,7 +274,7 @@ h1, h2, h3 {
     border-radius: 999px;
     box-shadow: 0 8px 20px var(--sombra);
     display: inline-block;
-    color: var(--vermelho-escuro);
+    color: var(--cor-pescuro);
 }
 
 .categorias-abas {
@@ -292,9 +291,9 @@ h1, h2, h3 {
 
 .categorias-abas button {
     padding: 10px 22px;
-    border: 2px solid var(--laranja);
+    border: 2px solid var(--cor-secundaria);
     background: var(--branco);
-    color: var(--vermelho-escuro);
+    color: var(--cor-pescuro);
     border-radius: 999px;
     font-family: inherit;
     font-weight: 600;
@@ -304,7 +303,7 @@ h1, h2, h3 {
 
 .categorias-abas button:hover,
 .categorias-abas button.categoria-ativa {
-    background: linear-gradient(135deg, var(--vermelho-principal), var(--laranja));
+    background: linear-gradient(135deg, var(--cor-primaria), var(--cor-secundaria));
     color: var(--branco);
     border-color: transparent;
     box-shadow: 0 6px 14px var(--sombra);
@@ -323,7 +322,7 @@ h1, h2, h3 {
     padding: 28px 16px;
     border: none;
     border-radius: 20px;
-    background: linear-gradient(135deg, var(--vermelho-principal), var(--laranja));
+    background: linear-gradient(135deg, var(--cor-primaria), var(--cor-secundaria));
     color: var(--branco);
     font-family: inherit;
     font-weight: 700;
@@ -375,7 +374,7 @@ h1, h2, h3 {
 
 .produto-card h3 {
     font-size: 1.1rem;
-    color: var(--vermelho-escuro);
+    color: var(--cor-pescuro);
 }
 
 .produto-card p {
@@ -388,7 +387,7 @@ h1, h2, h3 {
     padding: 10px;
     border: none;
     border-radius: 999px;
-    background: linear-gradient(135deg, var(--vermelho-principal), var(--laranja));
+    background: linear-gradient(135deg, var(--cor-primaria), var(--cor-secundaria));
     color: var(--branco);
     font-family: inherit;
     font-weight: 700;
@@ -418,7 +417,7 @@ h1, h2, h3 {
 
 #resumo-carrinho h3 {
     margin-bottom: 12px;
-    color: var(--vermelho-escuro);
+    color: var(--cor-pescuro);
 }
 
 #resumo-carrinho p {
@@ -430,7 +429,7 @@ h1, h2, h3 {
     margin-top: 14px;
     padding: 12px 20px !important;
     border-radius: 999px !important;
-    background: linear-gradient(135deg, var(--vermelho-principal), var(--laranja)) !important;
+    background: linear-gradient(135deg, var(--cor-primaria), var(--cor-secundaria)) !important;
     border: none !important;
     color: var(--branco) !important;
     font-family: inherit;
@@ -486,7 +485,7 @@ body:has(.painel-wrapper) {
 }
 
 .painel-titulo {
-    color: var(--vermelho-escuro);
+    color: var(--cor-pescuro);
     font-size: 1.5rem;
     text-align: left;
     margin-bottom: 4px;
@@ -543,11 +542,11 @@ body:has(.painel-wrapper) {
 
 .status-atraso {
     background: #ffb3b3;
-    border: 2px solid var(--vermelho-principal);
+    border: 2px solid var(--cor-primaria);
 }
 
 .status-atraso .status-titulo {
-    color: var(--vermelho-escuro);
+    color: var(--cor-pescuro);
 }
 
 .status-pronto {
@@ -576,7 +575,7 @@ body:has(.painel-wrapper) {
 
 .pedido-mesa {
     font-weight: 700;
-    color: var(--vermelho-escuro);
+    color: var(--cor-pescuro);
     font-size: 0.95rem;
 }
 
@@ -603,7 +602,7 @@ body:has(.painel-wrapper) {
 }
 
 .mesa-atendimento-card {
-    border: 2px solid var(--vermelho-escuro);
+    border: 2px solid var(--cor-pescuro);
     border-radius: 18px;
     padding: 20px;
     display: flex;
@@ -615,7 +614,7 @@ body:has(.painel-wrapper) {
     font-family: 'Baloo 2', 'Quicksand', sans-serif;
     font-weight: 700;
     font-size: 1.15rem;
-    color: var(--vermelho-escuro);
+    color: var(--cor-pescuro);
 }
 
 /* Estado de exemplo: dados fictícios exibidos com opacidade reduzida
@@ -694,7 +693,7 @@ body:has(.gerencia-wrapper) {
 
 .input-edicao-nome {
     padding: 6px 10px;
-    border: 2px solid var(--laranja);
+    border: 2px solid var(--cor-secundaria);
     border-radius: 10px;
     font-family: inherit;
     font-weight: 600;
@@ -704,7 +703,7 @@ body:has(.gerencia-wrapper) {
 
 .input-edicao-nome:focus {
     outline: none;
-    border-color: var(--vermelho-principal);
+    border-color: var(--cor-primaria);
 }
 
 .funcionario-separador {
@@ -731,12 +730,12 @@ body:has(.gerencia-wrapper) {
 
 .status-faltou {
     background: rgba(214, 40, 40, 0.12);
-    color: var(--vermelho-principal);
+    color: var(--cor-primaria);
 }
 
 .status-ferias {
     background: rgba(247, 127, 0, 0.14);
-    color: var(--laranja);
+    color: var(--cor-secundaria);
 }
 
 .status-afastado {
@@ -757,22 +756,22 @@ body:has(.gerencia-wrapper) {
     font-family: inherit;
     font-weight: 700;
     font-size: 0.85rem;
-    color: var(--vermelho-escuro);
+    color: var(--cor-pescuro);
     cursor: pointer;
     text-decoration: underline;
     padding: 0;
 }
 
 .acao-link:hover {
-    color: var(--laranja);
+    color: var(--cor-secundaria);
 }
 
 .acao-excluir {
-    color: var(--vermelho-principal);
+    color: var(--cor-primaria);
 }
 
 .acao-excluir:hover {
-    color: var(--vermelho-escuro);
+    color: var(--cor-pescuro);
 }
 
 .sem-resultados {
@@ -784,7 +783,7 @@ body:has(.gerencia-wrapper) {
 
 /* Barra de pesquisa */
 .pesquisa-barra {
-    border: 2px solid var(--laranja);
+    border: 2px solid var(--cor-secundaria);
     border-radius: 16px;
     padding: 4px;
 }
@@ -817,7 +816,7 @@ body:has(.gerencia-wrapper) {
 
 .gerencia-logo {
     height: 90px;
-    background: linear-gradient(135deg, var(--vermelho-principal), var(--laranja));
+    background: linear-gradient(135deg, var(--cor-primaria), var(--cor-secundaria));
 }
 
 .menu-item {
@@ -827,7 +826,7 @@ body:has(.gerencia-wrapper) {
     font-family: inherit;
     font-weight: 700;
     font-size: 1rem;
-    color: var(--vermelho-escuro);
+    color: var(--cor-pescuro);
     cursor: pointer;
     text-align: left;
     border-bottom: 1px solid #f1e2d6;
@@ -843,12 +842,12 @@ body:has(.gerencia-wrapper) {
 }
 
 .menu-item-ativo {
-    background: linear-gradient(135deg, var(--vermelho-principal), var(--laranja));
+    background: linear-gradient(135deg, var(--cor-primaria), var(--cor-secundaria));
     color: var(--branco);
 }
 
 .menu-item-ativo:hover {
-    background: linear-gradient(135deg, var(--vermelho-principal), var(--laranja));
+    background: linear-gradient(135deg, var(--cor-primaria), var(--cor-secundaria));
 }
 
 /* Modal de confirmação de exclusão */
@@ -909,7 +908,7 @@ body:has(.gerencia-wrapper) {
 }
 
 .modal-btn-confirmar {
-    background: linear-gradient(135deg, var(--vermelho-principal), var(--vermelho-claro));
+    background: linear-gradient(135deg, var(--cor-primaria), var(--cor-pclaro));
     color: var(--branco);
 }
 
@@ -946,7 +945,7 @@ body:has(.gerencia-wrapper) {
     padding: 8px 18px;
     border: none;
     border-radius: 999px;
-    background: linear-gradient(135deg, var(--vermelho-principal), var(--laranja));
+    background: linear-gradient(135deg, var(--cor-primaria), var(--cor-secundaria));
     color: var(--branco);
     font-family: inherit;
     font-weight: 700;
@@ -983,9 +982,9 @@ body:has(.gerencia-wrapper) {
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    border: 2px solid var(--laranja);
+    border: 2px solid var(--cor-secundaria);
     background: var(--creme);
-    color: var(--vermelho-escuro);
+    color: var(--cor-pescuro);
     font-weight: 700;
     font-size: 1rem;
     line-height: 1;
@@ -995,7 +994,7 @@ body:has(.gerencia-wrapper) {
 }
 
 .produto-card .btn-qtd:hover {
-    background: var(--laranja);
+    background: var(--cor-secundaria);
     color: var(--branco);
 }
 
@@ -1069,7 +1068,7 @@ body:has(.gerencia-wrapper) {
 .extrato-total strong {
     display: block;
     font-size: 1.4rem;
-    color: var(--vermelho-principal);
+    color: var(--cor-primaria);
 }
 
 /* ===========================================================
@@ -1090,7 +1089,7 @@ body:has(.gerencia-wrapper) {
 
 .status-apressar {
     background: #ffd9a0;
-    border: 2px solid var(--laranja);
+    border: 2px solid var(--cor-secundaria);
 }
 
 .status-apressar .status-titulo {
@@ -1109,7 +1108,7 @@ body:has(.gerencia-wrapper) {
 }
 
 .mesa-atendimento-card.tipo-conta {
-    border-color: var(--laranja);
+    border-color: var(--cor-secundaria);
 }
 
 .chamado-tipo {
@@ -1117,11 +1116,11 @@ body:has(.gerencia-wrapper) {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.4px;
-    color: var(--vermelho-escuro);
+    color: var(--cor-pescuro);
 }
 
 .tipo-conta .chamado-tipo {
-    color: var(--laranja);
+    color: var(--cor-secundaria);
 }
 
 .chamado-tempo {
@@ -1160,7 +1159,7 @@ body:has(.admin-wrapper) {
 }
 
 .admin-cabecalho h1 {
-    color: var(--vermelho-escuro);
+    color: var(--cor-pescuro);
     text-align: left;
     font-size: 1.6rem;
 }
@@ -1186,7 +1185,7 @@ body:has(.admin-wrapper) {
 .gaveta-cadastro h3 {
     text-align: left;
     margin-bottom: 16px;
-    color: var(--vermelho-escuro);
+    color: var(--cor-pescuro);
 }
 
 /* Tabela de relatórios (Caixa & Contas) */
@@ -1204,7 +1203,7 @@ table.tabela-dados {
 }
 
 table.tabela-dados thead {
-    background: linear-gradient(135deg, var(--vermelho-principal), var(--laranja));
+    background: linear-gradient(135deg, var(--cor-primaria), var(--cor-secundaria));
 }
 
 table.tabela-dados th {
@@ -1242,7 +1241,7 @@ table.tabela-dados tbody tr:hover {
 }
 
 .valor-destaque {
-    color: var(--vermelho-principal);
+    color: var(--cor-primaria);
     font-weight: 700;
 }
 
@@ -1251,7 +1250,7 @@ table.tabela-dados tbody tr:hover {
     padding: 3px 10px;
     border-radius: 999px;
     background: rgba(247, 127, 0, 0.14);
-    color: var(--laranja);
+    color: var(--cor-secundaria);
     font-weight: 700;
     font-size: 0.78rem;
 }
@@ -1273,7 +1272,7 @@ table.tabela-dados tbody tr:hover {
 }
 
 .monitor-coluna h3 {
-    color: var(--vermelho-escuro);
+    color: var(--cor-pescuro);
     text-align: left;
     margin-bottom: 10px;
     font-size: 1rem;
@@ -1292,4 +1291,43 @@ table.tabela-dados tbody tr:hover {
     .admin-wrapper {
         padding: 20px;
     }
+}
+
+/* ===========================================================
+   Logo
+   =========================================================== */
+
+body::before {
+    content: "";
+    display: block;
+    flex-shrink: 0;
+    align-self: center;
+    width: 120px;
+    height: 120px;
+    background: url('imagens/remy.png') center / contain no-repeat;
+}
+
+/* Espaço entre o conteúdo e o logo */
+body {
+    gap: 24px;
+}
+
+/* ===========================================================
+   Rodapé
+   =========================================================== */
+
+.rodape-index {
+    margin-top: auto;     /* fica no fim da página */
+    width: 100%;
+    max-width: 420px;
+    padding: 8px 20px;
+    background: transparent;
+    text-align: center;
+    font-size: 0.8rem;
+    line-height: 1.5;
+    color: rgba(255, 248, 240, 0.7);
+}
+
+.rodape-index strong {
+    color: var(--creme);
 }
