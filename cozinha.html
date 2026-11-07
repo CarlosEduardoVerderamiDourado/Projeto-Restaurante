@@ -5,223 +5,175 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ratatue - Painel de Controle da Cozinha</title>
     <style>
-        /* Estilos básicos para organizar os cartões na tela */
-        .painel-cozinha {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            padding: 20px;
-        }
-        .card-pedido {
-            border: 2px solid #333;
-            border-radius: 8px;
-            padding: 15px;
-            width: 250px;
-            box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        .card-pedido:hover {
-            transform: scale(1.02);
-        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 20px; background-color: #f4f6f9; color: #333; }
+        .topo-painel { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #ccc; padding-bottom: 10px; margin-bottom: 20px; }
+        .btn-sair { padding: 8px 16px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-sair:hover { background-color: #c82333; }
+        #container-pedidos { display: flex; flex-wrap: wrap; gap: 15px; }
+        .pedido-card { border: 2px solid #333; padding: 15px; border-radius: 8px; background: #fff; width: 280px; box-shadow: 2px 2px 10px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s; }
+        .pedido-card:hover { transform: translateY(-3px); }
     </style>
 </head>
 <body>
 
-    <!-- 🚨 CORTINA DE CONFIRMAÇÃO VISUAL (Substitui o confirm() nativo do navegador) -->
-<div id="tela-confirmacao-cozinha" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); color: white; z-index: 9999; text-align: center; padding-top: 15%;">
-    <div style="background: #222; display: inline-block; padding: 30px; border-radius: 10px; border: 2px solid #dc3545; max-width: 400px;">
-        <h2 id="confirm-titulo" style="color: #dc3545; font-size: 24px; margin: 0;">🚪 Sair da Cozinha</h2>
-        <p id="confirm-texto" style="font-size: 18px; margin: 20px 0;">Deseja realmente encerrar a sua sessão de trabalho na produção?</p>
-        <div style="display: flex; gap: 15px; justify-content: center;">
-            <button id="btn-confirm-sim" style="padding: 10px 20px; background: #28a745; color: white; border: none; font-weight: bold; border-radius: 4px; cursor: pointer;">Sim</button>
-            <button id="btn-confirm-nao" style="padding: 10px 20px; background: #dc3545; color: white; border: none; font-weight: bold; border-radius: 4px; cursor: pointer;">Não</button>
+    <!-- 🚨 CORTINA DE CONFIRMAÇÃO VISUAL (Para o Logout Seguro da Cozinha) -->
+    <div id="tela-confirmacao-cozinha" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); color: white; z-index: 9999; text-align: center; padding-top: 15%;">
+        <div style="background: #222; display: inline-block; padding: 30px; border-radius: 10px; border: 2px solid #ffc107; max-width: 400px; text-align: center;">
+            <h2 style="color: #ffc107; font-size: 24px; margin: 0;">🚪 Sair da Cozinha</h2>
+            <p style="font-size: 18px; margin: 20px 0;">Deseja realmente encerrar a sua sessão de trabalho na produção?</p>
+            <div style="display: flex; gap: 15px; justify-content: center;">
+                <button id="btn-cozinha-sim" style="padding: 10px 20px; background: #28a745; color: white; border: none; font-weight: bold; border-radius: 4px; cursor: pointer;">Sim</button>
+                <button id="btn-cozinha-nao" style="padding: 10px 20px; background: #dc3545; color: white; border: none; font-weight: bold; border-radius: 4px; cursor: pointer;">Não</button>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- 🟢 Botão de Logout Físico na barra superior da cozinha -->
-<button onclick="fazerLogoutCozinha()" style="padding: 6px 12px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-bottom: 20px;">🚪 Sair / Deslogar</button>
-
-
-    <h1>🍳 KDS Ratatue - Controle de Preparo</h1>
-    <p>Clique em cima de um pedido para avançar o estado dele. (Os atrasados ficam vermelhos automaticamente!)</p>
-
-    <!-- O tabuleiro onde os pedidos coloridos vão brotar sozinhos -->
-    <div id="container-pedidos" class="painel-cozinha">
-        <!-- Injetado dinamicamente pelo JavaScript -->
+    <!-- CABEÇALHO DO PAINEL OPERACIONAL -->
+    <div class="topo-painel">
+        <h1 style="margin: 0; font-size: 28px;">🍳 KDS Ratatue - Controle de Preparo</h1>
+        <button class="btn-sair" onclick="fazerLogoutCozinha()">🚪 Sair / Deslogar</button>
     </div>
 
-<script>
-    // 🛡️ GUARDA DE SEGURANÇA: Bloqueia acesso direto por link sem login de Cozinheiro
-(function() {
-    const idLogado = localStorage.getItem('id_funcionario_logado');
-    const cargoLogado = localStorage.getItem('cargo');
+    <p style="margin-bottom: 25px; color: #555;">Clique em cima de um pedido para avançar o estado dele. (Os atrasados ficam vermelhos automaticamente!)</p>
 
-    if (!idLogado || cargoLogado !== 'Cozinheiro') {
-        alert("Acesso restrito! Por favor, faça login como Cozinheiro.");
-        window.location.href = "index.html";
-    }
-})();
+    <!-- 🎯 CONTEINER PRINCIPAL: Onde o JavaScript injeta as comandas de comida -->
+    <div id="container-pedidos">
+        <p style="color: #888;">Carregando esteira de preparos da cozinha...</p>
+    </div>
 
-    // 🔄 Passo 1: Polling Automático - Roda assim que a página abre e repete a cada 5 segundos
-    window.onload = function() {
-        carregarPedidosCozinha();
-        setInterval(carregarPedidosCozinha, 5000); // Sincronização passiva em segundo plano
-    }
-
-    // 📥 Passo 2: Buscar os dados do Backend
-    function carregarPedidosCozinha() {
-        fetch("http://localhost:3000/api/pedidos/pendentes")
-        .then(resposta => resposta.json())
-        .then(linhasDoBanco => {
-            // 🟢 Alerta de debug invisível: Aperte F12 no Chrome para ver se os pratos chegaram aqui!
-            console.log("Chegaram esses pratos do banco no seu navegador:", linhasDoBanco);
-
-            const pedidosAgrupados = agruparItensPorPedido(linhasDoBanco);
-            renderizarPainelCozinha(pedidosAgrupados);
-        })
-        .catch(erro => console.error("Erro ao atualizar painel da cozinha:", erro));
-    }
-
-    // 🧠 Passo 3: Função auxiliar para juntar os itens do mesmo pedido de forma blindada
-    function agruparItensPorPedido(linhas) {
-        const agrupados = {};
-        
-        linhas.forEach(linha => {
-            // 🟢 CORREÇÃO: Limpado o termo fantasma App.id_pedido que travava o laço!
-            if (!agrupados[linha.id_pedido]) {
-                agrupados[linha.id_pedido] = {
-                    id_pedido: linha.id_pedido,
-                    id_comanda: linha.id_comanda,
-                    horario_pedido: linha.horario_pedido,
-                    status_preparo: linha.status_preparo,
-                    itens: []
-                };
-            }
-            agrupados[linha.id_pedido].itens.push({
-                nome_item: linha.nome_item,
-                quantidade: linha.quantidade
-            });
-        });
-        
-        return Object.values(agrupados); // Converte o mapa em uma lista pura para renderizar
-    }
-
-    // 🎨 Passo 4: Renderizar os cartões com o Semáforo de Cores Operacional
-        // 🎨 Passo 4: Renderizar os cartões com o Novo Semáforo de Cores (Incluindo Alerta Laranja)
-    function renderizarPainelCozinha(pedidos) {
-        const container = document.getElementById('container-pedidos');
-        if (!container) return;
-        container.innerHTML = "";
-
-        if (pedidos.length === 0) {
-            container.innerHTML = "<h3>🎉 Cozinha limpa! Nenhum pedido pendente por enquanto.</h3>";
-            return;
+    <!-- 🧠 LÓGICA E EXTENSÕES JAVASCRIPT -->
+    <script>
+        // 🔄 Polling Automático da Cozinha: Puxa os dados de 5 em 5 segundos do Node
+        window.onload = function() {
+            carregarPedidosCozinha();
+            setInterval(carregarPedidosCozinha, 5000);
         }
 
-        pedidos.forEach(pedido => {
-            // ⏱️ MATEMÁTICA DO TEMPO: Calcula a espera com base no horário real do MariaDB
-            const horaPedido = new Date(pedido.horario_pedido);
-            const agora = new Date();
-            const diferencaMinutos = Math.floor((agora - horaPedido) / 1000 / 60);
-
-            // 🚦 REGRA DO NOVO SEMÁFORO DE CORES INTELIGENTE:
-            let corDeFundo = "#ffffff"; // Padrão: Branco (Pendente)
-            let textoStatus = "Em Espera";
-
-            // Cenário A: Está dentro do tempo tolerável (Menos de 15 minutos)
-            if (diferencaMinutos < 15) {
-                if (pedido.status_preparo === 'Em Preparo') {
-                    corDeFundo = "#ffeb3b"; // Amarelo
-                    textoStatus = "Em Preparo";
-                }
-            } 
-            // Cenário B: Passou de 15 minutos (Atraso crítico)
-            else {
-                if (pedido.status_preparo === 'Pendente') {
-                    corDeFundo = "#f44336"; // Vermelho (Parado na fila)
-                    textoStatus = "🚨 ATRASADO!";
-                } else if (pedido.status_preparo === 'Em Preparo') {
-                    // 🟢 A NOVA REGRA DE NEGÓCIO SOLICITADA:
-                    corDeFundo = "#ff9800"; // Laranja (Já está na chapa, mas correndo contra o tempo!)
-                    textoStatus = "🔥 APRESSAR PREPARO!";
-                }
-            }
-
-            // Garante que o texto fique legível (Branco para fundos escuros, preto para claros)
-            const corTexto = (corDeFundo === '#f44336' || corDeFundo === '#ff9800') ? 'white' : 'black';
-
-            // Agrupa os itens legíveis em tópicos para o Chef ler
-            let itensHTML = "";
-            pedido.itens.forEach(item => {
-                itensHTML += `<li><strong>${item.quantidade}x</strong> ${item.nome_item}</li>`;
-            });
-
-            // Constrói o cartão injetando as variáveis e a nova paleta de cor dinamicamente
-            const cardHTML = `
-                <div class="card-pedido" 
-                     style="background-color: ${corDeFundo}; color: ${corTexto}; border: 2px solid #333; padding: 15px; margin: 10px; width: 220px; display: inline-block; vertical-align: top; cursor: pointer; border-radius: 6px; text-align: center; box-shadow: 2px 2px 10px rgba(0,0,0,0.1);"
-                     onclick="avancarStatusPedido(${pedido.id_pedido}, '${pedido.status_preparo}')">
-                    <h3>Pedido #${pedido.id_pedido}</h3>
-                    <p>Comanda: <strong>${pedido.id_comanda}</strong></p>
-                    <p>Tempo: <strong>${diferencaMinutos} min atrás</strong></p>
-                    <p>Status: <strong>${textoStatus}</strong></p>
-                    <hr style="border: 0; border-top: 1px solid ${corTexto === 'white' ? 'rgba(255,255,255,0.4)' : '#ccc'}; margin: 10px 0;">
-                    <ul style="text-align: left; padding-left: 20px; margin: 0;">${itensHTML}</ul>
-                </div>
-            `;
-            container.innerHTML += cardHTML;
-        });
-    }
-
-
-    // 🔀 Passo 5: Gerenciar o Clique Seguro para trocar de Estado no Banco
-    function avancarStatusPedido(id_pedido, statusAtual) {
-        let proximoStatus = "";
-
-        if (statusAtual === 'Pendente') {
-            proximoStatus = 'Em Preparo'; // Transiciona para Amarelo
-        } else if (statusAtual === 'Em Preparo') {
-            proximoStatus = 'Pronto';     // Some da cozinha e brota no Garçom
+        // 📥 BUSCA ASYNC: Consome a rota limpa do backend para puxar a fila da chapa
+        function carregarPedidosCozinha() {
+            fetch("http://localhost:3000/api/pedidos/pendentes")
+            .then(res => res.json())
+            .then(pedidos => {
+                console.log("🟢 KDS: Dados de preparo recebidos do MariaDB:", pedidos);
+                renderizarCardsKDS(pedidos);
+            })
+            .catch(erro => console.error("❌ Erro de comunicação com o servidor KDS:", erro));
         }
 
-        if (!proximoStatus) return;
+        // 🎨 DESENHISTA DE INTERFACE MESTRE: Controla cores por status, tempo de atraso e exibe observações
+        function renderizarCardsKDS(listaDePedidos) {
+            const container = document.getElementById('container-pedidos');
+            if (!container) return;
+            container.innerHTML = "";
 
-        console.log(`🔀 Solicitando transição do Pedido #${id_pedido} de '${statusAtual}' para '${proximoStatus}'...`);
-
-        fetch("http://localhost:3000/api/pedidos/atualizar-status", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ id_pedido, novo_status: proximoStatus })
-        })
-        .then(resposta => resposta.json())
-        .then(dados => {
-            if (dados.sucesso) {
-                // Sincroniza imediatamente a esteira visual refletindo o clique do cozinheiro
-                carregarPedidosCozinha();
+            if (!listaDePedidos || listaDePedidos.length === 0) {
+                container.innerHTML = "<p style='color: #666; padding: 20px; font-weight: bold;'>🎉 Cozinha limpa! Nenhum pedido pendente na esteira.</p>";
+                return;
             }
-        })
-        .catch(erro => console.error("Erro ao avançar status do pedido:", erro));
-    }
 
-    // 🚪 AÇÃO: Fazer Logout com Limpeza Estrita de Memória no mesmo PC
-    function fazerLogoutCozinha() {
-        document.getElementById('tela-confirmacao-cozinha').style.display = 'block';
-        document.getElementById('confirm-titulo').innerText = "🚪 Sair do Sistema";
-        document.getElementById('confirm-texto').innerText = "Deseja realmente encerrar a sua sessão de trabalho na Cozinha?";
+            listaDePedidos.forEach(p => {
+                const idPedidoReal = p.id_pedido || p.ID_PEDIDO;
+                const idComandaReal = p.id_comanda || p.ID_COMANDA;
+                const nomeItemReal = p.nome_item || p.NOME_ITEM;
+                const quantidadeReal = p.quantidade || p.QUANTIDADE;
+                
+                let statusPreparoBruto = p.status_preparo || "Pendente";
+                let statusMacro = "Pendente";
+                let observacaoTexto = "";
 
-        document.getElementById('btn-confirm-sim').onclick = function() {
-            localStorage.removeItem('id_funcionario_logado');
-            console.log("Sessão da cozinha encerrada. Retornando ao Login...");
-            window.location.href = "index.html";
-        };
+                // Separa o status macro da observação entre parênteses
+                if (statusPreparoBruto.includes('(')) {
+                    observacaoTexto = statusPreparoBruto.substring(statusPreparoBruto.indexOf('('));
+                    statusMacro = statusPreparoBruto.substring(0, statusPreparoBruto.indexOf('(')).trim();
+                } else {
+                    statusMacro = statusPreparoBruto.trim();
+                }
 
-        document.getElementById('btn-confirm-nao').onclick = function() {
-            document.getElementById('tela-confirmacao-cozinha').style.display = 'none';
-        };
-    }
-</script>
-    
+                // ⏱️ CÁLCULO DE ATRASO RELATIVO: Compara o horário do pedido com o relógio atual
+                const horarioPedido = new Date(p.horario_pedido);
+                const agora = new Date();
+                const minutosPassados = Math.floor((agora - horarioPedido) / 60000) || 0;
+
+                // 🎨 REGRAS DE CORES ENGENHARIA CRUCIAL:
+                let corBordaCard = "#ffc107"; // Padrão: Amarelo (Em Espera)
+                let textoStatusVisual = "Em Espera";
+
+                if (statusMacro === "Em Preparo") {
+                    corBordaCard = "#007bff"; // Azul (Em Preparo)
+                    textoStatusVisual = "Em Preparo";
+                }
+
+                // Se o pedido passar de 10 minutos na esteira, vira Alerta Vermelho de Atraso automaticamente!
+                if (minutosPassados >= 10) {
+                    corBordaCard = "#dc3545"; // Vermelho (Atrasado)
+                    textoStatusVisual += " [ATRASADO]";
+                }
+
+                const cardHTML = `
+                    <div class="pedido-card" onclick="avancarStatusPedido(${idPedidoReal}, '${statusPreparoBruto}')" 
+                         style="border: 3px solid ${corBordaCard}; padding: 15px; border-radius: 8px; background: #fff; width: 280px; box-shadow: 2px 2px 10px rgba(0,0,0,0.1); cursor: pointer; display: inline-block; margin: 10px; vertical-align: top; color: #000; text-align: left;">
+                        <h3 style="text-align: center; margin-top: 0; color: #000;">Pedido #${idPedidoReal}</h3>
+                        <p style="margin: 5px 0;">Comanda: <strong>${idComandaReal}</strong></p>
+                        <p style="margin: 5px 0;">Tempo: <strong>${minutosPassados} min atrás</strong></p>
+                        <p style="margin: 5px 0;">Status: <strong style="color: ${corBordaCard};">${textoStatusVisual}</strong></p>
+                        <hr style="border: 0; border-top: 1px solid #ccc; margin: 10px 0;">
+                        
+                        <ul style="padding-left: 20px; margin: 0; color: #000;">
+                            <li>
+                                <strong>${quantidadeReal}x ${nomeItemReal}</strong>
+                                <!-- 🟢 CORREÇÃO CRUCIAL: Removida a barra invertida antes do cifrão para a variável imprimir o texto real! -->
+                                ${observacaoTexto ? `<br><span style="color: #dc3545; font-weight: bold; font-size: 13px; background: #f8d7da; padding: 4px 8px; border-radius: 4px; display: inline-block; margin-top: 6px; width: 90%;">⚠️ OBS: \${observacaoTexto}</span>` : ''}
+                            </li>
+                        </ul>
+                    </div>
+                `;
+
+                container.innerHTML += cardHTML;
+            });
+        }
+
+
+        // 🔄 MUDANÇA DE ESTADO CORRIGIDA: Avança o fluxo tratando strings com parênteses e despacha pro garçom!
+        function avancarStatusPedido(id_pedido, statusAtual) {
+            let proximoStatus = "Em Preparo";
+            
+            // 🟢 CORREÇÃO MESTRE: Usa .includes() para capturar mesmo se tiver observação grudada (Ex: "Em Preparo (Sem picles)")
+            if (statusAtual && statusAtual.includes("Em Preparo")) {
+                proximoStatus = "Pronto";
+                if (!confirm(`Deseja despachar o pedido #${id_pedido} como CONCLUÍDO para a esteira do Garçom?`)) return;
+            }
+
+            console.log(`🔀 KDS: Solicitando mudança do pedido #${id_pedido} para: ${proximoStatus}...`);
+
+            fetch("http://localhost:3000/api/pedidos/atualizar-status", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id_pedido, novo_status: proximoStatus })
+            })
+            .then(res => res.json())
+            .then(dados => {
+                console.log("Resposta do servidor:", dados.mensagem);
+                carregarPedidosCozinha(); // Força a atualização da tela na hora!
+            })
+            .catch(erro => console.error("Erro assíncrono ao transicionar pedido:", erro));
+        }
+
+
+        // 🚪 AÇÃO COZINHA: Cortina de Logout Supremo com limpeza de chaves locais
+        function fazerLogoutCozinha() {
+            document.getElementById('tela-confirmacao-cozinha').style.display = 'block';
+
+            document.getElementById('btn-cozinha-sim').onclick = function() {
+                localStorage.removeItem('id_funcionario_logado');
+                localStorage.removeItem('cargo');
+                console.log("Sessão da Cozinha encerrada. Retornando ao QG...");
+                window.location.href = "index.html";
+            };
+
+            document.getElementById('btn-cozinha-nao').onclick = function() {
+                document.getElementById('tela-confirmacao-cozinha').style.display = 'none';
+            };
+        }
+    </script>
 </body>
 </html>
