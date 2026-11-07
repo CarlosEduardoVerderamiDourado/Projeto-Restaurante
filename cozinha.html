@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ratatue - Painel de Controle da Cozinha</title>
+<<<<<<< HEAD
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 20px; background-color: #f4f6f9; color: #333; }
         .topo-painel { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #ccc; padding-bottom: 10px; margin-bottom: 20px; }
@@ -25,13 +26,59 @@
                 <button id="btn-cozinha-sim" style="padding: 10px 20px; background: #28a745; color: white; border: none; font-weight: bold; border-radius: 4px; cursor: pointer;">Sim</button>
                 <button id="btn-cozinha-nao" style="padding: 10px 20px; background: #dc3545; color: white; border: none; font-weight: bold; border-radius: 4px; cursor: pointer;">Não</button>
             </div>
+=======
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- 🚨 CORTINA DE CONFIRMAÇÃO VISUAL (Substitui o confirm() nativo do navegador) -->
+<div id="tela-confirmacao-cozinha" class="modal-overlay">
+    <div class="modal-caixa">
+        <h2 id="confirm-titulo">🚪 Sair da Cozinha</h2>
+        <p id="confirm-texto">Deseja realmente encerrar a sua sessão de trabalho na produção?</p>
+        <div class="modal-botoes">
+            <button id="btn-confirm-sim" class="modal-btn modal-btn-confirmar">Sim</button>
+            <button id="btn-confirm-nao" class="modal-btn modal-btn-cancelar">Não</button>
+>>>>>>> c1198ad3094539dae11760d094740dd56fd373c4
         </div>
     </div>
 
+<<<<<<< HEAD
     <!-- CABEÇALHO DO PAINEL OPERACIONAL -->
     <div class="topo-painel">
         <h1 style="margin: 0; font-size: 28px;">🍳 KDS Ratatue - Controle de Preparo</h1>
         <button class="btn-sair" onclick="fazerLogoutCozinha()">🚪 Sair / Deslogar</button>
+=======
+<!-- 🟢 Botão de Logout fixo no canto superior -->
+<button onclick="fazerLogoutCozinha()" class="btn-logout">🚪 Sair</button>
+
+    <h1>🍳 KDS Ratatue - Controle de Preparo</h1>
+    <p>Clique em cima de um pedido para avançar o estado dele. (Os atrasados são sinalizados automaticamente!)</p>
+
+    <!-- O painel de status onde os pedidos vão brotar agrupados por fase -->
+    <div class="painel-wrapper">
+        <div class="painel-coluna">
+            <h2 class="painel-titulo">Pedidos em Andamento</h2>
+            <div class="status-grade" id="container-pedidos">
+                <div class="status-bloco status-espera">
+                    <div class="status-titulo">🕐 Em Espera</div>
+                    <div class="status-lista" id="lista-espera"></div>
+                </div>
+                <div class="status-bloco status-preparo">
+                    <div class="status-titulo">👨‍🍳 Em Preparo</div>
+                    <div class="status-lista" id="lista-preparo"></div>
+                </div>
+                <div class="status-bloco status-atraso">
+                    <div class="status-titulo">🚨 Atrasado</div>
+                    <div class="status-lista" id="lista-atraso"></div>
+                </div>
+                <div class="status-bloco status-apressar">
+                    <div class="status-titulo">🔥 Apressar Preparo</div>
+                    <div class="status-lista" id="lista-apressar"></div>
+                </div>
+            </div>
+        </div>
+>>>>>>> c1198ad3094539dae11760d094740dd56fd373c4
     </div>
 
     <p style="margin-bottom: 25px; color: #555;">Clique em cima de um pedido para avançar o estado dele. (Os atrasados ficam vermelhos automaticamente!)</p>
@@ -41,6 +88,7 @@
         <p style="color: #888;">Carregando esteira de preparos da cozinha...</p>
     </div>
 
+<<<<<<< HEAD
     <!-- 🧠 LÓGICA E EXTENSÕES JAVASCRIPT -->
     <script>
         // 🔄 Polling Automático da Cozinha: Puxa os dados de 5 em 5 segundos do Node
@@ -58,6 +106,120 @@
                 renderizarCardsKDS(pedidos);
             })
             .catch(erro => console.error("❌ Erro de comunicação com o servidor KDS:", erro));
+=======
+    // 🔄 Passo 1: Polling Automático - Roda assim que a página abre e repete a cada 5 segundos
+    window.onload = function() {
+        carregarPedidosCozinha();
+        setInterval(carregarPedidosCozinha, 5000); // Sincronização passiva em segundo plano
+    }
+
+    // 📥 Passo 2: Buscar os dados do Backend
+    function carregarPedidosCozinha() {
+        fetch("http://localhost:3000/api/pedidos/pendentes")
+        .then(resposta => resposta.json())
+        .then(linhasDoBanco => {
+            // 🟢 Alerta de debug invisível: Aperte F12 no Chrome para ver se os pratos chegaram aqui!
+            console.log("Chegaram esses pratos do banco no seu navegador:", linhasDoBanco);
+
+            const pedidosAgrupados = agruparItensPorPedido(linhasDoBanco);
+            renderizarPainelCozinha(pedidosAgrupados);
+        })
+        .catch(erro => console.error("Erro ao atualizar painel da cozinha:", erro));
+    }
+
+    // 🧠 Passo 3: Função auxiliar para juntar os itens do mesmo pedido de forma blindada
+    function agruparItensPorPedido(linhas) {
+        const agrupados = {};
+        
+        linhas.forEach(linha => {
+            // 🟢 CORREÇÃO: Limpado o termo fantasma App.id_pedido que travava o laço!
+            if (!agrupados[linha.id_pedido]) {
+                agrupados[linha.id_pedido] = {
+                    id_pedido: linha.id_pedido,
+                    id_comanda: linha.id_comanda,
+                    horario_pedido: linha.horario_pedido,
+                    status_preparo: linha.status_preparo,
+                    itens: []
+                };
+            }
+            agrupados[linha.id_pedido].itens.push({
+                nome_item: linha.nome_item,
+                quantidade: linha.quantidade
+            });
+        });
+        
+        return Object.values(agrupados); // Converte o mapa em uma lista pura para renderizar
+    }
+
+    // 🎨 Passo 4: Renderizar os cartões agrupados por fase (Espera / Preparo / Atraso / Apressar)
+    function renderizarPainelCozinha(pedidos) {
+        const listaEspera = document.getElementById('lista-espera');
+        const listaPreparo = document.getElementById('lista-preparo');
+        const listaAtraso = document.getElementById('lista-atraso');
+        const listaApressar = document.getElementById('lista-apressar');
+        if (!listaEspera) return;
+
+        // 🚦 REGRA DO SEMÁFORO: separa cada pedido no balde certo conforme tempo + status
+        const baldes = { espera: [], preparo: [], atraso: [], apressar: [] };
+
+        pedidos.forEach(pedido => {
+            const horaPedido = new Date(pedido.horario_pedido);
+            const diferencaMinutos = Math.floor((new Date() - horaPedido) / 1000 / 60);
+
+            let balde = 'espera';
+            if (diferencaMinutos < 15) {
+                balde = (pedido.status_preparo === 'Em Preparo') ? 'preparo' : 'espera';
+            } else if (pedido.status_preparo === 'Pendente') {
+                balde = 'atraso'; // 🚨 Parado na fila há mais de 15min
+            } else if (pedido.status_preparo === 'Em Preparo') {
+                balde = 'apressar'; // 🔥 Já está na chapa, mas correndo contra o tempo
+            }
+
+            baldes[balde].push({ pedido, diferencaMinutos });
+        });
+
+        montarListaDePedidos(listaEspera, baldes.espera, 'Nenhum pedido em espera.', 'avancarStatusPedido');
+        montarListaDePedidos(listaPreparo, baldes.preparo, 'Nada em preparo agora.', 'avancarStatusPedido');
+        montarListaDePedidos(listaAtraso, baldes.atraso, 'Nenhum atraso. 🎉', 'avancarStatusPedido');
+        montarListaDePedidos(listaApressar, baldes.apressar, 'Tudo em dia.', 'avancarStatusPedido');
+    }
+
+    // 🧠 FUNÇÃO AUXILIAR REUTILIZÁVEL: monta a lista de .pedido-card dentro de um status-lista
+    function montarListaDePedidos(elemento, itens, mensagemVazia, funcaoClique) {
+        if (!elemento) return;
+        if (itens.length === 0) {
+            elemento.innerHTML = `<p class="sem-resultados">${mensagemVazia}</p>`;
+            return;
+        }
+
+        elemento.innerHTML = itens.map(({ pedido, diferencaMinutos }) => {
+            let itensHTML = "";
+            pedido.itens.forEach(item => {
+                itensHTML += `<li>${item.quantidade}x ${item.nome_item}</li>`;
+            });
+
+            return `
+                <div class="pedido-card" onclick="${funcaoClique}(${pedido.id_pedido}, '${pedido.status_preparo}')">
+                    <div class="pedido-cabecalho">
+                        <span class="pedido-mesa">Pedido #${pedido.id_pedido} · Comanda ${pedido.id_comanda}</span>
+                        <span class="pedido-tempo">${diferencaMinutos} min</span>
+                    </div>
+                    <ul class="pedido-itens">${itensHTML}</ul>
+                </div>
+            `;
+        }).join("");
+    }
+
+
+    // 🔀 Passo 5: Gerenciar o Clique Seguro para trocar de Estado no Banco
+    function avancarStatusPedido(id_pedido, statusAtual) {
+        let proximoStatus = "";
+
+        if (statusAtual === 'Pendente') {
+            proximoStatus = 'Em Preparo'; // Transiciona para Amarelo
+        } else if (statusAtual === 'Em Preparo') {
+            proximoStatus = 'Pronto';     // Some da cozinha e brota no Garçom
+>>>>>>> c1198ad3094539dae11760d094740dd56fd373c4
         }
 
         // 🎨 DESENHISTA DE INTERFACE MESTRE: Controla cores por status, tempo de atraso e exibe observações
@@ -71,6 +233,7 @@
                 return;
             }
 
+<<<<<<< HEAD
             listaDePedidos.forEach(p => {
                 const idPedidoReal = p.id_pedido || p.ID_PEDIDO;
                 const idComandaReal = p.id_comanda || p.ID_COMANDA;
@@ -80,6 +243,13 @@
                 let statusPreparoBruto = p.status_preparo || "Pendente";
                 let statusMacro = "Pendente";
                 let observacaoTexto = "";
+=======
+    // 🚪 AÇÃO: Fazer Logout com Limpeza Estrita de Memória no mesmo PC
+    function fazerLogoutCozinha() {
+        document.getElementById('tela-confirmacao-cozinha').classList.add('modal-visivel');
+        document.getElementById('confirm-titulo').innerText = "🚪 Sair do Sistema";
+        document.getElementById('confirm-texto').innerText = "Deseja realmente encerrar a sua sessão de trabalho na Cozinha?";
+>>>>>>> c1198ad3094539dae11760d094740dd56fd373c4
 
                 // Separa o status macro da observação entre parênteses
                 if (statusPreparoBruto.includes('(')) {
@@ -89,6 +259,7 @@
                     statusMacro = statusPreparoBruto.trim();
                 }
 
+<<<<<<< HEAD
                 // ⏱️ CÁLCULO DE ATRASO RELATIVO: Compara o horário do pedido com o relógio atual
                 const horarioPedido = new Date(p.horario_pedido);
                 const agora = new Date();
@@ -175,5 +346,13 @@
             };
         }
     </script>
+=======
+        document.getElementById('btn-confirm-nao').onclick = function() {
+            document.getElementById('tela-confirmacao-cozinha').classList.remove('modal-visivel');
+        };
+    }
+</script>
+    
+>>>>>>> c1198ad3094539dae11760d094740dd56fd373c4
 </body>
 </html>

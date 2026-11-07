@@ -4,92 +4,88 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ratatue - Painel Administrativo</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #ccc; padding-bottom: 10px; }
-        .tab-btn { padding: 10px 20px; font-weight: bold; cursor: pointer; border: 1px solid #ccc; background: #eee; border-radius: 4px; }
-        .tab-btn.active { background: #333; color: white; border-color: #333; }
-        .form-panel { display: none; background: #f9f9f9; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
-        .form-panel.active { display: block; }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; font-weight: bold; margin-bottom: 5px; }
-        .form-group input, .form-group select { width: 100%; padding: 8px; box-sizing: border-box; }
-        .btn-submit { padding: 10px 20px; background: #28a745; color: white; border: none; cursor: pointer; font-weight: bold; border-radius: 4px; }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <!-- 🚨 CORTINA DE CONFIRMAÇÃO VISUAL DO ADM (Para o Logout Seguro) -->
-<div id="tela-confirmacao-adm" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); color: white; z-index: 9999; text-align: center; padding-top: 15%;">
-    <div style="background: #222; display: inline-block; padding: 30px; border-radius: 10px; border: 2px solid #dc3545; max-width: 400px;">
-        <h2 id="confirm-titulo-adm" style="color: #dc3545; font-size: 24px; margin: 0;">🚪 Encerrar Sessão</h2>
-        <p id="confirm-texto-adm" style="font-size: 18px; margin: 20px 0;">Deseja realmente sair do painel gerencial e fechar o QG?</p>
-        <div style="display: flex; gap: 15px; justify-content: center;">
-            <button id="btn-adm-sim" style="padding: 10px 20px; background: #28a745; color: white; border: none; font-weight: bold; border-radius: 4px; cursor: pointer;">Sim, Sair</button>
-            <button id="btn-adm-nao" style="padding: 10px 20px; background: #dc3545; color: white; border: none; font-weight: bold; border-radius: 4px; cursor: pointer;">Não, Ficar</button>
+<div id="tela-confirmacao-adm" class="modal-overlay">
+    <div class="modal-caixa">
+        <h2 id="confirm-titulo-adm">🚪 Encerrar Sessão</h2>
+        <p id="confirm-texto-adm">Deseja realmente sair do painel gerencial e fechar o QG?</p>
+        <div class="modal-botoes">
+            <button id="btn-adm-sim" class="modal-btn modal-btn-confirmar">Sim, Sair</button>
+            <button id="btn-adm-nao" class="modal-btn modal-btn-cancelar">Não, Ficar</button>
         </div>
     </div>
 </div>
 
 <!-- 🚨 CORTINA / JANELA FLUTUANTE DE EDIÇÃO DE FUNCIONÁRIO (Padrão Corporativo) -->
-<div id="tela-edicao-funcionario" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); color: white; z-index: 9999; text-align: center; padding-top: 10%;">
-    <div style="background: #222; display: inline-block; padding: 30px; border-radius: 10px; border: 2px solid #007bff; max-width: 400px; text-align: left;">
-        <h2 style="color: #007bff; font-size: 24px; margin: 0 0 20px 0; text-align: center;">✏️ Editar Colaborador</h2>
-        
+<div id="tela-edicao-funcionario" class="modal-overlay">
+    <div class="modal-caixa">
+        <h2>✏️ Editar Colaborador</h2>
+
         <!-- Campo oculto para guardar o ID do funcionário que está sendo editado -->
         <input type="hidden" id="edit-id-modal">
 
-        <p>Nome Completo:<br>
-        <input type="text" id="edit-nome-modal" style="width: 100%; padding: 8px; margin-top: 5px; background: #fff; color: #333; border: none; border-radius: 4px;"></p>
-        
-        <p>Login de Acesso:<br>
-        <input type="text" id="edit-login-modal" style="width: 100%; padding: 8px; margin-top: 5px; background: #fff; color: #333; border: none; border-radius: 4px;"></p>
-        
-        <p>Cargo / Função:<br>
-        <select id="edit-cargo-modal" style="width: 100%; padding: 8px; margin-top: 5px; background: #fff; color: #333; border: none; border-radius: 4px;">
-            <option value="Garçom">Garçom</option>
-            <option value="Cozinheiro">Cozinheiro</option>
-            <option value="Barman">Barman</option>
-            <option value="Caixa">Caixa</option>
-            <option value="Administrador">Administrador</option>
-        </select></p>
-        
-        <div style="display: flex; gap: 15px; justify-content: center; margin-top: 25px;">
-            <button onclick="enviarEdicaoModal()" style="padding: 10px 20px; background: #28a745; color: white; border: none; font-weight: bold; border-radius: 4px; cursor: pointer;">Salvar Alterações</button>
-            <button onclick="fecharModalEdicao()" style="padding: 10px 20px; background: #dc3545; color: white; border: none; font-weight: bold; border-radius: 4px; cursor: pointer;">Cancelar</button>
+        <div class="form-group">
+            <label>Nome Completo:</label>
+            <input type="text" id="edit-nome-modal">
+        </div>
+        <div class="form-group">
+            <label>Login de Acesso:</label>
+            <input type="text" id="edit-login-modal">
+        </div>
+        <div class="form-group">
+            <label>Cargo / Função:</label>
+            <select id="edit-cargo-modal">
+                <option value="Garçom">Garçom</option>
+                <option value="Cozinheiro">Cozinheiro</option>
+                <option value="Barman">Barman</option>
+                <option value="Caixa">Caixa</option>
+                <option value="Administrador">Administrador</option>
+            </select>
+        </div>
+
+        <div class="modal-botoes">
+            <button onclick="enviarEdicaoModal()" class="modal-btn modal-btn-confirmar">Salvar</button>
+            <button onclick="fecharModalEdicao()" class="modal-btn modal-btn-cancelar">Cancelar</button>
         </div>
     </div>
 </div>
 
 <!-- 🚨 CORTINA / JANELA FLUTUANTE DE RESETAR SENHA -->
-<div id="tela-senha-funcionario" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); color: white; z-index: 9999; text-align: center; padding-top: 12%;">
-    <div style="background: #222; display: inline-block; padding: 30px; border-radius: 10px; border: 2px solid #ffc107; max-width: 400px; text-align: left;">
-        <h2 style="color: #ffc107; font-size: 24px; margin: 0 0 10px 0; text-align: center;">🔑 Resetar Senha</h2>
-        <p id="senha-nome-titulo" style="text-align: center; color: #aaa; margin: 0 0 20px 0;">Funcionário: ...</p>
-        
+<div id="tela-senha-funcionario" class="modal-overlay">
+    <div class="modal-caixa">
+        <h2>🔑 Resetar Senha</h2>
+        <p id="senha-nome-titulo" class="texto-secundario">Funcionário: ...</p>
+
         <!-- Campo oculto para guardar o ID do alvo -->
         <input type="hidden" id="pass-id-modal">
 
-        <p>Nova Senha:<br>
-        <input type="password" id="pass-nova-modal" placeholder="Digite a nova senha" style="width: 100%; padding: 8px; margin-top: 5px; background: #fff; color: #333; border: none; border-radius: 4px;"></p>
-        
-        <p>Confirme a Nova Senha:<br>
-        <input type="password" id="pass-confirma-modal" placeholder="Repita a nova senha" style="width: 100%; padding: 8px; margin-top: 5px; background: #fff; color: #333; border: none; border-radius: 4px;"></p>
-        
-        <div style="display: flex; gap: 15px; justify-content: center; margin-top: 25px;">
-            <button onclick="enviarSenhaModal()" style="padding: 10px 20px; background: #28a745; color: white; border: none; font-weight: bold; border-radius: 4px; cursor: pointer;">Confirmar Reset</button>
-            <button onclick="fecharModalSenha()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; font-weight: bold; border-radius: 4px; cursor: pointer;">Cancelar</button>
+        <div class="form-group">
+            <label>Nova Senha:</label>
+            <input type="password" id="pass-nova-modal" placeholder="Digite a nova senha">
+        </div>
+        <div class="form-group">
+            <label>Confirme a Nova Senha:</label>
+            <input type="password" id="pass-confirma-modal" placeholder="Repita a nova senha">
+        </div>
+
+        <div class="modal-botoes">
+            <button onclick="enviarSenhaModal()" class="modal-btn modal-btn-confirmar">Confirmar</button>
+            <button onclick="fecharModalSenha()" class="modal-btn modal-btn-cancelar">Cancelar</button>
         </div>
     </div>
 </div>
 
+<button onclick="fazerLogoutAdministrador()" class="btn-logout">🚪 Sair</button>
 
-    <h1>👔 QG Ratatue - Painel do Administrador</h1>
+<div class="admin-wrapper">
+    <div class="admin-cabecalho">
+        <h1>👔 QG Ratatue - Painel do Administrador</h1>
+    </div>
 
-    <button onclick="fazerLogoutAdministrador()" style="padding: 8px 16px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-bottom: 20px; float: right;">🚪 Sair / Deslogar QG</button>
-<div style="clear: both;"></div>
-
-    
     <!-- Botões de Alternância (Abas) -->
     <div class="tabs">
         <button class="tab-btn active" onclick="alternarAba('caixa')">Caixa & Contas</button>
@@ -97,8 +93,6 @@
         <button class="tab-btn" onclick="alternarAba('cadastro-mesa')">Cadastrar Mesa</button>
         <button class="tab-btn" onclick="alternarAba('monitor')">👁️ Monitor Operacional</button>
         <button class="tab-btn" onclick="alternarAba('comida')">🍔 Cadastrar Comida/Bebida</button>
-
-
     </div>
 
     <!-- ABA 1: CAIXA & CONTAS -->
@@ -108,36 +102,47 @@
     </div>
 
  <!-- 👤 SEÇÃO MESTRE: CENTRAL DE RECURSOS HUMANOS -->
-<div id="panel-cadastro-func" class="form-panel" style="display: none;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+<div id="panel-cadastro-func" class="form-panel">
+    <div class="admin-secao-cabecalho">
         <h2>👤 Central de Gerenciamento de Funcionários</h2>
         <!-- 🟢 O BOTÃO DE LIBERAÇÃO: Abre e fecha a gaveta do formulário dinamicamente! -->
-        <button onclick="alternarGavetaCadastroFunc()" style="padding: 10px 15px; background: #007bff; color: white; border: none; font-weight: bold; border-radius: 4px; cursor: pointer;">
+        <button onclick="alternarGavetaCadastroFunc()" class="btn-pill-sm">
             ➕ Cadastrar Novo Colaborador
         </button>
     </div>
 
     <!-- 📁 A GAVETA OCULTA DE CADASTRO (Só expande ao clicar no botão acima!) -->
-    <div id="gaveta-cadastro-func" style="display: none; background: #f8f9fa; padding: 20px; border: 1px solid #ced4da; border-radius: 6px; margin-bottom: 25px;">
-        <h3 style="margin-top: 0; color: #007bff;">📋 Formulário de Novo Registro</h3>
+    <div id="gaveta-cadastro-func" class="gaveta-cadastro oculto">
+        <h3>📋 Formulário de Novo Registro</h3>
         <form onsubmit="cadastrarFuncionario(event)">
-            <p>Nome Completo:<br><input type="text" id="func-nome" required style="width: 100%; padding: 8px; margin-top: 5px;"></p>
-            <p>Login de Acesso:<br><input type="text" id="func-login" required style="width: 100%; padding: 8px; margin-top: 5px;"></p>
-            <p>Senha:<br><input type="password" id="func-senha" required style="width: 100%; padding: 8px; margin-top: 5px;"></p>
-            <p>Cargo / Função:<br>
-            <select id="func-cargo" required style="width: 100%; padding: 8px; margin-top: 5px;">
-                <option value="Garçom">Garçom</option>
-                <option value="Cozinheiro">Cozinheiro</option>
-                <option value="Barman">Barman</option>
-                <option value="Caixa">Caixa</option>
-            </select></p>
-            <button type="submit" style="padding: 10px 20px; background: #28a745; color: white; border: none; font-weight: bold; border-radius: 4px; cursor: pointer; margin-top: 10px;">Salvar Funcionário</button>
+            <div class="form-group">
+                <label>Nome Completo:</label>
+                <input type="text" id="func-nome" required>
+            </div>
+            <div class="form-group">
+                <label>Login de Acesso:</label>
+                <input type="text" id="func-login" required>
+            </div>
+            <div class="form-group">
+                <label>Senha:</label>
+                <input type="password" id="func-senha" required>
+            </div>
+            <div class="form-group">
+                <label>Cargo / Função:</label>
+                <select id="func-cargo" required>
+                    <option value="Garçom">Garçom</option>
+                    <option value="Cozinheiro">Cozinheiro</option>
+                    <option value="Barman">Barman</option>
+                    <option value="Caixa">Caixa</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-submit">Salvar Funcionário</button>
         </form>
     </div>
 
     <!-- 📊 TABELA DE HISTÓRICO E REGISTROS DE COLABORADORES -->
     <h3>📋 Quadro de Funcionários Ativos</h3>
-    <div id="container-tabela-funcionarios"><p style="color: #999;">Carregando colaboradores...</p></div>
+    <div id="container-tabela-funcionarios"><p class="sem-resultados">Carregando colaboradores...</p></div>
 </div>
 
 
@@ -160,12 +165,12 @@
         <!-- ABA 4: MONITOR OPERACIONAL (OLHO DE ÁGUIA) -->
     <div id="panel-monitor" class="form-panel">
         <h2>👁️ Visão Geral do Restaurante (Cozinha & Salão)</h2>
-        <div style="display: flex; gap: 20px;">
-            <div style="flex: 1; background: #fff; padding: 15px; border: 1px solid #ccc;">
+        <div class="monitor-grade">
+            <div class="monitor-coluna">
                 <h3>🍳 Fila de Preparos (Cozinha/Bar)</h3>
                 <div id="monitor-fila-pedidos"></div>
             </div>
-            <div style="flex: 1; background: #fff; padding: 15px; border: 1px solid #ccc;">
+            <div class="monitor-coluna">
                 <h3>🛎️ Chamados do Salão (Garçom)</h3>
                 <div id="monitor-fila-chamados"></div>
             </div>
@@ -173,33 +178,40 @@
     </div>
 
     <!-- 🍔 NOVO PAINEL: CADASTRO DE PRODUTOS COM UPLOAD DE IMAGEM -->
-<div id="panel-comida" class="form-panel" style="display: none; margin-top: 20px; padding: 20px; border: 1px solid #ccc; background: #fff; border-radius: 6px;">
+<div id="panel-comida" class="form-panel">
     <h2>🍔 Cadastrar Novo Item no Cardápio</h2>
     <form onsubmit="cadastrarProduto(event)">
-        <p>Nome do Item:<br>
-        <input type="text" id="comida-nome" required style="width: 100%; padding: 8px; margin-top: 5px;"></p>
-        
-        <p>Descrição / Ingredientes:<br>
-        <textarea id="comida-descricao" rows="3" style="width: 100%; padding: 8px; margin-top: 5px;"></textarea></p>
-        
-        <p>Preço de Venda (R$):<br>
-        <input type="number" id="comida-preco" step="0.01" required style="width: 100%; padding: 8px; margin-top: 5px;"></p>
-        
-        <p>Categoria do Insumo:<br>
-        <select id="comida-categoria" required style="width: 100%; padding: 8px; margin-top: 5px;">
-            <option value="Hambúrgueres">Hambúrgueres</option>
-            <option value="Bebidas">Bebidas</option>
-            <option value="Acompanhamentos">Acompanhamentos</option>
-            <option value="Sobremesas">Sobremesas</option>
-        </select></p>
-        
-        <!-- Input de arquivo físico casado com o Multer do backend -->
-        <p>Foto Ilustrativa do Prato:<br>
-        <input type="file" id="comida-foto" name="foto_prato" accept="image/*" required style="margin-top: 5px;"></p>
-        
-        <button type="submit" style="padding: 10px 20px; background: #28a745; color: white; border: none; font-weight: bold; border-radius: 4px; cursor: pointer; margin-top: 15px;">Salvar Item no Cardápio</button>
+        <div class="form-group">
+            <label>Nome do Item:</label>
+            <input type="text" id="comida-nome" required>
+        </div>
+        <div class="form-group">
+            <label>Descrição / Ingredientes:</label>
+            <textarea id="comida-descricao" rows="3"></textarea>
+        </div>
+        <div class="form-group">
+            <label>Preço de Venda (R$):</label>
+            <input type="number" id="comida-preco" step="0.01" required>
+        </div>
+        <div class="form-group">
+            <label>Categoria do Insumo:</label>
+            <select id="comida-categoria" required>
+                <option value="Hambúrgueres">Hambúrgueres</option>
+                <option value="Bebidas">Bebidas</option>
+                <option value="Acompanhamentos">Acompanhamentos</option>
+                <option value="Sobremesas">Sobremesas</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Foto Ilustrativa do Prato:</label>
+            <input type="file" id="comida-foto" name="foto_prato" accept="image/*" required>
+        </div>
+
+        <button type="submit" class="btn-submit">Salvar Item no Cardápio</button>
     </form>
 </div>
+
+</div><!-- /.admin-wrapper -->
 
     <script>
         // 🛡️ GUARDA DE SEGURANÇA: Bloqueia acesso direto por link sem login de Admin
@@ -299,13 +311,14 @@
             if (!container) return;
 
             if (listaDeComandas.length === 0) {
-                container.innerHTML = "<h3>🎉 Caixa limpo! Nenhuma mesa com conta aberta no momento.</h3>";
+                container.innerHTML = "<p class='sem-resultados'>🎉 Caixa limpo! Nenhuma mesa com conta aberta no momento.</p>";
                 return;
             }
 
             let tabelaHTML = `
-                <table border="1" cellpadding="10" style="width: 100%; border-collapse: collapse; margin-top: 15px; text-align: left;">
-                    <thead style="background: #eee;">
+                <div class="tabela-wrapper">
+                <table class="tabela-dados">
+                    <thead>
                         <tr>
                             <th>Mesa</th>
                             <th>Nº Comanda</th>
@@ -325,10 +338,9 @@
                         <td><strong>Mesa ${com.id_mesa}</strong></td>
                         <td>#${com.id_comanda}</td>
                         <td>${dataAbertura}</td>
-                        <td style="color: red; font-weight: bold;">R$ ${Number(com.total_gasto).toFixed(2)}</td>
+                        <td class="valor-destaque">R$ ${Number(com.total_gasto).toFixed(2)}</td>
                         <td>
-                            <button onclick="confirmarPagamentoMesa(${com.id_comanda}, ${com.id_mesa})" 
-                                    style="padding: 6px 12px; background: #28a745; color: white; border: none; font-weight: bold; cursor: pointer; border-radius: 4px;">
+                            <button onclick="confirmarPagamentoMesa(${com.id_comanda}, ${com.id_mesa})" class="btn-pill-sm btn-pill-verde">
                                 Confirmar Pagamento
                             </button>
                         </td>
@@ -336,7 +348,7 @@
                 `;
             });
 
-            tabelaHTML += "</tbody></table>";
+            tabelaHTML += "</tbody></table></div>";
             container.innerHTML = tabelaHTML;
         }
 
@@ -360,31 +372,20 @@
             .catch(erro => console.error("Erro ao fechar comanda no caixa:", erro));
         }
 
-        // 1. Função de Troca Visual entre Abas (Atualizada com a Aba de Comida!)
+        // 1. Função de Troca Visual entre Abas (mesmo padrão de classes usado no index.html)
+        const ORDEM_ABAS = ['caixa', 'cadastro-func', 'cadastro-mesa', 'monitor', 'comida'];
+
         function alternarAba(aba) {
             // Remove a classe ativa de todos os botões e painéis para limpar a tela
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            
-            // Força todos os painéis a sumirem visualmente usando display none
-            document.getElementById('panel-caixa').style.display = 'none';
-            document.getElementById('panel-cadastro-func').style.display = 'none';
-            document.getElementById('panel-cadastro-mesa').style.display = 'none';
-            document.getElementById('panel-monitor').style.display = 'none';
-            document.getElementById('panel-comida').style.display = 'none';
+            document.querySelectorAll('.form-panel').forEach(panel => panel.classList.remove('active'));
 
-            // Mostra apenas o painel clicado e ativa o botão correspondente
-            if (aba === 'caixa') {
-                document.getElementById('panel-caixa').style.display = 'block';
-            } else if (aba === 'cadastro-func') {
-                document.getElementById('panel-cadastro-func').style.display = 'block';
-            } else if (aba === 'cadastro-mesa') {
-                document.getElementById('panel-cadastro-mesa').style.display = 'block';
-            } else if (aba === 'monitor') {
-                document.getElementById('panel-monitor').style.display = 'block';
-            } else if (aba === 'comida') {
-                // 🟢 Ativa visualmente o painel de upload que criamos no Passo 1
-                document.getElementById('panel-comida').style.display = 'block';
+            // Ativa apenas o botão e o painel correspondentes à aba escolhida
+            const indice = ORDEM_ABAS.indexOf(aba);
+            if (indice > -1) {
+                document.querySelectorAll('.tab-btn')[indice].classList.add('active');
             }
+            document.getElementById('panel-' + aba).classList.add('active');
         }
 
 
@@ -467,12 +468,7 @@
         }
                 // 🧠 FUNÇÃO VISUAL: Abre e fecha a gaveta do formulário de RH (Efeito Sanfona)
         function alternarGavetaCadastroFunc() {
-            const gaveta = document.getElementById('gaveta-cadastro-func');
-            if (gaveta.style.display === 'none') {
-                gaveta.style.display = 'block';
-            } else {
-                gaveta.style.display = 'none';
-            }
+            document.getElementById('gaveta-cadastro-func').classList.toggle('oculto');
         }
 
         // 🎨 Desenhar a Tabela Dinâmica de RH (Atualizada com Botão de Resetar Senha!)
@@ -481,58 +477,32 @@
             if (!container) return;
 
             if (listaDeFuncionarios.length === 0) {
-                container.innerHTML = "<h3>🎉 RH limpo! Nenhum colaborador cadastrado no momento.</h3>";
+                container.innerHTML = "<p class='sem-resultados'>🎉 RH limpo! Nenhum colaborador cadastrado no momento.</p>";
                 return;
             }
 
-            let tabelaHTML = `
-                <table border="1" cellpadding="10" style="width: 100%; border-collapse: collapse; margin-top: 15px; text-align: left;">
-                    <thead style="background: #eee;">
-                        <tr>
-                            <th>ID</th>
-                            <th>Nome</th>
-                            <th>Login</th>
-                            <th>Cargo</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
+            let listaHTML = `<div class="gerencia-lista">`;
 
             listaDeFuncionarios.forEach(f => {
                 const idReal = f.ID || f.id;
 
-                tabelaHTML += `
-                    <tr>
-                        <td>#${idReal}</td>
-                        <td><strong>${f.nome}</strong></td>
-                        <td>${f.login}</td>
-                        <td><span style="background: #007bff; color: white; padding: 3px 8px; border-radius: 4px; font-size: 13px;">${f.cargo}</span></td>
-                        <td>
-                            <!-- ✏️ Botão Editar Dados -->
-                            <button onclick="abrirModalEdicao(${idReal}, '${f.nome}', '${f.login}', '${f.cargo}')" 
-                                    style="padding: 6px 12px; background: #ffc107; color: black; border: none; font-weight: bold; cursor: pointer; border-radius: 4px; margin-right: 5px;">
-                                ✏️ Editar
-                            </button>
-                            
-                            <!-- 🔑 NOVO BOTÃO: Chama a cortina de reset de senha -->
-                            <button onclick="abrirModalSenha(${idReal}, '${f.nome}')" 
-                                    style="padding: 6px 12px; background: #17a2b8; color: white; border: none; font-weight: bold; cursor: pointer; border-radius: 4px; margin-right: 5px;">
-                                🔑 Senha
-                            </button>
-
-                            <!-- ❌ Botão Demitir -->
-                            <button onclick="removerFuncionarioDefinitivo(${idReal})" 
-                                    style="padding: 6px 12px; background: #dc3545; color: white; border: none; font-weight: bold; cursor: pointer; border-radius: 4px;">
-                                ❌ Demitir
-                            </button>
-                        </td>
-                    </tr>
+                listaHTML += `
+                    <div class="funcionario-linha">
+                        <span class="funcionario-nome">${f.nome}</span>
+                        <span class="funcionario-separador">·</span>
+                        <span class="texto-secundario">${f.login}</span>
+                        <span class="badge-cargo">${f.cargo}</span>
+                        <div class="funcionario-acoes">
+                            <button class="acao-link" onclick="abrirModalEdicao(${idReal}, '${f.nome}', '${f.login}', '${f.cargo}')">✏️ Editar</button>
+                            <button class="acao-link" onclick="abrirModalSenha(${idReal}, '${f.nome}')">🔑 Senha</button>
+                            <button class="acao-link acao-excluir" onclick="removerFuncionarioDefinitivo(${idReal})">❌ Demitir</button>
+                        </div>
+                    </div>
                 `;
             });
 
-            tabelaHTML += "</tbody></table>";
-            container.innerHTML = tabelaHTML;
+            listaHTML += `</div>`;
+            container.innerHTML = listaHTML;
         }
 
 
@@ -545,13 +515,13 @@
             document.getElementById('edit-login-modal').value = login;
             document.getElementById('edit-cargo-modal').value = cargo;
             
-            // Exibe a cortina escura na tela
-            document.getElementById('tela-edicao-funcionario').style.display = 'block';
+            // Exibe a cortina na tela
+            document.getElementById('tela-edicao-funcionario').classList.add('modal-visivel');
         }
 
-        // 🧠 FUNÇÃO AUXILIAR: Apenas fecha a cortina escura de edição
+        // 🧠 FUNÇÃO AUXILIAR: Apenas fecha a cortina de edição
         function fecharModalEdicao() {
-            document.getElementById('tela-edicao-funcionario').style.display = 'none';
+            document.getElementById('tela-edicao-funcionario').classList.remove('modal-visivel');
         }
 
         // 💾 AÇÃO DO BOTÃO CONFIRMAR: Captura o formulário flutuante e dispara o POST de UPDATE para o MariaDB
@@ -617,11 +587,11 @@
             document.getElementById('pass-nova-modal').value = "";
             document.getElementById('pass-confirma-modal').value = "";
 
-            document.getElementById('tela-senha-funcionario').style.display = 'block';
+            document.getElementById('tela-senha-funcionario').classList.add('modal-visivel');
         }
 
         function fecharModalSenha() {
-            document.getElementById('tela-senha-funcionario').style.display = 'none';
+            document.getElementById('tela-senha-funcionario').classList.remove('modal-visivel');
         }
 
         // 🧠 FUNÇÃO NOVO COM VERIFICAÇÃO: Checa se as senhas batem antes de mandar pro banco
@@ -661,7 +631,7 @@
 
                 // 🚪 AÇÃO ADM: Logout mestre limpando as chaves locais no mesmo PC
         function fazerLogoutAdministrador() {
-            document.getElementById('tela-confirmacao-adm').style.display = 'block';
+            document.getElementById('tela-confirmacao-adm').classList.add('modal-visivel');
 
             document.getElementById('btn-adm-sim').onclick = function() {
                 // 🧹 LIMPEZA SUPREMA: Varre toda a memória do admin para não travar sessões vizinhas nos testes
@@ -672,7 +642,7 @@
             };
 
             document.getElementById('btn-adm-nao').onclick = function() {
-                document.getElementById('tela-confirmacao-adm').style.display = 'none';
+                document.getElementById('tela-confirmacao-adm').classList.remove('modal-visivel');
             };
         }
 

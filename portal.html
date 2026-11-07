@@ -4,20 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ratatue - Portal do Cliente</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    
-    <!-- 🟢 Cabeçalho com o número da mesa -->
-    <h1 id="titulo-mesa">Mesa: Carregando...</h1>
-    
-    <button onclick="solicitarGarcom()">Chamar Garçom</button>
-    <button onclick="altoatendimento()">Auto atendimento</button>
+
+    <!-- 🟢 Cartão principal do portal do cliente -->
+    <div class="portal-container">
+        <h1 id="titulo-mesa">Mesa: Carregando...</h1>
+
+        <button class="btn-garcom" onclick="solicitarGarcom()">🛎️ Chamar Garçom</button>
+        <button class="btn-autoatendimento" onclick="altoatendimento()">🍽️ Auto atendimento</button>
+    </div>
 
     <!-- 🚨 CORTINA DE ESPERA (Bloqueio Visual do Cliente Inteligente) -->
-    <div id="tela-espera" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); color: white; z-index: 9999; text-align: center; padding-top: 15%;">
-        <div style="background: #222; display: inline-block; padding: 30px; border-radius: 10px; border: 2px solid #ffc107;">
+    <div id="tela-espera" class="modal-overlay">
+        <div class="modal-caixa">
             <h2 id="status-espera-titulo">🛎️ Chamado Enviado</h2>
-            <p id="status-espera-texto" style="font-size: 18px; margin: 20px 0;">Aguardando um garçom aceitar o atendimento...</p>
+            <p id="status-espera-texto">Aguardando um garçom aceitar o atendimento...</p>
             <div id="container-botao-fechar"></div>
         </div>
     </div>
@@ -48,8 +51,8 @@
             .then(resposta => resposta.json())
             .then(dados => {
                 if (dados.sucesso) {
-                    // Ativa a cortina escura de espera de forma profissional
-                    document.getElementById('tela-espera').style.display = 'block';
+                    // Ativa a cortina de espera de forma profissional
+                    document.getElementById('tela-espera').classList.add('modal-visivel');
                     document.getElementById('status-espera-titulo').innerText = "🛎️ Chamado Enviado";
                     document.getElementById('status-espera-texto').innerText = "Aguardando um garçom aceitar o atendimento...";
                     document.getElementById('container-botao-fechar').innerHTML = ""; 
@@ -83,7 +86,7 @@
                     // 2. Injeta o botão com um ID limpo para o JavaScript gerenciar o clique de forma isolada
                     const containerBotao = document.getElementById('container-botao-fechar');
                     containerBotao.innerHTML = `
-                        <button id="btn-fechar-espera-mestre" style="padding: 10px 20px; background: #28a745; color: white; border: none; font-weight: bold; border-radius: 4px; cursor: pointer;">Ok, Entendido!</button>
+                        <button id="btn-fechar-espera-mestre" class="btn-pill-sm btn-pill-verde">Ok, Entendido!</button>
                     `;
                     
                     // 3. 🟢 O TRUQUE DO CLIQUE SEGURO: Grampeia a ação de fechar direto no botão sem depender de onclick em texto!
@@ -101,8 +104,8 @@
         function fecharTelaEspera() {
             console.log("Cortina fechada pelo cliente. Destravando portal principal...");
             
-            // 1. Esconde a cortina preta da tela mudando o estilo para 'none'
-            document.getElementById('tela-espera').style.display = 'none';
+            // 1. Esconde a cortina da tela
+            document.getElementById('tela-espera').classList.remove('modal-visivel');
             
             // 2. Trava de segurança: Desliga de vez o cronômetro para o loop não tentar atualizar elementos ocultos
             if (monitorChamadoCliente) {
@@ -117,7 +120,7 @@
             if (!mesa) return;
 
             // 🟢 LEVANTA A CORTINA IMEDIATAMENTE COMO CARREGAMENTO!
-            document.getElementById('tela-espera').style.display = 'block';
+            document.getElementById('tela-espera').classList.add('modal-visivel');
             document.getElementById('status-espera-titulo').innerText = "📖 Carregando Cardápio";
             document.getElementById('status-espera-texto').innerText = "Buscando os hambúrgueres e bebidas direto no banco de dados...";
             document.getElementById('container-botao-fechar').innerHTML = "";
@@ -146,13 +149,13 @@
 
         // 🧠 FUNÇÃO AUXILIAR: Desenhar avisos ou erros direto na cortina escura para abolir os alerts da tela!
         function mostrarAvisoCortina(titulo, texto, incluirBotaoFechar) {
-            document.getElementById('tela-espera').style.display = 'block';
+            document.getElementById('tela-espera').classList.add('modal-visivel');
             document.getElementById('status-espera-titulo').innerText = titulo;
             document.getElementById('status-espera-texto').innerText = texto;
             
             if (incluirBotaoFechar) {
                 document.getElementById('container-botao-fechar').innerHTML = `
-                    <button onclick="fecharTelaEspera()" style="padding: 10px 20px; background: #dc3545; color: white; border: none; font-weight: bold; border-radius: 4px; cursor: pointer;">Fechar</button>
+                    <button onclick="fecharTelaEspera()" class="modal-btn modal-btn-cancelar">Fechar</button>
                 `;
             }
         }

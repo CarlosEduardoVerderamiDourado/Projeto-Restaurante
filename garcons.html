@@ -4,68 +4,65 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ratatue - Painel do Garçom</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
-        .secao { margin-bottom: 40px; border-bottom: 2px solid #eee; padding-bottom: 20px; }
-        .painel-cards { display: flex; flex-wrap: wrap; gap: 15px; padding: 10px 0; }
-        .card-chamado {
-            border: 2px solid #333; border-radius: 8px; padding: 15px;
-            background-color: #fffde7; width: 220px; box-shadow: 2px 2px 10px rgba(0,0,0,0.1); text-align: center;
-        }
-        .card-entrega {
-            border: 2px solid #28a745; border-radius: 8px; padding: 15px;
-            background-color: #e8f5e9; width: 220px; box-shadow: 2px 2px 10px rgba(0,0,0,0.1); text-align: center;
-        }
-        .btn-acao { color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; }
-        .btn-azul { background-color: #007bff; } .btn-azul:hover { background-color: #0056b3; }
-        .btn-verde { background-color: #28a745; } .btn-verde:hover { background-color: #218838; }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
         <!-- 🚨 CORTINA DE CONFIRMAÇÃO VISUAL (Garante o funcionamento do botão de Sair!) -->
-    <div id="tela-confirmacao-garcom" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); color: white; z-index: 9999; text-align: center; padding-top: 15%;">
-        <div style="background: #222; display: inline-block; padding: 30px; border-radius: 10px; border: 2px solid #007bff; max-width: 400px;">
-            <h2 id="confirm-titulo" style="color: #007bff; font-size: 24px; margin: 0;">🚪 Sair do Sistema</h2>
-            <p id="confirm-texto" style="font-size: 18px; margin: 20px 0;">Deseja realmente encerrar a sua sessão de trabalho?</p>
-            <div style="display: flex; gap: 15px; justify-content: center;">
-                <button id="btn-confirm-sim" style="padding: 10px 20px; background: #28a745; color: white; border: none; font-weight: bold; border-radius: 4px; cursor: pointer;">Sim</button>
-                <button id="btn-confirm-nao" style="padding: 10px 20px; background: #dc3545; color: white; border: none; font-weight: bold; border-radius: 4px; cursor: pointer;">Não</button>
+    <div id="tela-confirmacao-garcom" class="modal-overlay">
+        <div class="modal-caixa">
+            <h2 id="confirm-titulo">🚪 Sair do Sistema</h2>
+            <p id="confirm-texto">Deseja realmente encerrar a sua sessão de trabalho?</p>
+            <div class="modal-botoes">
+                <button id="btn-confirm-sim" class="modal-btn modal-btn-confirmar">Sim</button>
+                <button id="btn-confirm-nao" class="modal-btn modal-btn-cancelar">Não</button>
             </div>
         </div>
     </div>
 
     <!-- 🚨 CORTINA DE EXTRATO (Exclusiva para o Garçom conferir a conta no Pedido de Conta) -->
-<div id="tela-extrato-garcom" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); color: white; z-index: 9999; text-align: center; padding-top: 10%;">
-    <div style="background: #222; display: inline-block; padding: 30px; border-radius: 10px; border: 2px solid #ff9800; max-width: 450px; text-align: left;">
-        <h2 style="color: #ff9800; font-size: 24px; margin: 0 0 15px 0; text-align: center;">🧾 Extrato da Comanda</h2>
-        <h3 id="extrato-mesa-titulo" style="margin: 0 0 15px 0; text-align: center;">Mesa X</h3>
-        
-        <div id="conteudo-extrato-garcom" style="background: #fff; color: #333; padding: 15px; border-radius: 6px; max-height: 250px; overflow-y: auto; margin-bottom: 20px;">
+<div id="tela-extrato-garcom" class="modal-overlay">
+    <div class="modal-caixa">
+        <h2>🧾 Extrato da Comanda</h2>
+        <h3 id="extrato-mesa-titulo">Mesa X</h3>
+
+        <div id="conteudo-extrato-garcom">
             Carregando consumo...
         </div>
 
-        <div style="display: flex; gap: 15px; justify-content: center;">
-            <button onclick="fecharExtratoGarcom()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; font-weight: bold; border-radius: 4px; cursor: pointer;">Voltar ao Salão</button>
+        <div class="modal-botoes">
+            <button onclick="fecharExtratoGarcom()" class="modal-btn modal-btn-cancelar">Voltar ao Salão</button>
         </div>
     </div>
 </div>
 
-
-
-    <h1>🛎️ Painel Operacional do Garçom</h1>
-    <button onclick="fazerLogoutGarcom()" style="padding: 6px 12px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-bottom: 20px;">🚪 Sair / Deslogar</button>
-
-    <!-- CONTAINER 1: CHAMADOS DE SOCORRO -->
-    <div class="secao">
-        <h2>🚨 Chamados de Ajuda (Mesas Solicitando Garçom)</h2>
-        <div id="container-chamados" class="painel-cards"></div>
+    <!-- 🚨 CORTINA DE AVISO (confirmação de entrega concluída) -->
+<div id="tela-aviso-garcom" class="modal-overlay">
+    <div class="modal-caixa">
+        <h2 id="aviso-titulo-garcom">Aviso</h2>
+        <p id="aviso-texto-garcom">Mensagem aqui...</p>
+        <button onclick="document.getElementById('tela-aviso-garcom').classList.remove('modal-visivel')" class="modal-btn modal-btn-confirmar">Ok, entendi</button>
     </div>
+</div>
 
-    <!-- CONTAINER 2: FILA DE PRATOS PRONTOS PARA ENTREGA -->
-    <div class="secao">
-        <h2>🍳 Fila de Entregas (Pratos Prontos na Cozinha/Bar)</h2>
-        <div id="container-entregas" class="painel-cards"></div>
+    <button onclick="fazerLogoutGarcom()" class="btn-logout">🚪 Sair</button>
+    <h1>🛎️ Painel Operacional do Garçom</h1>
+
+    <div class="painel-wrapper">
+        <!-- COLUNA 1: CHAMADOS DE SOCORRO -->
+        <div class="painel-coluna">
+            <h2 class="painel-titulo">🚨 Chamados de Ajuda</h2>
+            <div id="container-chamados" class="mesas-lista"></div>
+        </div>
+
+        <!-- COLUNA 2: FILA DE PRATOS PRONTOS PARA ENTREGA -->
+        <div class="painel-coluna">
+            <h2 class="painel-titulo">🍳 Fila de Entregas</h2>
+            <div class="status-bloco status-pronto">
+                <div class="status-titulo">Prontos na Cozinha/Bar</div>
+                <div id="container-entregas" class="status-lista"></div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -115,30 +112,24 @@
         function renderizarChamados(listaDeChamados) {
             const container = document.getElementById('container-chamados');
             container.innerHTML = "";
-            if (listaDeChamados.length === 0) { container.innerHTML = "<p>Nenhuma mesa chamando no momento.</p>"; return; }
+            if (listaDeChamados.length === 0) { container.innerHTML = "<p class='sem-resultados'>Nenhuma mesa chamando no momento.</p>"; return; }
 
             listaDeChamados.forEach(ch => {
                 const horaChamado = new Date(ch.horario_chamado);
                 const diferencaMinutos = Math.floor((new Date() - horaChamado) / 1000 / 60);
 
                 // 🟢 SEPARAÇÃO VISUAL POR STATUS DO CÓDIGO:
-                let corCard = "#fffde7"; // Amarelo clássico para ajuda comum
-                let textoTipo = "🛎️ Chamado de Ajuda";
-                let bordaCard = "2px solid #333";
-
-                // Se o status gravado pelo botão for 'Pagamento', o card muda na hora!
-                if (ch.status_chamado === 'Pagamento') {
-                    corCard = "#ffeacc"; // Laranja suave financeiro
-                    textoTipo = "💳 PEDIDO DE CONTA (Levar Maquininha)";
-                    bordaCard = "2px dashed #ff9800";
-                }
+                // (o texto "PEDIDO DE CONTA" precisa continuar presente: atenderMesa() o usa pra identificar o tipo)
+                const ehConta = ch.status_chamado === 'Pagamento';
+                const classeTipo = ehConta ? 'tipo-conta' : '';
+                const textoTipo = ehConta ? '💳 PEDIDO DE CONTA' : '🛎️ Chamado de Ajuda';
 
                 container.innerHTML += `
-                    <div class="card-chamado" style="background-color: ${corCard}; border: ${bordaCard}; text-align: center; padding: 15px; width: 220px; border-radius: 8px;">
-                        <h4 style="margin: 0 0 10px 0; color: #555; font-size: 11px; font-weight: bold; text-transform: uppercase;">${textoTipo}</h4>
-                        <h3>Mesa ${ch.id_mesa}</h3>
-                        <p>Aguardando há: <strong>${diferencaMinutos} min</strong></p>
-                        <button class="btn-acao btn-azul" onclick="atenderMesa(${ch.id_chamado}, ${ch.id_mesa})" style="padding: 8px; background: #007bff; color: white; border: none; cursor: pointer; font-weight: bold; border-radius: 4px; width: 100%;">Atender</button>
+                    <div class="mesa-atendimento-card ${classeTipo}">
+                        <span class="chamado-tipo">${textoTipo}</span>
+                        <span class="mesa-atendimento-numero">Mesa ${ch.id_mesa}</span>
+                        <span class="chamado-tempo">Aguardando há ${diferencaMinutos} min</span>
+                        <button class="btn-pill-sm" onclick="atenderMesa(${ch.id_chamado}, ${ch.id_mesa})">Atender</button>
                     </div>
                 `;
             });
@@ -157,16 +148,17 @@
         function renderizarEntregas(listaDeEntregas) {
             const container = document.getElementById('container-entregas');
             container.innerHTML = "";
-            if (listaDeEntregas.length === 0) { container.innerHTML = "<p>Nenhum prato aguardando entrega nas esteiras.</p>"; return; }
+            if (listaDeEntregas.length === 0) { container.innerHTML = "<p class='sem-resultados'>Nenhum prato aguardando entrega nas esteiras.</p>"; return; }
 
             listaDeEntregas.forEach(ent => {
                 // 🟢 CORREÇÃO: Garante o mapeamento cirúrgico de ent.id_pedido e ent.id_mesa no onclick do botão verde!
                 container.innerHTML += `
-                    <div class="card-entrega" style="border: 2px solid #28a745; border-radius: 8px; padding: 15px; background-color: #e8f5e9; width: 220px; box-shadow: 2px 2px 10px rgba(0,0,0,0.1); text-align: center; display: inline-block; margin-right: 15px;">
-                        <h3>Mesa ${ent.id_mesa}</h3>
-                        <p>Pedido: <strong>#${ent.id_pedido}</strong></p>
-                        <p style="color: green; font-weight: bold;">🍽️ PRATO PRONTO!</p>
-                        <button class="btn-acao btn-verde" onclick="finalizarEntregaMesa(${ent.id_pedido}, ${ent.id_mesa})" style="background-color: #28a745; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px;">Confirmar Entrega</button>
+                    <div class="pedido-card">
+                        <div class="pedido-cabecalho">
+                            <span class="pedido-mesa">Mesa ${ent.id_mesa} · Pedido #${ent.id_pedido}</span>
+                        </div>
+                        <p class="texto-secundario">🍽️ PRATO PRONTO!</p>
+                        <button class="btn-pill-sm btn-pill-verde" onclick="finalizarEntregaMesa(${ent.id_pedido}, ${ent.id_mesa})" style="width: 100%;">Confirmar Entrega</button>
                     </div>
                 `;
             });
@@ -183,14 +175,14 @@
             // 🟢 TRUQUE DE CÓDIGO: Descobre se o card clicado é de Pagamento olhando o texto do tipo
             const ehPedidoDeConta = cardClicado.includes("PEDIDO DE CONTA");
 
-            document.getElementById('tela-confirmacao-garcom').style.display = 'block';
+            document.getElementById('tela-confirmacao-garcom').classList.add('modal-visivel');
             document.getElementById('confirm-titulo').innerText = "🛎️ Atender Mesa " + id_mesa;
             document.getElementById('confirm-texto').innerText = ehPedidoDeConta 
                 ? `Você confirma que vai levar a maquininha e fechar a conta da Mesa ${id_mesa}?`
                 : `Você confirma que vai até o salão prestar atendimento para a Mesa ${id_mesa}?`;
 
             document.getElementById('btn-confirm-sim').onclick = function() {
-                document.getElementById('tela-confirmacao-garcom').style.display = 'none';
+                document.getElementById('tela-confirmacao-garcom').classList.remove('modal-visivel');
 
                 fetch("http://localhost:3000/api/garcons/aceitar-chamado", {
                     method: "POST",
@@ -215,7 +207,7 @@
             };
 
             document.getElementById('btn-confirm-nao').onclick = function() {
-                document.getElementById('tela-confirmacao-garcom').style.display = 'none';
+                document.getElementById('tela-confirmacao-garcom').classList.remove('modal-visivel');
             };
         }
 
@@ -223,7 +215,7 @@
         function buscarEExibirExtratoMesa(id_mesa) {
             const containerExtrato = document.getElementById('conteudo-extrato-garcom');
             document.getElementById('extrato-mesa-titulo').innerText = "Mesa " + id_mesa;
-            document.getElementById('tela-extrato-garcom').style.display = 'block';
+            document.getElementById('tela-extrato-garcom').classList.add('modal-visivel');
             containerExtrato.innerHTML = "<p>Carregando comanda...</p>";
 
             // Puxa a mesma rota de faturamento que o cliente usa!
@@ -232,21 +224,21 @@
             .then(dados => {
                 if (dados.sucesso) {
                     if (!dados.itens_consumidos || dados.itens_consumidos.length === 0) {
-                        containerExtrato.innerHTML = "<p style='color: red;'>Nenhum item consumido nesta comanda ainda.</p>";
+                        containerExtrato.innerHTML = "<p class='sem-resultados'>Nenhum item consumido nesta comanda ainda.</p>";
                         return;
                     }
 
-                    let listaHTML = "<ul style='padding-left: 20px; margin: 0;'>";
+                    let listaHTML = "<ul class='extrato-lista'>";
                     dados.itens_consumidos.forEach(item => {
-                        listaHTML += `<li style='margin-bottom: 8px;'><strong>${item.quantidade_total}x</strong> ${item.nome_item || item.nome} - R$ ${Number(item.subtotal_item).toFixed(2)}</li>`;
+                        listaHTML += `<li><strong>${item.quantidade_total}x</strong> ${item.nome_item || item.nome} - R$ ${Number(item.subtotal_item).toFixed(2)}</li>`;
                     });
                     listaHTML += "</ul>";
                     
                     // Mostra o total destacado pro garçom digitar na maquininha
                     listaHTML += `
-                        <div style='margin-top: 15px; padding-top: 10px; border-top: 2px solid #333; text-align: center;'>
-                            <p style='font-size: 18px; margin: 0;'>Total da Conta:</p>
-                            <h3 style='color: #d9534f; margin: 5px 0 0 0; font-size: 24px;'>R$ ${Number(dados.total_geral).toFixed(2)}</h3>
+                        <div class="extrato-total">
+                            <p>Total da Conta:</p>
+                            <strong>R$ ${Number(dados.total_geral).toFixed(2)}</strong>
                         </div>
                     `;
                     containerExtrato.innerHTML = listaHTML;
@@ -254,12 +246,12 @@
             })
             .catch(erro => {
                 console.error("Erro ao buscar extrato para o garçom:", erro);
-                containerExtrato.innerHTML = "<p style='color: red;'>Erro ao carregar os valores da comanda.</p>";
+                containerExtrato.innerHTML = "<p class='sem-resultados'>Erro ao carregar os valores da comanda.</p>";
             });
         }
 
         function fecharExtratoGarcom() {
-            document.getElementById('tela-extrato-garcom').style.display = 'none';
+            document.getElementById('tela-extrato-garcom').classList.remove('modal-visivel');
             carregarDadosSalao(); // Atualiza o salão limpo
         }
                 // 🏃‍♂️ AÇÃO B: Dar baixa na entrega de comida (Disparada pelo botão verde clicável)
@@ -275,7 +267,7 @@
             .then(dados => {
                 if (dados.sucesso) {
                     // Exibe a cortina estilizada de aviso do garçom em vez de alert cinza
-                    document.getElementById('tela-aviso-garcom').style.display = 'block';
+                    document.getElementById('tela-aviso-garcom').classList.add('modal-visivel');
                     document.getElementById('aviso-titulo-garcom').innerText = "🍽️ Pedido Entregue";
                     document.getElementById('aviso-texto-garcom').innerHTML = `O pedido <strong>#${id_pedido}</strong> foi entregue com sucesso na Mesa ${id_mesa}!`;
                     
@@ -290,8 +282,8 @@
 
         // 🚪 AÇÃO C: Fazer Logout com Limpeza Suprema de Memória
         function fazerLogoutGarcom() {
-            // Abre o painel preto que adicionamos no Passo 1
-            document.getElementById('tela-confirmacao-garcom').style.display = 'block';
+            // Abre a cortina de confirmação
+            document.getElementById('tela-confirmacao-garcom').classList.add('modal-visivel');
             document.getElementById('confirm-titulo').innerText = "🚪 Sair do Sistema";
             document.getElementById('confirm-texto').innerText = "Deseja realmente encerrar a sua sessão de trabalho e limpar o histórico de mesas deste aparelho?";
 
@@ -307,7 +299,7 @@
 
             // Configura o botão do NÃO para apenas fechar a janela
             document.getElementById('btn-confirm-nao').onclick = function() {
-                document.getElementById('tela-confirmacao-garcom').style.display = 'none';
+                document.getElementById('tela-confirmacao-garcom').classList.remove('modal-visivel');
             };
         }
 
