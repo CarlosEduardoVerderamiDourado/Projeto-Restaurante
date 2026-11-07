@@ -1,62 +1,92 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../database');
-const bcrypt = require('bcrypt'); // 🟢 INJEÇÃO DE SEGURANÇA: Importa o motor de criptografia
+const bcrypt = require('bcrypt'); // 🟢 Importa o motor de criptografia
 
 // ==========================================
-// ROTA 1: LOGIN DE FUNCIONÁRIOS (Com Verificação de Criptografia)
+// ROTA 1 BLINDADA: LOGIN INTELIGENTE (Com Rastreio de Texto do Front)
 // ==========================================
 router.post('/login', (req, res) => {
     const { usuario, senha } = req.body;
 
-    console.log("Recebendo tentativa de login com criptografia...");
+    // 🟢 LINHA DE AUDITORIA CRUCIAL: Mostra no terminal preto exatamente o que o front enviou!
+    console.log(`🔐 API AUTH: Tentativa para [${usuario}] | Senha recebida do Front: [${senha}]`);
     
-    // Puxamos o registro buscando puramente pelo login
-    const querySQL = "SELECT ID, nome, cargo, senha AS senha_criptografada FROM funcionarios WHERE login = ?";
+    const querySQL = "SELECT ID, nome, cargo, senha FROM funcionarios WHERE login = ?";
 
     db.query(querySQL, [usuario], (err, results) => {
         if (err) {
-            console.error('❌ Erro no banco de dados:', err.message);
+            console.error('❌ Erro fatal no banco de dados:', err.message);
             return res.status(500).json({ erro: 'Erro interno no servidor' });
         }
 
-        if (results.length > 0) {
-            const funcionario = results[0];
-
-            // 🔐 COMPARAÇÃO CRUCIAL: O bcrypt compara a senha digitada com o hash criptografado do banco
-            bcrypt.compare(senha, funcionario.senha_criptografada, (errCompare, hashBateu) => {
-                if (errCompare) {
-                    return res.status(500).json({ erro: 'Erro ao validar chaves de segurança' });
-                }
-
-                if (hashBateu) {
-                    console.log(`🟢 LOGIN COM SUCESSO: ${funcionario.nome} autenticado!`);
-                    return res.json({
-                        sucesso: true,
-                        mensagem: `Bem-vindo, ${funcionario.nome}!`,
-                        id_funcionario: funcionario.ID,
-                        cargo: funcionario.cargo
-                    });
-                } else {
-                    return res.status(401).json({ sucesso: false, mensagem: 'Usuário ou senha inválidos.' });
-                }
-            });
-        } else {
+        if (!results || results.length === 0) {
+            console.warn(`❌ LOGIN NEGADO: Usuário [${usuario}] não existe no banco.`);
             return res.status(401).json({ sucesso: false, mensagem: 'Usuário ou senha inválidos.' });
         }
+
+        const funcionario = results[0];
+        const idFuncionarioReal = funcionario.ID || funcionario.id;
+        const cargoReal = funcionario.cargo || funcionario.CARGO;
+        const nomeReal = funcionario.nome || funcionario.NOME;
+        const senhaDoBanco = funcionario.senha || funcionario.SENHA;
+
+        // 🛡️ 1º TESTE: Verifica se a senha bate usando a criptografia Bcrypt padrão
+        bcrypt.compare(senha, senhaDoBanco, (errCompare, hashBateu) => {
+            
+            if (!errCompare && hashBateu) {
+                console.log(`🟢 LOGIN SUCESSO: ${nomeReal} autenticado via Hash.`);
+                return res.json({
+                    sucesso: true,
+                    mensagem: `Bem-vindo, ${nomeReal}!`,
+                    id_funcionario: idFuncionarioReal,
+                    cargo: cargoReal
+                });
+            }
+
+            // ⚠️ 2º TESTE (AUTO-CONVERSÃO): Se o hash falhou, checa se a senha digitada é igual ao texto limpo do banco
+            if (senha === senhaDoBanco) {
+                console.log(`⚠️ ALERTA: Senha em texto limpo detectada para ${nomeReal}. Iniciando auto-conversão...`);
+
+                const saltRounds = 10;
+                bcrypt.hash(senha, saltRounds, (errHash, hashCriptografado) => {
+                    if (errHash) {
+                        return res.status(500).json({ erro: 'Erro ao processar segurança' });
+                    }
+
+                    const queryUpdate = "UPDATE funcionarios SET senha = ? WHERE ID = ?";
+                    db.query(queryUpdate, [hashCriptografado, idFuncionarioReal], (errUp) => {
+                        if (errUp) {
+                            console.error("❌ Erro ao auto-criptografar senha:", errUp.message);
+                        } else {
+                            console.log(`✅ SUCESSO: A senha de ${nomeReal} foi criptografada e salva no MariaDB!`);
+                        }
+                    });
+                });
+
+                return res.json({
+                    sucesso: true,
+                    mensagem: `Bem-vindo, ${nomeReal}! (Sua conta foi atualizada para a nova segurança)`,
+                    id_funcionario: idFuncionarioReal,
+                    cargo: cargoReal
+                });
+            }
+
+            console.warn(`❌ LOGIN NEGADO: Senha incorreta para o usuário [${usuario}].`);
+            return res.status(401).json({ sucesso: false, mensagem: 'Usuário ou senha inválidos.' });
+        });
     }); 
 });
 
 // ==========================================
-// ROTA 2: CADASTRAR FUNCIONÁRIO (Gerando Hash da Senha)
+// ROTA 2: CADASTRAR FUNCIONÁRIO (Gerando Hash)
 // ==========================================
 router.post('/cadastrar', (req, res) => {
     const { nome, login, senha, cargo } = req.body;
     console.log(`👤 ADM tentando cadastrar o funcionário: ${nome} (${cargo})...`);
 
-    const saltRounds = 10; // Fator de complexidade da criptografia
+    const saltRounds = 10; 
 
-    // 🔐 GERAÇÃO DO HASH: Embaralha a senha antes de mandar para o INSERT do MariaDB
     bcrypt.hash(senha, saltRounds, (errHash, hashCriptografado) => {
         if (errHash) {
             console.error("Erro ao gerar hash da senha:", errHash);
@@ -75,7 +105,7 @@ router.post('/cadastrar', (req, res) => {
 });
 
 // ==========================================
-// ROTA 5: RESETAR SENHA (Atualizando com nova Criptografia)
+// ROTA 5: RESETAR SENHA (Com Criptografia)
 // ==========================================
 router.post('/resetar-senha', (req, res) => {
     const { id_func, nova_senha } = req.body;
@@ -87,7 +117,6 @@ router.post('/resetar-senha', (req, res) => {
 
     const saltRounds = 10;
 
-    // 🔐 GERAÇÃO DO NOVO HASH: Garante que a senha resetada também nasça criptografada
     bcrypt.hash(nova_senha, saltRounds, (errHash, hashCriptografado) => {
         if (errHash) return res.status(500).json({ erro: "Erro ao criptografar nova senha" });
 
@@ -102,7 +131,6 @@ router.post('/resetar-senha', (req, res) => {
     });
 });
 
-// (As rotas /listar-todos e /editar continuam as mesmas de RH abaixo...)
 router.get('/listar-todos', (req, res) => {
     const querySQL = "SELECT ID, nome, login, cargo FROM funcionarios ORDER BY ID ASC";
     db.query(querySQL, [], (err, results) => {
