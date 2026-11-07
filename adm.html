@@ -410,23 +410,44 @@
             .catch(erro => console.error("Erro ao cadastrar funcionário:", erro));
         }
 
-        // 3. 🟢 COMPLEMENTADO: Ação de Salvar Nova Mesa no Banco via Fetch
+        // 3. Ação de cadastrar uma mesa no backend
         function cadastrarMesa(event) {
             event.preventDefault();
-            const numero_mesa = document.getElementById('mesa-numero').value;
+
+            const inputMesa = document.getElementById('mesa-numero')
+                || document.getElementById('numero-mesa-input')
+                || document.querySelector('input[type="number"]');
+
+            if (!inputMesa || !inputMesa.value.trim()) {
+                alert("⚠️ Por favor, digite o número da mesa antes de clicar em adicionar!");
+                return;
+            }
+
+            const numero_mesa = inputMesa.value.trim();
+            console.log("🚀 Enviando para o backend o número de mesa:", numero_mesa);
 
             fetch("http://localhost:3000/api/mesas/cadastrar", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ numero_mesa })
             })
-            .then(res => res.json())
-            .then(dados => {
-                alert(dados.mensagem || dados.erro);
-                if (dados.sucesso) event.target.reset();
-            })
-            .catch(erro => console.error("Erro ao cadastrar nova mesa:", erro));
+                .then(res => res.json())
+                .then(dados => {
+                    console.log("Resposta recebida do servidor de mesas:", dados);
+                    if (dados.sucesso) {
+                        alert(dados.mensagem);
+                        event.target.reset();
+                        if (typeof carregarListaMesas === 'function') carregarListaMesas();
+                    } else {
+                        alert("❌ Erro: " + (dados.erro || "Falha ao processar cadastro no banco."));
+                    }
+                })
+                .catch(erro => {
+                    console.error("❌ Erro ao cadastrar nova mesa:", erro);
+                    alert("❌ Não foi possível conectar ao servidor de mesas.");
+                });
         }
+
 
                 // 🍔 AÇÃO GERENCIAL: Compacta o formulário e envia o arquivo de imagem via FormData
         function cadastrarProduto(event) {
