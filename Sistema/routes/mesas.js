@@ -67,7 +67,7 @@ router.post('/ativar', (req, res) => {
         if(results.length > 0 ){
             return res.json({
                 sucesso: true,
-                mensagem: `Mesa conectada`,
+                mensagem: `Mesa connected`,
             });
         } else {
             return res.status(401).json({
@@ -148,7 +148,7 @@ router.get('/verificar-comanda/:mesa', (req, res) => {
 
     db.query(querySQL, [mesa], (err, results) => {
         if (err) {
-            console.error("❌ Erro ao verificar comanda ativa:", err.message);
+            console.error("❌ Erro ao verficar comanda ativa:", err.message);
             return res.status(500).json({ erro: "Erro ao verificar status da mesa" });
         }
 
@@ -162,21 +162,39 @@ router.get('/verificar-comanda/:mesa', (req, res) => {
     });
 });
 
-// 🪑 ROTA: Administrador cadastra uma nova mesa no salão
+// =========================================================
+// 🪑 6. ROTA COMPLETA BLINDADA: Cadastra a mesa injetando a senha_gerente!
+// =========================================================
 router.post('/cadastrar', (req, res) => {
-    const { numero_mesa, senha_gerente } = req.body;
-    console.log(`🪑 ADM tentando cadastrar a Mesa Número ${numero_mesa}...`);
+    const { numero_mesa } = req.body;
+    console.log(`➕ API ADM: Recebida ordem para gravar a Mesa física [${numero_mesa}] no MariaDB`);
 
-    // Toda mesa nasce com o status padrão 'Livre'
+    if (!numero_mesa || numero_mesa === "") {
+        return res.status(400).json({ sucesso: false, erro: "O número da mesa não foi recebido pelo backend." });
+    }
+
+    // Gera uma senha numérica rotativa de 4 dígitos para ativação
+    const senhaGerenteAutomatica = Math.floor(1000 + Math.random() * 9000);
     const querySQL = "INSERT INTO mesas (id_mesa, status_mesa, senha_gerente) VALUES (?, 'Livre', ?)";
-    db.query(querySQL, [numero_mesa, senha_gerente], (err, results) => {
+
+    db.query(querySQL, [numero_mesa, senhaGerenteAutomatica], (err, results) => {
         if (err) {
-            console.error("❌ Erro ao cadastrar nova mesa:", err.message);
-            return res.status(500).json({ erro: "Este número de mesa já existe ou o comando falhou." });
+            console.error("❌ ERRO REAL DE EXECUÇÃO NO MARIADB:", err.message);
+
+            if (err.code === 'ER_DUP_ENTRY' || err.errno === 1062) {
+                return res.status(400).json({ sucesso: false, erro: `A Mesa #${numero_mesa} já existe cadastrada no salão!` });
+            }
+            return res.status(500).json({ sucesso: false, erro: `Falha na query: ${err.message}` });
         }
-        return res.json({ sucesso: true, mensagem: `Mesa ${numero_mesa} adicionada ao salão com sucesso!` });
+
+        console.log(`✅ SUCESSO: Mesa #${numero_mesa} gravada com a senha de ativação [${senhaGerenteAutomatica}]!`);
+        return res.json({
+            sucesso: true,
+            mensagem: `Mesa #${numero_mesa} adicionada com sucesso! Senha de Ativação Gerencial: ${senhaGerenteAutomatica}`
+        });
     });
 });
+
 
 // 🧾 ROTA A: Listar todas as comandas abertas com o valor total gasto por cada mesa
 router.get('/comandas-abertas', (req, res) => {
@@ -223,30 +241,31 @@ router.post('/fechar-comanda', (req, res) => {
         // 2. Segundo UPDATE: Devolve o status da mesa física para Livre
         const queryLiberarMesa = "UPDATE mesas SET status_mesa = 'Livre' WHERE id_mesa = ?";
         
-        db.query(queryLiberarMesa, [id_mesa], (err, results) => {
-            if (err) {
-                console.error("❌ Erro ao liberar mesa física:", err.message);
-                return res.status(500).json({ erro: "A comanda foi paga, mas a mesa falhou ao ser liberada." });
-            }
+       db.query(queryLiberarMesa, [id_mesa], (err, results) => {
+        if (err) {
+            console.error("❌ Erro ao liberar mesa física:", err.message);
+            return res.status(500).json({ erro: "A comanda foi paga, mas a mesa falhou ao ser liberada." });
+        }
 
-            // MÁGICA: No segundo exato em que esse JSON abaixo responder sucesso, 
-            // a trava invisível que fizemos ontem no 'cardapio.html' vai ler a liberação,
-            // vai avisar o cliente na tela e vai expulsar o tablet de volta para o login!
+                        // 🟢 FIÇÃO CORRIGIDA: Uso estrito de crases ( ` ) para a variável ${id_mesa} funcionar sem dar SyntaxError!
             return res.json({ 
                 sucesso: true, 
                 mensagem: `Mesa ${id_mesa} encerrada e liberada com sucesso!` 
             });
+
         });
     });
 });
 
-// 📑 ROTA BACKEND: Caixa consulta os valores acumulados para emitir a nota fiscal
+// 📑 ROTA BACKEND CORRIGIDA: Caixa consulta os valores acumulados incluindo o id_comanda de forma explícita!
 router.get('/consultar-fechamento/:mesa', (req, res) => {
     const { mesa } = req.params;
     console.log(`💰 Caixa consultando extrato de encerramento da Mesa ${mesa}...`);
 
+    // 🟢 MÁGICA RECONSTRUÍDA: Adicionado com.id_comanda no SELECT e no GROUP BY para o Caixa conseguir ler!
     const querySQL = `
         SELECT 
+            com.id_comanda,
             c.id_item,
             c.nome_item,
             SUM(pi.quantidade) AS quantidade_total,
@@ -256,7 +275,7 @@ router.get('/consultar-fechamento/:mesa', (req, res) => {
         INNER JOIN pedidos_itens pi ON com.id_comanda = pi.id_comanda
         INNER JOIN cardapio c ON pi.id_produto = c.id_item
         WHERE com.id_mesa = ? AND com.status_comanda = 'Aberta'
-        GROUP BY c.id_item, c.nome_item, pi.preco_unitario_pago
+        GROUP BY com.id_comanda, c.id_item, c.nome_item, pi.preco_unitario_pago
     `;
 
     db.query(querySQL, [mesa], (err, results) => {
@@ -270,6 +289,7 @@ router.get('/consultar-fechamento/:mesa', (req, res) => {
             totalGeralAcumulado += Number(linha.subtotal_item);
         });
 
+        // Agora results[0].id_comanda existe fisicamente vindo do SELECT do banco!
         return res.json({
             sucesso: true,
             id_comanda: results.length > 0 ? results[0].id_comanda : null,
@@ -284,7 +304,6 @@ router.post('/encerrar-comanda', (req, res) => {
     const { mesa } = req.body;
     console.log(`🛑 Caixa processando encerramento financeiro da Mesa ${mesa}...`);
 
-    // Inicia um bloco de queries síncronas para garantir consistência relacional
     const fecharComandaSQL = "UPDATE comandas SET status_comanda = 'Paga' WHERE id_mesa = ? AND status_comanda = 'Aberta'";
     const arquivarChamadosSQL = "UPDATE chamados_atendimento SET status_chamado = 'Atendido' WHERE id_mesa = ? AND status_chamado = 'Pagamento'";
 
@@ -294,7 +313,6 @@ router.post('/encerrar-comanda', (req, res) => {
             return res.status(500).json({ erro: "Erro ao encerrar comanda no banco" });
         }
 
-        // Limpa a esteira do garçom, arquivando a solicitação de maquininha que já foi paga
         db.query(arquivarChamadosSQL, [mesa], (err) => {
             if (err) {
                 console.error("❌ Erro ao arquivar chamados de pagamento:", err.message);
