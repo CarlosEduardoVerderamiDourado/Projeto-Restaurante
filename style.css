@@ -53,9 +53,7 @@ h1, h2, h3 {
     text-align: left;
 }
 
-/* ===========================================================
-   Container principal (index.html - login/autenticação)
-   =========================================================== */
+/*Container principal */
 
 .container {
     background: var(--branco);
@@ -75,6 +73,7 @@ h1, h2, h3 {
 }
 
 /* Abas */
+
 .tabs {
     display: flex;
     justify-content: center;
@@ -110,6 +109,7 @@ h1, h2, h3 {
 }
 
 /* Formulários */
+
 .form-panel {
     display: none;
     flex-direction: column;
@@ -184,9 +184,7 @@ h1, h2, h3 {
     transform: translateY(0);
 }
 
-/* ===========================================================
-   Portal (portal.html)
-   =========================================================== */
+/* Portal*/
 
 .portal-container {
     background: var(--branco);
@@ -262,9 +260,7 @@ h1, h2, h3 {
     background: linear-gradient(135deg, var(--cor-secundaria), var(--cor-sclaro));
 }
 
-/* ===========================================================
-   Cardápio (cardapio.html)
-   =========================================================== */
+/* Cardapio */
 
 #mesa-display {
     font-size: 1.6rem;
@@ -399,7 +395,6 @@ h1, h2, h3 {
     transform: translateY(-2px);
 }
 
-/* Resumo do carrinho */
 #resumo-carrinho {
     width: 100%;
     max-width: 500px;
@@ -450,9 +445,7 @@ h1, h2, h3 {
     }
 }
 
-/* ===========================================================
-   Painel da Cozinha (painel-cozinha.html)
-   =========================================================== */
+/* Painel da cozinha */
 
 body:has(.painel-wrapper) {
     align-items: flex-start;
@@ -491,14 +484,12 @@ body:has(.painel-wrapper) {
     margin-bottom: 4px;
 }
 
-/* Grade dos blocos de status: 2 por linha, altura livre conforme conteúdo */
 .status-grade {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 18px;
 }
 
-/* Blocos de status (Espera / Preparo / Atraso / Pronto) */
 .status-bloco {
     border-radius: 22px;
     padding: 16px;
@@ -521,7 +512,6 @@ body:has(.painel-wrapper) {
     gap: 10px;
 }
 
-/* Cores de cada status */
 .status-espera {
     background: var(--creme);
     border: 2px solid #e6d9c8;
@@ -558,7 +548,6 @@ body:has(.painel-wrapper) {
     color: #1b4332;
 }
 
-/* Cards de pedido dentro dos blocos de status */
 .pedido-card {
     background: var(--branco);
     border-radius: 14px;
@@ -594,7 +583,6 @@ body:has(.painel-wrapper) {
     text-align: left;
 }
 
-/* Cards de mesas solicitando atendimento */
 .mesas-lista {
     display: flex;
     flex-direction: column;
@@ -617,8 +605,6 @@ body:has(.painel-wrapper) {
     color: var(--cor-pescuro);
 }
 
-/* Estado de exemplo: dados fictícios exibidos com opacidade reduzida
-   até que existam pedidos/chamados reais */
 .exemplo {
     opacity: 0.35;
     pointer-events: none;
@@ -634,9 +620,7 @@ body:has(.painel-wrapper) {
     }
 }
 
-/* ===========================================================
-   Gerência de Funcionários (gerencia-funcionarios.html)
-   =========================================================== */
+/* Gerência de funcionários*/
 
 body:has(.gerencia-wrapper) {
     align-items: flex-start;
@@ -652,7 +636,6 @@ body:has(.gerencia-wrapper) {
     align-items: stretch;
 }
 
-/* Conteúdo principal (lista + pesquisa) */
 .gerencia-conteudo {
     flex: 1;
     display: flex;
@@ -781,7 +764,6 @@ body:has(.gerencia-wrapper) {
     padding: 40px 0;
 }
 
-/* Barra de pesquisa */
 .pesquisa-barra {
     border: 2px solid var(--cor-secundaria);
     border-radius: 16px;
@@ -802,7 +784,6 @@ body:has(.gerencia-wrapper) {
     outline: none;
 }
 
-/* Menu lateral */
 .gerencia-menu {
     width: 180px;
     flex-shrink: 0;
@@ -850,7 +831,6 @@ body:has(.gerencia-wrapper) {
     background: linear-gradient(135deg, var(--cor-primaria), var(--cor-secundaria));
 }
 
-/* Modal de confirmação de exclusão */
 .modal-overlay {
     display: none;
     position: fixed;
@@ -937,10 +917,6 @@ body:has(.gerencia-wrapper) {
     }
 }
 
-/* ===========================================================
-   Botão pílula pequeno (ações secundárias em vários painéis)
-   =========================================================== */
-
 .btn-pill-sm {
     padding: 8px 18px;
     border: none;
@@ -960,15 +936,9 @@ body:has(.gerencia-wrapper) {
     box-shadow: 0 10px 18px var(--sombra);
 }
 
-/* Variante verde: usada em confirmações de entrega/pronto */
 .btn-pill-sm.btn-pill-verde {
     background: linear-gradient(135deg, #52b788, #2e9e5b);
 }
-
-/* ===========================================================
-   Cardápio — seletor de quantidade e botão de adicionar
-   (complementa a seção "Cardápio" mais acima)
-   =========================================================== */
 
 .seletor-qtd {
     display: flex;
@@ -1012,7 +982,6 @@ body:has(.gerencia-wrapper) {
     width: 100%;
 }
 
-/* Notificação flutuante de sucesso (cardápio) */
 .notificacao-flutuante {
     position: fixed;
     top: 20px;
@@ -1032,7 +1001,6 @@ body:has(.gerencia-wrapper) {
     to { transform: translateY(0); opacity: 1; }
 }
 
-/* Resumo do carrinho: os dois botões de ação lado a lado */
 .resumo-acoes {
     display: flex;
     gap: 10px;
@@ -1071,13 +1039,6 @@ body:has(.gerencia-wrapper) {
     color: var(--cor-primaria);
 }
 
-/* ===========================================================
-   Painéis operacionais (cozinha.html, bar.html) — status extra
-   Complementa .status-espera / .status-preparo / .status-atraso /
-   .status-pronto já existentes com o 4º estado "apressar"
-   =========================================================== */
-
-/* Cards de pedido clicáveis (avançam de status ao clicar) */
 .pedido-card[onclick] {
     cursor: pointer;
     transition: transform 0.15s ease;
@@ -1095,11 +1056,6 @@ body:has(.gerencia-wrapper) {
 .status-apressar .status-titulo {
     color: #a85700;
 }
-
-/* ===========================================================
-   Painel do Garçom (garcons.html, garcom.html) — chamados
-   Complementa .mesas-lista / .mesa-atendimento-card já existentes
-   =========================================================== */
 
 .mesa-atendimento-card {
     flex-direction: column;
@@ -1127,10 +1083,6 @@ body:has(.gerencia-wrapper) {
     font-size: 0.85rem;
     color: #6b4a3a;
 }
-
-/* ===========================================================
-   Painel Administrativo (adm.html)
-   =========================================================== */
 
 body:has(.admin-wrapper) {
     align-items: flex-start;
@@ -1173,7 +1125,6 @@ body:has(.admin-wrapper) {
     margin-bottom: 6px;
 }
 
-/* Gaveta de cadastro (formulários recolhíveis) */
 .gaveta-cadastro {
     background: var(--creme);
     border: 2px solid #ffd9b3;
@@ -1188,7 +1139,6 @@ body:has(.admin-wrapper) {
     color: var(--cor-pescuro);
 }
 
-/* Tabela de relatórios (Caixa & Contas) */
 .tabela-wrapper {
     width: 100%;
     overflow-x: auto;
@@ -1255,7 +1205,6 @@ table.tabela-dados tbody tr:hover {
     font-size: 0.78rem;
 }
 
-/* Monitor Operacional: colunas simples reutilizando o tom do painel */
 .monitor-grade {
     display: flex;
     gap: 20px;
@@ -1293,9 +1242,7 @@ table.tabela-dados tbody tr:hover {
     }
 }
 
-/* ===========================================================
-   Logo
-   =========================================================== */
+/* Logo */
 
 body::before {
     content: "";
@@ -1307,14 +1254,11 @@ body::before {
     background: url('imagens/remy.png') center / contain no-repeat;
 }
 
-/* Espaço entre o conteúdo e o logo */
 body {
     gap: 24px;
 }
 
-/* ===========================================================
-   Rodapé
-   =========================================================== */
+/* Rodapé */
 
 .rodape-index {
     margin-top: auto;     /* fica no fim da página */

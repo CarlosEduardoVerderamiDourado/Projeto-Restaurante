@@ -3,12 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ratatue - Painel Administrativo</title>
+    <title>Remy - Painel Administrativo</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-    <!-- 🚨 CORTINA DE CONFIRMAÇÃO VISUAL DO ADM (Para o Logout Seguro) -->
 <div id="tela-confirmacao-adm" class="modal-overlay">
     <div class="modal-caixa">
         <h2 id="confirm-titulo-adm">🚪 Encerrar Sessão</h2>
@@ -20,12 +18,11 @@
     </div>
 </div>
 
-<!-- 🚨 CORTINA / JANELA FLUTUANTE DE EDIÇÃO DE FUNCIONÁRIO (Padrão Corporativo) -->
 <div id="tela-edicao-funcionario" class="modal-overlay">
     <div class="modal-caixa">
         <h2>✏️ Editar Colaborador</h2>
 
-        <!-- Campo oculto para guardar o ID do funcionário que está sendo editado -->
+        /* Campo oculto para guardar o ID do funcionário que está sendo editado */
         <input type="hidden" id="edit-id-modal">
 
         <div class="form-group">
@@ -54,13 +51,11 @@
     </div>
 </div>
 
-<!-- 🚨 CORTINA / JANELA FLUTUANTE DE RESETAR SENHA -->
 <div id="tela-senha-funcionario" class="modal-overlay">
     <div class="modal-caixa">
         <h2>🔑 Resetar Senha</h2>
         <p id="senha-nome-titulo" class="texto-secundario">Funcionário: ...</p>
 
-        <!-- Campo oculto para guardar o ID do alvo -->
         <input type="hidden" id="pass-id-modal">
 
         <div class="form-group">
@@ -83,10 +78,9 @@
 
 <div class="admin-wrapper">
     <div class="admin-cabecalho">
-        <h1>👔 QG Ratatue - Painel do Administrador</h1>
+        <h1>👔 QG Remy - Painel do Administrador</h1>
     </div>
 
-    <!-- Botões de Alternância (Abas) -->
     <div class="tabs">
         <button class="tab-btn active" onclick="alternarAba('caixa')">Caixa & Contas</button>
         <button class="tab-btn" onclick="alternarAba('cadastro-func')">Cadastrar Funcionário</button>
@@ -95,23 +89,19 @@
         <button class="tab-btn" onclick="alternarAba('comida')">🍔 Cadastrar Comida/Bebida</button>
     </div>
 
-    <!-- ABA 1: CAIXA & CONTAS -->
     <div id="panel-caixa" class="form-panel active">
         <h2>🧾 Monitoramento do Caixa</h2>
         <div id="container-caixa-contas"></div>
     </div>
 
- <!-- 👤 SEÇÃO MESTRE: CENTRAL DE RECURSOS HUMANOS -->
 <div id="panel-cadastro-func" class="form-panel">
     <div class="admin-secao-cabecalho">
         <h2>👤 Central de Gerenciamento de Funcionários</h2>
-        <!-- 🟢 O BOTÃO DE LIBERAÇÃO: Abre e fecha a gaveta do formulário dinamicamente! -->
         <button onclick="alternarGavetaCadastroFunc()" class="btn-pill-sm">
             ➕ Cadastrar Novo Colaborador
         </button>
     </div>
 
-    <!-- 📁 A GAVETA OCULTA DE CADASTRO (Só expande ao clicar no botão acima!) -->
     <div id="gaveta-cadastro-func" class="gaveta-cadastro oculto">
         <h3>📋 Formulário de Novo Registro</h3>
         <form onsubmit="cadastrarFuncionario(event)">
@@ -140,13 +130,12 @@
         </form>
     </div>
 
-    <!-- 📊 TABELA DE HISTÓRICO E REGISTROS DE COLABORADORES -->
     <h3>📋 Quadro de Funcionários Ativos</h3>
     <div id="container-tabela-funcionarios"><p class="sem-resultados">Carregando colaboradores...</p></div>
 </div>
 
 
-    <!-- ABA 3: CADASTRO DE MESAS -->
+    /* Cadastro de mesas */
     <div id="panel-cadastro-mesa" class="form-panel">
         <h2>🪑 Adicionar Nova Mesa ao Salão</h2>
         <form onsubmit="cadastrarMesa(event)">
@@ -162,7 +151,6 @@
         </form>
     </div>
 
-        <!-- ABA 4: MONITOR OPERACIONAL (OLHO DE ÁGUIA) -->
     <div id="panel-monitor" class="form-panel">
         <h2>👁️ Visão Geral do Restaurante (Cozinha & Salão)</h2>
         <div class="monitor-grade">
@@ -177,7 +165,7 @@
         </div>
     </div>
 
-    <!-- 🍔 NOVO PAINEL: CADASTRO DE PRODUTOS COM UPLOAD DE IMAGEM -->
+  /* Cadastro de produtos */
 <div id="panel-comida" class="form-panel">
     <h2>🍔 Cadastrar Novo Item no Cardápio</h2>
     <form onsubmit="cadastrarProduto(event)">
@@ -211,10 +199,9 @@
     </form>
 </div>
 
-</div><!-- /.admin-wrapper -->
+</div>
 
     <script>
-        // 🛡️ GUARDA DE SEGURANÇA: Bloqueia acesso direto por link sem login de Admin
 (function() {
     const idLogado = localStorage.getItem('id_funcionario_logado');
     const cargoLogado = localStorage.getItem('cargo');
@@ -226,33 +213,29 @@
     }
 })();
 
-        // 🔄 Polling Automático Sincronizado (Igualzinho ao Caixa!)
         window.onload = function() {
             carregarDadosCaixa();
             carregarMonitorOperacional();
-            carregarDadosFuncionarios(); // 🟢 GATILHO INJETADO: Chama a listagem de RH
+            carregarDadosFuncionarios();
             
             setInterval(() => {
                 carregarDadosCaixa();
                 carregarMonitorOperacional();
-                carregarDadosFuncionarios(); // 🔄 Atualiza o RH em segundo plano a cada 5 segundos
+                carregarDadosFuncionarios();
             }, 5000); 
         }
 
-                // 📥 Buscar a lista de funcionários ativos no Backend (Seguindo a lógica do Caixa!)
         function carregarDadosFuncionarios() {
             fetch("http://localhost:3000/api/funcionarios/listar-todos")
             .then(res => res.json())
             .then(funcionarios => {
-                renderizarTabelaFuncionarios(funcionarios); // Envia para o desenhista de tabelas
+                renderizarTabelaFuncionarios(funcionarios);
             })
             .catch(erro => console.error("Erro ao carregar dados de RH:", erro));
         }
 
-        // 👁️ FUNÇÃO MESTRE BLINDADA: Garante a extração do id_mesa vindo do JOIN do backend
         function carregarMonitorOperacional() {
-            
-            // Consome a rota Olho de Águia que possui o cruzamento relacional de tabelas
+
             fetch("http://localhost:3000/api/pedidos/monitor-geral")
             .then(res => res.json())
             .then(pedidos => {
@@ -268,18 +251,16 @@
                 
                 let html = "<ul>";
                 pedidos.forEach(p => { 
-                    // 🟢 CAPTURA CIRÚRGICA: Mapeia todas as possíveis variações de letras maiúsculas/minúsculas vindas do MariaDB
+    
                     const numeroMesaReal = p.id_mesa || p.id_Mesa || p.ID_MESA || p.id_comanda || "N/A";
                     const statusAtual = p.status_preparo || p.status_pedido || "Pendente";
 
-                    // Costura o HTML injetando a variável limpa que extraiu o número da comanda/mesa
                     html += `<li><strong>Mesa ${numeroMesaReal}:</strong> ${p.quantidade}x ${p.nome_item} (${statusAtual})</li>`; 
                 });
                 container.innerHTML = html + "</ul>";
             })
             .catch(erro => console.error("❌ Erro no monitor operacional de pedidos:", erro));
 
-            // 2. Monitor de Chamados Pendentes (Mantido original)
             fetch("http://localhost:3000/api/garcons/chamados")
             .then(res => res.json())
             .then(chamados => {
@@ -295,7 +276,6 @@
 
 
 
-        // 📥 Buscar la lista de comandas ativas no Backend
         function carregarDadosCaixa() {
             fetch("http://localhost:3000/api/mesas/comandas-abertas")
             .then(res => res.json())
@@ -305,7 +285,6 @@
             .catch(erro => console.error("Erro ao carregar dados do caixa:", erro));
         }
 
-        // 🎨 Desenhar a Tabela Dinâmica do Caixa na Tela
         function renderizarTabelaCaixa(listaDeComandas) {
             const container = document.getElementById('container-caixa-contas');
             if (!container) return;
@@ -352,11 +331,9 @@
             container.innerHTML = tabelaHTML;
         }
 
-        // 💳 Disparar a baixa definitiva de pagamento no banco
         function confirmarPagamentoMesa(id_comanda, id_mesa) {
             if (!confirm(`Deseja confirmar o recebimento do pagamento da Mesa ${id_mesa}?`)) return;
 
-            // 🟢 ALINHADO: Aponta para a nossa rota unificada de encerramento do caixa
             fetch("http://localhost:3000/api/mesas/encerrar-comanda", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -372,15 +349,12 @@
             .catch(erro => console.error("Erro ao fechar comanda no caixa:", erro));
         }
 
-        // 1. Função de Troca Visual entre Abas (mesmo padrão de classes usado no index.html)
         const ORDEM_ABAS = ['caixa', 'cadastro-func', 'cadastro-mesa', 'monitor', 'comida'];
 
         function alternarAba(aba) {
-            // Remove a classe ativa de todos os botões e painéis para limpar a tela
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.form-panel').forEach(panel => panel.classList.remove('active'));
 
-            // Ativa apenas o botão e o painel correspondentes à aba escolhida
             const indice = ORDEM_ABAS.indexOf(aba);
             if (indice > -1) {
                 document.querySelectorAll('.tab-btn')[indice].classList.add('active');
@@ -389,7 +363,6 @@
         }
 
 
-        // 2. Ação de Salvar Funcionário no Banco via Fetch
         function cadastrarFuncionario(event) {
             event.preventDefault();
             const nome = document.getElementById('func-nome').value;
@@ -400,7 +373,7 @@
             fetch("http://localhost:3000/api/funcionarios/cadastrar", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ nome, login, senha, cargo }) // 🟢 HIGIENIZADO: Removido 'senate: senha'
+                body: JSON.stringify({ nome, login, senha, cargo })
             })
             .then(res => res.json())
             .then(dados => {
@@ -410,29 +383,47 @@
             .catch(erro => console.error("Erro ao cadastrar funcionário:", erro));
         }
 
-        // 3. 🟢 COMPLEMENTADO: Ação de Salvar Nova Mesa no Banco via Fetch
         function cadastrarMesa(event) {
             event.preventDefault();
-            const numero_mesa = document.getElementById('mesa-numero').value;
+
+            const inputMesa = document.getElementById('mesa-numero')
+                || document.getElementById('numero-mesa-input')
+                || document.querySelector('input[type="number"]');
+
+            if (!inputMesa || !inputMesa.value.trim()) {
+                alert("⚠️ Por favor, digite o número da mesa antes de clicar em adicionar!");
+                return;
+            }
+
+            const numero_mesa = inputMesa.value.trim();
+            console.log("🚀 Enviando para o backend o número de mesa:", numero_mesa);
 
             fetch("http://localhost:3000/api/mesas/cadastrar", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ numero_mesa })
             })
-            .then(res => res.json())
-            .then(dados => {
-                alert(dados.mensagem || dados.erro);
-                if (dados.sucesso) event.target.reset();
-            })
-            .catch(erro => console.error("Erro ao cadastrar nova mesa:", erro));
+                .then(res => res.json())
+                .then(dados => {
+                    console.log("Resposta recebida do servidor de mesas:", dados);
+                    if (dados.sucesso) {
+                        alert(dados.mensagem);
+                        event.target.reset();
+                        if (typeof carregarListaMesas === 'function') carregarListaMesas();
+                    } else {
+                        alert("❌ Erro: " + (dados.erro || "Falha ao processar cadastro no banco."));
+                    }
+                })
+                .catch(erro => {
+                    console.error("❌ Erro ao cadastrar nova mesa:", erro);
+                    alert("❌ Não foi possível conectar ao servidor de mesas.");
+                });
         }
 
-                // 🍔 AÇÃO GERENCIAL: Compacta o formulário e envia o arquivo de imagem via FormData
-        function cadastrarProduto(event) {
-            event.preventDefault(); // Impede a página de recarregar e quebrar o fluxo assíncrono
 
-            // Usamos FormData em vez de JSON puro para trafegar o binário da imagem com segurança
+        function cadastrarProduto(event) {
+            event.preventDefault();
+
             const formData = new FormData();
             
             formData.append('nome_item', document.getElementById('comida-nome').value);
@@ -440,7 +431,6 @@
             formData.append('preco', document.getElementById('comida-preco').value);
             formData.append('categoria', document.getElementById('comida-categoria').value);
             
-            // Captura o arquivo real selecionado pelo administrador
             const inputFoto = document.getElementById('comida-foto');
             if (inputFoto.files.length > 0) {
                 formData.append('foto_prato', inputFoto.files[0]);
@@ -448,7 +438,6 @@
 
             console.log("🚀 ADM: Enviando nova comida com arquivo de mídia para o servidor Node...");
 
-            // Dispara o tráfego multipart/form-data direto para a rota do Multer
             fetch("http://localhost:3000/api/cardapio/cadastrar", {
                 method: "POST",
                 body: formData
@@ -457,8 +446,8 @@
             .then(dados => {
                 alert(dados.mensagem || dados.erro);
                 if (dados.sucesso) {
-                    event.target.reset(); // Limpa os campos e o input de arquivo na tela
-                    carregarMonitorOperacional(); // Atualiza os indicadores em segundo plano
+                    event.target.reset();
+                    carregarMonitorOperacional();
                 }
             })
             .catch(erro => {
@@ -466,12 +455,10 @@
                 alert("Não foi possível conectar ao servidor para realizar o upload da imagem.");
             });
         }
-                // 🧠 FUNÇÃO VISUAL: Abre e fecha a gaveta do formulário de RH (Efeito Sanfona)
         function alternarGavetaCadastroFunc() {
             document.getElementById('gaveta-cadastro-func').classList.toggle('oculto');
         }
 
-        // 🎨 Desenhar a Tabela Dinâmica de RH (Atualizada com Botão de Resetar Senha!)
         function renderizarTabelaFuncionarios(listaDeFuncionarios) {
             const container = document.getElementById('container-tabela-funcionarios');
             if (!container) return;
@@ -506,7 +493,6 @@
         }
 
 
-        // 🧠 FUNÇÃO COMPLEMENTADA: Captura os dados da linha clicada e abre a janela flutuante preenchida
         function abrirModalEdicao(id, nome, login, cargo) {
             console.log(`✏️ Abrindo modal de edição para o colaborador ID #${id}...`);
             
@@ -515,23 +501,19 @@
             document.getElementById('edit-login-modal').value = login;
             document.getElementById('edit-cargo-modal').value = cargo;
             
-            // Exibe a cortina na tela
             document.getElementById('tela-edicao-funcionario').classList.add('modal-visivel');
         }
 
-        // 🧠 FUNÇÃO AUXILIAR: Apenas fecha a cortina de edição
         function fecharModalEdicao() {
             document.getElementById('tela-edicao-funcionario').classList.remove('modal-visivel');
         }
 
-        // 💾 AÇÃO DO BOTÃO CONFIRMAR: Captura o formulário flutuante e dispara o POST de UPDATE para o MariaDB
         function enviarEdicaoModal() {
             const id_func = document.getElementById('edit-id-modal').value;
             const nome = document.getElementById('edit-nome-modal').value;
             const login = document.getElementById('edit-login-modal').value;
             const cargo = document.getElementById('edit-cargo-modal').value;
 
-            // Validação de segurança básica para impedir inputs vazios de corromperem o registro
             if (!nome || !login || !cargo) {
                 alert("Por favor, preencha todos os campos do colaborador antes de salvar!");
                 return;
@@ -551,8 +533,8 @@
             .then(dados => {
                 alert(dados.mensagem || "Cadastro atualizado com sucesso!");
                 if (dados.sucesso) {
-                    fecharModalEdicao(); // 🟢 Tranca a janela flutuante na hora!
-                    carregarDadosFuncionarios(); // 🔄 Atualiza a tabela ao fundo com os novos dados em tempo real!
+                    fecharModalEdicao();
+                    carregarDadosFuncionarios();
                 }
             })
             .catch(erro => {
@@ -562,8 +544,6 @@
         }
 
 
-
-        // ❌ AÇÃO DE REMOÇÃO: Dispara o DELETE para o backend dar a baixa no MariaDB
         function removerFuncionarioDefinitivo(id_func) {
             if (!confirm(`Deseja realmente remover permanentemente o funcionário #${id_func} do sistema?`)) return;
 
@@ -573,17 +553,15 @@
             .then(res => res.json())
             .then(dados => {
                 alert(dados.mensagem || dados.erro);
-                carregarDadosFuncionarios(); // Recarrega a tabela de RH na hora
+                carregarDadosFuncionarios();
             })
             .catch(erro => console.error("Erro ao remover funcionário:", erro));
         }
 
-                // 🧠 FUNÇÃO NOVO: Abre o painel de redefinição de senha limpando os campos anteriores
         function abrirModalSenha(id, nome) {
             document.getElementById('pass-id-modal').value = id;
             document.getElementById('senha-nome-titulo').innerText = "Funcionário: " + nome;
             
-            // Zera os inputs de texto para não herdar digitações passadas
             document.getElementById('pass-nova-modal').value = "";
             document.getElementById('pass-confirma-modal').value = "";
 
@@ -594,20 +572,17 @@
             document.getElementById('tela-senha-funcionario').classList.remove('modal-visivel');
         }
 
-        // 🧠 FUNÇÃO NOVO COM VERIFICAÇÃO: Checa se as senhas batem antes de mandar pro banco
         function enviarSenhaModal() {
             const id_func = document.getElementById('pass-id-modal').value;
             const nova_senha = document.getElementById('pass-nova-modal').value;
             const confirma_senha = document.getElementById('pass-confirma-modal').value;
 
-            // 🛡️ TRAVA DE VERIFICAÇÃO LOCAL: Compara as duas strings digitadas no formulário
             if (!nova_senha || !confirma_senha) {
                 alert("Por favor, preencha ambos os campos de senha!");
                 return;
             }
 
             if (nova_senha !== confirma_senha) {
-                // Barra a requisição imediatamente impedindo o tráfego de dados errados
                 alert("❌ ERRO DE VERIFICAÇÃO: As senhas digitadas não são iguais! Digite novamente.");
                 return;
             }
@@ -623,18 +598,17 @@
             .then(dados => {
                 alert(dados.mensagem || dados.erro);
                 if (dados.sucesso) {
-                    fecharModalSenha(); // Tranca o modal flutuante
+                    fecharModalSenha();
                 }
             })
             .catch(erro => console.error("Erro ao resetar senha no servidor:", erro));
         }
 
-                // 🚪 AÇÃO ADM: Logout mestre limpando as chaves locais no mesmo PC
         function fazerLogoutAdministrador() {
             document.getElementById('tela-confirmacao-adm').classList.add('modal-visivel');
 
             document.getElementById('btn-adm-sim').onclick = function() {
-                // 🧹 LIMPEZA SUPREMA: Varre toda a memória do admin para não travar sessões vizinhas nos testes
+
                 localStorage.clear(); 
                 
                 console.log("QG Administrativo fechado. Retornando à recepção...");

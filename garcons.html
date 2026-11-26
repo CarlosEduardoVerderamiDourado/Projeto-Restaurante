@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ratatue - Painel do Garçom</title>
+    <title>Remy - Painel do Garçom</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-        <!-- 🚨 CORTINA DE CONFIRMAÇÃO VISUAL (Garante o funcionamento do botão de Sair!) -->
     <div id="tela-confirmacao-garcom" class="modal-overlay">
         <div class="modal-caixa">
             <h2 id="confirm-titulo">🚪 Sair do Sistema</h2>
@@ -20,7 +19,6 @@
         </div>
     </div>
 
-    <!-- 🚨 CORTINA DE EXTRATO (Exclusiva para o Garçom conferir a conta no Pedido de Conta) -->
 <div id="tela-extrato-garcom" class="modal-overlay">
     <div class="modal-caixa">
         <h2>🧾 Extrato da Comanda</h2>
@@ -36,7 +34,6 @@
     </div>
 </div>
 
-    <!-- 🚨 CORTINA DE AVISO (confirmação de entrega concluída) -->
 <div id="tela-aviso-garcom" class="modal-overlay">
     <div class="modal-caixa">
         <h2 id="aviso-titulo-garcom">Aviso</h2>
@@ -49,13 +46,11 @@
     <h1>🛎️ Painel Operacional do Garçom</h1>
 
     <div class="painel-wrapper">
-        <!-- COLUNA 1: CHAMADOS DE SOCORRO -->
         <div class="painel-coluna">
             <h2 class="painel-titulo">🚨 Chamados de Ajuda</h2>
             <div id="container-chamados" class="mesas-lista"></div>
         </div>
 
-        <!-- COLUNA 2: FILA DE PRATOS PRONTOS PARA ENTREGA -->
         <div class="painel-coluna">
             <h2 class="painel-titulo">🍳 Fila de Entregas</h2>
             <div class="status-bloco status-pronto">
@@ -66,7 +61,6 @@
     </div>
 
     <script>
-// 🛡️ GUARDA DE SEGURANÇA IMUNE A CAIXA ALTA/BAIXA: Valida 'Garçom', 'garçom', 'GARÇOM'
 (function() {
     const idLogado = localStorage.getItem('id_funcionario_logado');
     let cargoLogado = localStorage.getItem('cargo');
@@ -74,12 +68,10 @@
     console.log("🕵️‍♂️ SEGURANÇA: Validando acesso ao salão...");
     console.log("ID na memória:", idLogado, "| Cargo na memória:", cargoLogado);
 
-    // Se o cargo veio do banco, sanitiza a string forçando ficar tudo minúsculo
     if (cargoLogado) {
         cargoLogado = cargoLogado.trim().toLowerCase();
     }
 
-    // 🟢 TRAVA INTELIGENTE: Aceita qualquer variação com ou sem acento/cedilha por segurança!
     if (!idLogado || (cargoLogado !== 'garçom' && cargoLogado !== 'garcom')) {
         console.warn("🚨 ACESSO RESTRITO: Credenciais inválidas para o painel de garçons!");
         alert("Acesso restrito! Por favor, faça login com uma conta de Garçom.");
@@ -89,7 +81,6 @@
 
 
 
-        // 🔄 Polling Automático - Sincroniza o salão inteiro a cada 5 segundos
         window.onload = function() {
             carregarDadosSalao();
             setInterval(carregarDadosSalao, 5000); 
@@ -100,7 +91,6 @@
             carregarEntregasProntas();
         }
 
-        // 📥 1. Buscar os chamados 'Pendentes'
         function carregarChamadosPendentes() {
             fetch("http://localhost:3000/api/garcons/chamados")
             .then(res => res.json())
@@ -108,7 +98,6 @@
             .catch(erro => console.error("Erro ao carregar chamados:", erro));
         }
 
-                // 🎨 Desenhar cards diferenciando AJUDA (Pendente) de CONTA (Pagamento) de forma limpa!
         function renderizarChamados(listaDeChamados) {
             const container = document.getElementById('container-chamados');
             container.innerHTML = "";
@@ -118,8 +107,6 @@
                 const horaChamado = new Date(ch.horario_chamado);
                 const diferencaMinutos = Math.floor((new Date() - horaChamado) / 1000 / 60);
 
-                // 🟢 SEPARAÇÃO VISUAL POR STATUS DO CÓDIGO:
-                // (o texto "PEDIDO DE CONTA" precisa continuar presente: atenderMesa() o usa pra identificar o tipo)
                 const ehConta = ch.status_chamado === 'Pagamento';
                 const classeTipo = ehConta ? 'tipo-conta' : '';
                 const textoTipo = ehConta ? '💳 PEDIDO DE CONTA' : '🛎️ Chamado de Ajuda';
@@ -136,7 +123,6 @@
         }
 
 
-        // 📥 2. Buscar os pratos 'Prontos' vindo da Cozinha/Bar
         function carregarEntregasProntas() {
             fetch("http://localhost:3000/api/garcons/entregas-pendentes")
             .then(res => res.json())
@@ -144,14 +130,12 @@
             .catch(erro => console.error("Erro ao carregar entregas:", erro));
         }
 
-        // 🎨 Desenhar cards de entregas de comida (Garante o clique do botão verde!)
         function renderizarEntregas(listaDeEntregas) {
             const container = document.getElementById('container-entregas');
             container.innerHTML = "";
             if (listaDeEntregas.length === 0) { container.innerHTML = "<p class='sem-resultados'>Nenhum prato aguardando entrega nas esteiras.</p>"; return; }
 
             listaDeEntregas.forEach(ent => {
-                // 🟢 CORREÇÃO: Garante o mapeamento cirúrgico de ent.id_pedido e ent.id_mesa no onclick do botão verde!
                 container.innerHTML += `
                     <div class="pedido-card">
                         <div class="pedido-cabecalho">
@@ -165,14 +149,11 @@
         }
 
 
-        // 🏃‍♂️ AÇÃO A: Aceitar Chamado com Desvio Inteligente (Ajuda -> Cardápio | Conta -> Extrato Visual)
         function atenderMesa(id_chamado, id_mesa) {
             const id_funcionario = localStorage.getItem('id_funcionario_logado');
 
-            // Vascula os chamados carregados para descobrir qual é o status desse card específico
             const cardClicado = document.getElementById('container-chamados').innerHTML;
             
-            // 🟢 TRUQUE DE CÓDIGO: Descobre se o card clicado é de Pagamento olhando o texto do tipo
             const ehPedidoDeConta = cardClicado.includes("PEDIDO DE CONTA");
 
             document.getElementById('tela-confirmacao-garcom').classList.add('modal-visivel');
@@ -192,12 +173,10 @@
                 .then(res => res.json())
                 .then(dados => {
                     if (dados.sucesso) {
-                        // 🔀 O DESVIO INTELIGENTE DE NEGÓCIO:
                         if (ehPedidoDeConta) {
-                            // 💳 CENÁRIO CONTA: Fica na tela e abre o extrato detalhado com os valores!
                             buscarEExibirExtratoMesa(id_mesa);
                         } else {
-                            // 🛎️ CENÁRIO AJUDA: Leva direto para o cardápio para tirar o novo pedido!
+
                             localStorage.setItem('id_mesa_configurada', id_mesa);
                             window.location.href = "cardapio.html"; 
                         }
@@ -211,14 +190,12 @@
             };
         }
 
-        // 🧠 FUNÇÃO NOVA: Puxa o consumo da comanda ativa direto do backend e monta na tela do garçom
         function buscarEExibirExtratoMesa(id_mesa) {
             const containerExtrato = document.getElementById('conteudo-extrato-garcom');
             document.getElementById('extrato-mesa-titulo').innerText = "Mesa " + id_mesa;
             document.getElementById('tela-extrato-garcom').classList.add('modal-visivel');
             containerExtrato.innerHTML = "<p>Carregando comanda...</p>";
 
-            // Puxa a mesma rota de faturamento que o cliente usa!
             fetch(`http://localhost:3000/api/pedidos/extrato/${id_mesa}`)
             .then(res => res.json())
             .then(dados => {
@@ -234,7 +211,6 @@
                     });
                     listaHTML += "</ul>";
                     
-                    // Mostra o total destacado pro garçom digitar na maquininha
                     listaHTML += `
                         <div class="extrato-total">
                             <p>Total da Conta:</p>
@@ -252,9 +228,9 @@
 
         function fecharExtratoGarcom() {
             document.getElementById('tela-extrato-garcom').classList.remove('modal-visivel');
-            carregarDadosSalao(); // Atualiza o salão limpo
+            carregarDadosSalao();
         }
-                // 🏃‍♂️ AÇÃO B: Dar baixa na entrega de comida (Disparada pelo botão verde clicável)
+
         function finalizarEntregaMesa(id_pedido, id_mesa) {
             console.log(`🏃‍♂️ Solicitando baixa de entrega para o Pedido #${id_pedido} na Mesa ${id_mesa}...`);
 
@@ -266,12 +242,11 @@
             .then(res => res.json())
             .then(dados => {
                 if (dados.sucesso) {
-                    // Exibe a cortina estilizada de aviso do garçom em vez de alert cinza
+
                     document.getElementById('tela-aviso-garcom').classList.add('modal-visivel');
                     document.getElementById('aviso-titulo-garcom').innerText = "🍽️ Pedido Entregue";
                     document.getElementById('aviso-texto-garcom').innerHTML = `O pedido <strong>#${id_pedido}</strong> foi entregue com sucesso na Mesa ${id_mesa}!`;
                     
-                    // 🔄 Recarrega o salão imediatamente para sumir com o card verde da tela!
                     carregarDadosSalao();
                 }
             })
@@ -280,14 +255,12 @@
 
 
 
-        // 🚪 AÇÃO C: Fazer Logout com Limpeza Suprema de Memória
         function fazerLogoutGarcom() {
-            // Abre a cortina de confirmação
+
             document.getElementById('tela-confirmacao-garcom').classList.add('modal-visivel');
             document.getElementById('confirm-titulo').innerText = "🚪 Sair do Sistema";
             document.getElementById('confirm-texto').innerText = "Deseja realmente encerrar a sua sessão de trabalho e limpar o histórico de mesas deste aparelho?";
 
-            // Configura o botão do SIM para limpar tudo e voltar pro login
             document.getElementById('btn-confirm-sim').onclick = function() {
                 localStorage.removeItem('id_funcionario_logado');
                 localStorage.removeItem('id_mesa_configurada');
@@ -297,7 +270,6 @@
                 window.location.href = "index.html";
             };
 
-            // Configura o botão do NÃO para apenas fechar a janela
             document.getElementById('btn-confirm-nao').onclick = function() {
                 document.getElementById('tela-confirmacao-garcom').classList.remove('modal-visivel');
             };

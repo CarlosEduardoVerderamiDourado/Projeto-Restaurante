@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ratatue - Painel de Controle do Bar</title>
+    <title>Remy - Painel de Controle do Bar</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<!-- 🚨 CORTINA DE CONFIRMAÇÃO VISUAL (Substitui o confirm() nativo do navegador) -->
 <div id="tela-confirmacao-bar" class="modal-overlay">
     <div class="modal-caixa">
         <h2 id="confirm-titulo">🚪 Sair do Bar</h2>
@@ -20,13 +19,11 @@
     </div>
 </div>
 
-<!-- 🚪 Botão de Logout fixo no canto superior -->
 <button onclick="fazerLogoutBar()" class="btn-logout">🚪 Sair</button>
 
-<h1>🍹 KDS Ratatue - Controle de Bebidas</h1>
+<h1>🍹 KDS Remy - Controle de Bebidas</h1>
 <p>Clique em cima de uma bebida para avançar o estado dela. (Bebidas paradas há mais de 15 min acendem alerta de atraso!)</p>
 
-<!-- O painel de status onde as bebidas vão brotar agrupadas por fase -->
 <div class="painel-wrapper">
     <div class="painel-coluna">
         <h2 class="painel-titulo">Bebidas em Produção</h2>
@@ -52,7 +49,6 @@
 </div>
 
 <script>
-    // 🛡️ GUARDA DE SEGURANÇA: Bloqueia acesso direto por link sem login de Barman
 (function() {
     const idLogado = localStorage.getItem('id_funcionario_logado');
     const cargoLogado = localStorage.getItem('cargo');
@@ -63,26 +59,22 @@
     }
 })();
 
-    // 🔄 Passo 1: Polling Automático - Sincroniza a esteira do bar a cada 5 segundos sem F5
     window.onload = function() {
         carregarPedidosBar();
         setInterval(carregarPedidosBar, 5000);
     }
 
-    // 📥 Passo 2: Buscar os dados do Backend batendo na rota exclusiva de BEBIDAS
     function carregarPedidosBar() {
         fetch("http://localhost:3000/api/pedidos/pendentes-bar")
         .then(resposta => resposta.json())
         .then(linhasDoBanco => {
             console.log("Bebidas brutas que chegaram no bar:", linhasDoBanco);
-            // Agrupa as latas e sucos soltos pelo mesmo ID do pedido
             const pedidosAgrupados = agruparItensPorPedido(linhasDoBanco);
             renderizarPainelBar(pedidosAgrupados);
         })
         .catch(erro => console.error("Erro ao atualizar painel do bar:", erro));
     }
 
-    // 🧠 Passo 3: Função auxiliar de agrupamento
     function agruparItensPorPedido(linhas) {
         const agrupados = {};
         
@@ -105,7 +97,6 @@
         return Object.values(agrupados);
     }
 
-    // 🎨 Passo 4: Renderizar os cartões agrupados por fase (Espera / Preparo / Atraso / Apressar)
     function renderizarPainelBar(pedidos) {
         const listaEspera = document.getElementById('lista-espera');
         const listaPreparo = document.getElementById('lista-preparo');
@@ -123,9 +114,9 @@
             if (diferencaMinutos < 15) {
                 balde = (pedido.status_preparo === 'Em Preparo') ? 'preparo' : 'espera';
             } else if (pedido.status_preparo === 'Pendente') {
-                balde = 'atraso'; // 🚨 Parado na fila há mais de 15min
+                balde = 'atraso';
             } else if (pedido.status_preparo === 'Em Preparo') {
-                balde = 'apressar'; // 🔥 Sucos/drinks sendo montados sob atraso
+                balde = 'apressar';
             }
 
             baldes[balde].push({ pedido, diferencaMinutos });
@@ -137,7 +128,6 @@
         montarListaDeBebidas(listaApressar, baldes.apressar, 'Tudo em dia.');
     }
 
-    // 🧠 FUNÇÃO AUXILIAR REUTILIZÁVEL: monta a lista de .pedido-card dentro de um status-lista
     function montarListaDeBebidas(elemento, itens, mensagemVazia) {
         if (!elemento) return;
         if (itens.length === 0) {
@@ -163,14 +153,13 @@
         }).join("");
     }
 
-    // 🔀 Passo 5: Gerenciar o Clique Seguro para trocar o Estado da Bebida no Banco
     function avancarStatusBebida(id_pedido, statusAtual) {
         let proximoStatus = "";
 
         if (statusAtual === 'Pendente') {
-            proximoStatus = 'Em Preparo'; // Branco/Vermelho -> Amarelo
+            proximoStatus = 'Em Preparo';
         } else if (statusAtual === 'Em Preparo') {
-            proximoStatus = 'Pronto';     // Amarelo/Laranja -> Some do bar e brota no Garçom
+            proximoStatus = 'Pronto';
         }
 
         if (!proximoStatus) return;
@@ -185,14 +174,12 @@
         .then(resposta => resposta.json())
         .then(dados => {
             if (dados.sucesso) {
-                // Sincroniza a esteira imediatamente refletindo o clique do barman
                 carregarPedidosBar();
             }
         })
         .catch(erro => console.error("Erro ao avançar status da bebida:", erro));
     }
 
-    // 🚪 AÇÃO: Fazer Logout com Limpeza Estrita de Memória
     function fazerLogoutBar() {
         document.getElementById('tela-confirmacao-bar').classList.add('modal-visivel');
         document.getElementById('confirm-titulo').innerText = "🚪 Sair do Sistema";
